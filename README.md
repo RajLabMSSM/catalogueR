@@ -4,7 +4,7 @@
 
 The following extends and build upon the APIs provided by [eQTL Catalogue](https://www.ebi.ac.uk/eqtl/) (with which I am not affiliated):  
 - [GitHub source code](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
-- **FTP Server** (ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv)  
+- **FTP Server**: *ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv*  
 - [In-depth API Documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
 
 A list of all current tabix-indexed QTL datasets is provided [here](https://github.com/RajLabMSSM/catalogueR/blob/master/resources/eQTLcatalogue_tabix_ftp_paths.tsv) (or [here]() for the original source).  
