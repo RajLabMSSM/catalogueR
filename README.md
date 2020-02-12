@@ -109,7 +109,7 @@ Download a subset of QTL summary stats directly by specifying the coordinates yo
 # Returns a data.table with the QTL summary stats subset.  
 
 gwas.qtl <- catalogueR.fetch(# Unique QTL id (<study>.<qtl_group>)
-	unique_id="Alasoo_2018.macrophage_IFNg",
+							 unique_id="Alasoo_2018.macrophage_IFNg",
 
                               # You can specify the QTL quantification method you want to use.
                               ## (options: "ge","exon", "tx","txrev","microarray")
