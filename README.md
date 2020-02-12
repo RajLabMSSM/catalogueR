@@ -66,8 +66,8 @@ The summary stats file must have the following column names (order doesn't matte
 gwas.qtl <- catalogueR.run(# Any number of summary stats files
                            sumstats_paths =
                            c("./example_data/Nalls23andMe_2019/BIN3_Nalls23andMe_2019_subset.tsv.gz",
-                           "./example_data/Nalls23andMe_2019/BST1_Nalls23andMe_2019_subset.tsv.gz",
-                           "./example_data/Nalls23andMe_2019/SNCA_Nalls23andMe_2019_subset.tsv.gz"),
+                             "./example_data/Nalls23andMe_2019/BST1_Nalls23andMe_2019_subset.tsv.gz",
+                             "./example_data/Nalls23andMe_2019/SNCA_Nalls23andMe_2019_subset.tsv.gz"),
                            
                            # Name of each locus (a vector of the same length as the sumstats_paths)  
                            # If none are supplied (NULL), names will be assigned based on the chromosomal coordinates.
@@ -103,32 +103,33 @@ Download a subset of QTL summary stats directly by specifying the coordinates yo
 ```
 # Returns a data.table with the QTL summary stats subset.  
 
-gwas.qtl <- catalogueR.fetch_tabix(unique_id="Alasoo_2018.macrophage_IFNg",
+gwas.qtl <- catalogueR.fetch(# *Unique QTL id (<study>.<qtl_group>)*
+							 unique_id="Alasoo_2018.macrophage_IFNg",
 
-                                  # You can specify the QTL quantification method you want to use.
-                                  ## (options: "ge","exon", "tx","txrev","microarray")
-                                  ## NOTE: Not all methods are available for all datasets. 
-                                  ## So if for example you select "ge" for a microarray dataset,   
-                                  ## this function will default to a method that is available for that dataset (i.e. "microarray")
-                                  quant_method="ge",
-                                  
-                                  # Set to false since you're not using the gwas_data to infer coordinates.
-                                  infer_region=F, 
-                                  
-                                  # The number of threads to use when reading in the QTL data subset
-                                  nThread = 4,
-                                   
-                                 # Tabix is about ~17x faster (default; =T) than the REST API (=F).
-                                  use_tabix = T,
-                                  
-                                 # Chromosome to query
-                                 chrom = 8,
-                                 
-                                 # Minimum basepair position of the query window
-                                 bp_lower=21527069
-                                 
-                                 # Maximum basepair position of the query window
-                                 bp_upper=23525543)
+                              # You can specify the QTL quantification method you want to use.
+                              ## (options: "ge","exon", "tx","txrev","microarray")
+                              ## NOTE: Not all methods are available for all datasets. 
+                              ## So if for example you select "ge" for a microarray dataset,   
+                              ## this function will default to a method that is available for that dataset (i.e. "microarray")
+                              quant_method="ge",
+                              
+                              # Set to false since you're not using the gwas_data to infer coordinates.
+                              infer_region=F, 
+                              
+                              # The number of threads to use when reading in the QTL data subset
+                              nThread = 4,
+                               
+                             # Tabix is about ~17x faster (default; =T) than the REST API (=F).
+                              use_tabix = T,
+                              
+                             # Chromosome to query
+                             chrom = 8,
+                             
+                             # Minimum basepair position of the query window
+                             bp_lower=21527069
+                             
+                             # Maximum basepair position of the query window
+                             bp_upper=23525543)
 ```
 
 <hr>
