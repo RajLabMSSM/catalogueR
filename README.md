@@ -24,7 +24,7 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
 
 *Command line*  
 - [tabix](http://www.htslib.org/doc/tabix.html)  
-  + Install via (conda)[https://anaconda.org/bioconda/tabix] or [source](http://www.htslib.org/download/)  
+  + Install via [conda](https://anaconda.org/bioconda/tabix) or [source](http://www.htslib.org/download/)  
 
 *R*  
 - dplyr  
