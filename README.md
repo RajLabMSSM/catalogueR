@@ -129,5 +129,11 @@ gwas.qtl <- catalogueR.fetch_tabix(unique_id="Alasoo_2018.macrophage_IFNg",
                                  bp_upper=23525543)
 ```
 
+<hr>
 
+## Author  
 
+Brian M. Schilder  
+Raj Lab  
+Icahn School of Medicine at Mount Sinai  
+New York, New York, USA  
