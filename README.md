@@ -105,7 +105,9 @@ gwas.qtl <- catalogueR.fetch_tabix(unique_id="Alasoo_2018.macrophage_IFNg",
 
                                   # You can specify the QTL quantification method you want to use.
                                   ## (options: "ge","exon", "tx","txrev","microarray")
-                                  ## NOTE: Not all methods are available for all datasets. So if for example you select "ge" for a microarray dataset, this function will default to a method that is available for that dataset (i.e. "microarray")
+                                  ## NOTE: Not all methods are available for all datasets. 
+                                  ## So if for example you select "ge" for a microarray dataset,   
+                                  ## this function will default to a method that is available for that dataset (i.e. "microarray")
                                   quant_method="ge",
                                   
                                   # Set to false since you're not using the gwas_data to infer coordinates.
