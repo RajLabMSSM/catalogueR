@@ -1,0 +1,17 @@
+variant
+type
+rsid
+ref
+r2
+pvalue
+position
+molecular_trait_object_id
+molecular_trait_id
+median_tpm
+maf
+gene_id
+chromosome
+beta
+an
+alt
+ac
