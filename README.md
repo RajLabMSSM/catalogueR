@@ -61,7 +61,7 @@ The summary stats file must have the following column names (order doesn't matte
 
 ```
 # Returns both the gwas_data you supplied and the queried QTL summary stats, 
-all merged into one data.table.  
+## all merged into one data.table.  
 
 gwas.qtl <- catalogueR.run(# Any number of summary stats files
                            sumstats_paths =
