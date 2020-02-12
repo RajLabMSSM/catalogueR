@@ -61,7 +61,7 @@ Supply one or more paths to [GWAS] summary stats files (one per locus) and autom
 <br>
 The summary stats file must have the following column names (order doesn't matter). You can have as many additional columns as you want:  
   - `SNP` (rsid for each SNP)
-  - `CHR` (chromosome)
+  - `CHR` (chromosome; with or without the "chr" prefix is fine)
   - `POS` (basepair position)
 
 ```r
@@ -109,7 +109,7 @@ Download a subset of QTL summary stats directly by specifying the coordinates yo
 # Returns a data.table with the QTL summary stats subset.  
 
 gwas.qtl <- catalogueR.fetch(# Unique QTL id (<study>.<qtl_group>)
-			unique_id="Alasoo_2018.macrophage_IFNg",
+				unique_id="Alasoo_2018.macrophage_IFNg",
 
                               # You can specify the QTL quantification method you want to use.
                               ## (options: "ge","exon", "tx","txrev","microarray")
