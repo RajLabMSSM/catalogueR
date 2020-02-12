@@ -8,7 +8,7 @@
 # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
 # GitHub: https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources
 # Table of all tabix-indexed QTL datasets:  https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/tabix/tabix_ftp_paths.tsv
-# In-depth API tutorial: https://www.ebi.ac.uk/eqtl/api-docs/
+# In-depth API documentation: https://www.ebi.ac.uk/eqtl/api-docs/
 # Tabix Instructions: https://www.ebi.ac.uk/eqtl/Data_access/
 # FTP server: ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv
 
@@ -45,8 +45,8 @@ source("./functions/general.R")
 
 # 1. List available eQTL data
 catalogueR.list_eQTL_datasets <- function(save_path="./resources",
-                                             force_new=F,
-                                             verbose=F){
+                                         force_new=F,
+                                         verbose=F){
   meta.path <- file.path(save_path,"eQTLcatalogue_tabix_ftp_paths.tsv")
   if(file.exists(meta.path) & force_new==F){
     printer("+ Importing saved metadata.",v = verbose)
@@ -55,10 +55,10 @@ catalogueR.list_eQTL_datasets <- function(save_path="./resources",
     printer("+ Downloading metadata from server.",v = verbose)
     URL <- "https://raw.githubusercontent.com/eQTL-Catalogue/eQTL-Catalogue-resources/master/tabix/tabix_ftp_paths.tsv"
     meta <- data.table::fread(URL, nThread = 4)
-    meta <-meta %>% dplyr::transmute(unique_id=paste0(study,".",qtl_group), !!!.)
+    meta <- meta %>% dplyr::transmute(unique_id=paste0(study,".",qtl_group), !!!.)
     if(save_path!=F){
       printer("Saving metadata ==>",meta.path)
-      data.table::fwrite(meta, meta.path, nThread = 4, sep="\t")
+      data.table::fwrite(meta, meta.path, sep="\t")
     }
   }
   printer(length(unique(meta$study)),"unique eQTL datasets:",v=verbose)
@@ -83,7 +83,8 @@ catalogueR.fetch_tabix <- function(unique_id,
                                       nThread=4){
   # quant_method="ge"; infer_region=T;is_gwas=F; remove_tmp=F;  add_chr=T
   # Get region
-  if(infer_region){
+  if(infer_region & !is.null(gwas_data)){
+    print("+ Inferring coordinates from gwas_data")
     chrom <- unique(gwas_data$CHR)[1]
     bp_lower <- min(gwas_data$POS)
     bp_upper <- max(gwas_data$POS)
@@ -120,34 +121,14 @@ catalogueR.fetch_tabix <- function(unique_id,
 
   # Run tabix
   # Read directly into R rather than saving tabix subset
-  tbx <- data.table::fread(cmd=paste("tabix",
+  qtl.subset <- data.table::fread(cmd=paste("tabix",
                                      # "--print-header",
                                      meta.sub$ftp_path,
                                      region),
                            nThread = nThread)
-  colnames(tbx) <- c("Locus",paste0(header,".QTL"))
-  # region_for_study_gene_data <- tbx %>%
-  #   dplyr::group_by(position) %>%
-  #   dplyr::mutate(alt_allele_count = length(alt)) %>%
-  #   dplyr::filter(alt_allele_count == 1)
-  gwas_data <- data.table::data.table(gwas_data)# %>% `colnames<-`(paste0(colnames(gwas_data),".GWAS"))
-
-  # Merging and allele flipping
-  gwas.qtl <- data.table:::merge.data.table(x = gwas_data,
-                                            y = tbx,
-                                            # all.x = T,
-                                            by.x = c("CHR","POS"), # effect_allele
-                                            by.y = c("chromosome.QTL","position.QTL") ) %>%
-    dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
-                  effect.is.alt=ifelse(A2==alt.QTL,T,F) ) %>%
-    # subset(effect.is.ref|effect.is.alt) %>%
-    data.table::data.table()
-
-  printer("eQTL_catalogue::",nrow(gwas.qtl),"QTL hits returned.")
-  # tbi <- paste0(file.path(basename(meta.sub$ftp_path)),".tbi")
-  # print(tbi)
-  # if(file.exists(tbi) & remove_tmp){ printer("Cleaning up:",tbi);file.remove(tbi)}
-  return(gwas.qtl)
+  colnames(qtl.subset) <- c("Locus",paste0(header,".QTL")) 
+  printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned.") 
+  return(qtl.subset)
 }
 
 
@@ -194,18 +175,22 @@ fetch_from_eqtl_cat_API <- function(link,
   }
   return(merged_summaries[cols_to_nest])
 }
-# ###
+
+
+
+
 catalogueR.fetch_restAPI <- function(unique_id, #Alasoo_2018.macrophage_naive
-                                         quant_method="ge",
-                                         infer_region=T,
-                                         gwas_data=NULL,
-                                         chrom=NULL,
-                                         bp_lower=NULL,
-                                         bp_upper=NULL,
-                                         is_gwas=F, # refers to the datasets being queried
-                                         size=NULL) {
+                                     quant_method="ge",
+                                     infer_region=T,
+                                     gwas_data=NULL,
+                                     chrom=NULL,
+                                     bp_lower=NULL,
+                                     bp_upper=NULL,
+                                     is_gwas=F, # refers to the datasets being queried
+                                     size=NULL) {
   # Get region
-  if(infer_region){
+  if(infer_region & !is.null(gwas_data)){
+    print("+ Inferring coordinates from gwas_data")
     chrom <- gsub("chr","",unique(gwas_data$CHR)[1])
     bp_lower <- min(gwas_data$POS)
     bp_upper <- max(gwas_data$POS)
@@ -241,24 +226,39 @@ catalogueR.fetch_restAPI <- function(unique_id, #Alasoo_2018.macrophage_naive
                  ifelse(!is.null(size),paste0("&size=",size),""))
 
   message("Fetching: ", link)
-  qtl.subset <- fetch_from_eqtl_cat_API(link = link,
-                                        is_gwas = is_gwas)
-  colnames(qtl.subset) <-  paste0(colnames(qtl.subset),".QTL")
-
-  # Merging and allele flipping
-  gwas.qtl <- data.table:::merge.data.table(x = data.table::data.table(gwas_data),
-                                            y = data.table::data.table(qtl.subset),
-                                            # all.x = T,
-                                            by.x = c("SNP"), # effect_allele
-                                            by.y = c("rsid.QTL") ) %>%
-    dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
-                  effect.is.alt=ifelse(A2==alt.QTL,T,F) ) %>%
-    # subset(effect.is.ref|effect.is.alt) %>%
-    data.table::data.table()
-  return(gwas.qtl)
+  qtl.subset <- fetch_from_eqtl_cat_API(link = link,  is_gwas = is_gwas)
+  colnames(qtl.subset) <-  paste0(colnames(qtl.subset),".QTL")  
+  printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned.") 
+  return(qtl.subset)
 }
 
-
+catalogueR.fetch <- function(unique_id,
+                             quant_method="ge",
+                             infer_region=T,
+                             gwas_data=NULL,
+                             is_gwas=F,
+                             nThread=1,
+                             use_tabix=T,
+                             chrom=NULL,
+                             bp_upper=NULL,
+                             bp_lower=NULL){
+  if(use_tabix){
+    # Tabix is about ~17x faster than the REST API.
+    gwas.qtl <- catalogueR.fetch_tabix(unique_id=unique_id,
+                                       quant_method="ge",
+                                       infer_region=T,
+                                       gwas_data=gwas_data,
+                                       is_gwas=F,
+                                       nThread = 1,)
+  } else {
+    gwas.qtl <- catalogueR.fetch_restAPI(unique_id=unique_id,
+                                         quant_method="ge",
+                                         infer_region=T,
+                                         gwas_data=gwas_data,
+                                         is_gwas=F)
+  }
+  return(gwas.qtl)
+}
 
 # 4. Run coloc
 # Method to perform colocalisation analysis.
@@ -312,14 +312,32 @@ make_assocs_list_to_merged_plottable <- function(all_coloc_dt, quant_method = "g
 }
 
 
+catalogueR.merge_gwas_qtl <- function(gwas_data, 
+                                      qtl.subset){ 
+  # Merging and allele flipping
+  gwas.qtl <- data.table:::merge.data.table(x = data.table::data.table(gwas_data),
+                                            y = data.table::data.table(qtl.subset),
+                                            # all.x = T,
+                                            by.x = c("SNP"), # effect_allele
+                                            by.y = c("rsid.QTL") ) %>%
+    dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
+                  effect.is.alt=ifelse(A2==alt.QTL,T,F) ) %>%
+    # subset(effect.is.ref|effect.is.alt) %>%
+    data.table::data.table()
+  return(gwas.qtl)
+}
+
 
 catalogueR.run <- function(sumstats_paths,
-                           output_path="./example_data/Nalls23andMe_2019.eQTL_Catalogue.tsv.gz",
-                           qtl_datasets=NULL, 
+                           loci_names=NULL,
+                           output_path="./example_data/Nalls23andMe_2019/eQTL_Catalogue.tsv.gz",
+                           qtl_datasets=NULL,
                            use_tabix=T,
                            nThread=4, 
                            multithread_qtl=T,
-                           multithread_loci=F){
+                           multithread_loci=F,
+                           quant_method="ge",
+                           infer_region=T){
   library("dplyr")
   library("ggplot2")
   library("readr")
@@ -334,8 +352,12 @@ catalogueR.run <- function(sumstats_paths,
   library("biomaRt")
 
    
-  # sumstats_paths <-  list.files("./example_data",pattern = "*_subset.tsv.gz", recursive = T, full.names = T); loci <- basename(dirname(sumstats_paths)); nThread=4; qtl_datasets=c("Fairfax_2014","ROSMAP","Alasoo_2018","Nedelec_2016","BLUEPRINT", "HipSci.iPSC","Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018"); use_tabix=T; qtl_datasets=c("Alasoo_2018","ROSMAP");  infer_region=T;  quant_method="ge"; unique_id=qtl_datasets[1]; output_path="./example_data/Nalls23andMe_2019.eQTL_Catalogue.tsv.gz"
-  # loc=loci[1]; qtl.id=qtl_datasets[1]
+  # sumstats_paths <-  list.files("./example_data",pattern = "*_subset.tsv.gz", recursive = T, full.names = T);  nThread=4; qtl_datasets=c("Fairfax_2014","ROSMAP","Alasoo_2018","Nedelec_2016","BLUEPRINT", "HipSci.iPSC","Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018"); use_tabix=T; qtl_datasets=c("Alasoo_2018","ROSMAP");  infer_region=T;  quant_method="ge"; unique_id=qtl_datasets[1]; output_path="./example_data/Nalls23andMe_2019.eQTL_Catalogue.tsv.gz"; loci_names=c("BIN3","BST1","SNCA"); coordinates <- c("8:21527069-23525543", "4:15238141-16237140")
+  # loc=loci[1]; qtl.id=qtl_datasets[1]  
+  construct_locus_name <- function(gwas_data){ 
+     paste0("locus_",gwas_data$CHR[1],":",min(gwas_data$POS),"-",max(gwas_data$POS)) 
+  }
+  
   meta <- catalogueR.list_eQTL_datasets(force_new = F)
   if(is.null(qtl_datasets)){
     printer("eQTL_catalogue:: Gathering data for all QTL Catalogue datasets...")
@@ -346,34 +368,44 @@ catalogueR.run <- function(sumstats_paths,
                          value = T,
                          ignore.case = T) %>% unique()
   }
-  printer("eQTL_catalogue:: Querying",length(qtl_datasets),"QTL datasets...")
-
+  printer("eQTL_catalogue:: Querying",length(qtl_datasets),"QTL datasets...") 
   # RUN
   { start_time <- Sys.time()
     GWAS.QTL_all <- parallel::mclapply(qtl_datasets, function(unique_id){
       GWAS.QTL <- data.table::data.table()
       try({
         message(unique_id)
-        GWAS.QTL <-  parallel::mclapply(sumstats_paths, function(loc_path){
-          loc <- basename(dirname(loc_path))
-          message(paste(" +",loc))
+        GWAS.QTL <-  parallel::mclapply(sumstats_paths, function(loc_path){ 
           gwas.qtl <- data.table::data.table()
           try({
-            finemap_DT <- data.table::fread(loc_path)  
-            if(use_tabix){
-              gwas.qtl <- catalogueR.fetch_tabix(unique_id=unique_id,
-                                                  quant_method="ge",
-                                                  infer_region=T,
-                                                  gwas_data=finemap_DT,
-                                                  is_gwas=F,
-                                                  nThread = 1)
-            } else{
-              gwas.qtl <- catalogueR.fetch_restAPI(unique_id=unique_id,
-                                                      quant_method="ge",
-                                                      infer_region=T,
-                                                      gwas_data=finemap_DT,
-                                                      is_gwas=F)
+            gwas_data <- data.table::fread(loc_path)  
+            # get rid of "chr" just in case
+            gwas_data$CHR <- gsub("chr","",gwas_data$CHR)
+            if(length(loci_names)==length(sumstats_paths)){
+              i <- setNames(1:length(sumstats_paths),sumstats_paths)[[loc_path]] 
+              loc <- loci_names[i]
             }
+            if(length(loci_names)!=length(sumstats_paths)){
+              printer("+ `loci_names` and `sumstats_paths` are of different lengths.",
+                      "Constructing new loci names instead.")
+              loc <- construct_locus_name(gwas_data)
+            }
+            if(is.null(loci_names)){ 
+              loc <- construct_locus_name(gwas_data)
+            }
+            message(paste(" +",loc)) 
+            qtl.subset <- catalogueR.fetch(unique_id = unique_id,
+                                           quant_method=quant_method,
+                                           infer_region=infer_region,
+                                           gwas_data=gwas_data,
+                                           is_gwas=F,
+                                           nThread=1,
+                                           use_tabix=use_tabix,
+                                           chrom=NULL,
+                                           bp_upper=NULL,
+                                           bp_lower=NULL)
+            # Merge results
+            gwas.qtl <- catalogueR.merge_gwas_qtl(gwas_data, qtl.subset)
           })
           return(gwas.qtl)
         }, mc.cores = ifelse(multithread_loci,nThread,1)) %>% data.table::rbindlist(fill = T)
@@ -401,7 +433,7 @@ catalogueR.run <- function(sumstats_paths,
   printer("Saving merged query results ==>",output_path)
   data.table::fwrite(GWAS.QTL_filt,
                      file = file.path(output_path),
-                     nThread = 4) 
+                     nThread = nThread) 
   return(GWAS.QTL_all)
 } ### End main function
 
