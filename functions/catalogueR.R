@@ -39,10 +39,9 @@ library("GenomicRanges")
 library("biomaRt")
 library(AnnotationDbi)
 library(data.table)
+library(EnsDb.Hsapiens.v75)
 
-
-source("./functions/general.R") 
-
+  
 
 # 1. List available eQTL data
 catalogueR.list_eQTL_datasets <- function(save_path="./resources",
@@ -51,14 +50,18 @@ catalogueR.list_eQTL_datasets <- function(save_path="./resources",
   meta.path <- file.path(save_path,"eQTLcatalogue_tabix_ftp_paths.tsv")
   if(file.exists(meta.path) & force_new==F){
     printer("+ Importing saved metadata.",v = verbose)
-    meta <- data.table::fread(meta.path, nThread = 4)
+    meta <- data.table::fread(meta.path, nThread = 4) 
+    subset(meta, unique_id=="Schmiedel_2018.Treg_naive") 
+    meta <- meta %>% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte","Fairfax_2014",ftp_path)) 
   } else {
     printer("+ Downloading metadata from server.",v = verbose)
     URL <- "https://raw.githubusercontent.com/eQTL-Catalogue/eQTL-Catalogue-resources/master/tabix/tabix_ftp_paths.tsv"
     meta <- data.table::fread(URL, nThread = 4)
-    meta <- meta %>% dplyr::transmute(unique_id=paste0(study,".",qtl_group), !!!.)
+    meta <- meta %>% dplyr::transmute(unique_id=paste0(study,".",qtl_group), !!!.) 
+    meta <- meta %>% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte","Fairfax_2014",ftp_path)) 
     if(save_path!=F){
       printer("Saving metadata ==>",meta.path)
+      if(!dir.exists(dirname(meta.path)))dir.create(dirname(meta.path))
       data.table::fwrite(meta, meta.path, sep="\t")
     }
   }
@@ -68,7 +71,7 @@ catalogueR.list_eQTL_datasets <- function(save_path="./resources",
 }
 
 
-
+ 
 # 2. Get QTL data by region
 
 # 2.1 Method 1: Tabix
@@ -95,7 +98,7 @@ catalogueR.fetch_tabix <- function(unique_id,
   # Rename var to avoid issues with subsetting
   ui <-unique_id
   qm <- quant_method
-  meta <- catalogueR.list_eQTL_datasets(force_new = F)
+  meta <- catalogueR.list_eQTL_datasets(force_new = F, save_path = F)
   meta.sub <- subset(meta, unique_id==ui) %>% data.frame()
   if(qm %in% unique(meta.sub$quant_method) ){
     meta.sub <- subset(meta.sub, quant_method==qm)
@@ -127,7 +130,7 @@ catalogueR.fetch_tabix <- function(unique_id,
                                      meta.sub$ftp_path,
                                      region),
                            nThread = nThread)
-  colnames(qtl.subset) <- c("Locus",paste0(header,".QTL")) 
+  colnames(qtl.subset) <- c("Locus.QTL",paste0(header,".QTL")) 
   printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned.") 
   return(qtl.subset)
 }
@@ -199,7 +202,7 @@ catalogueR.fetch_restAPI <- function(unique_id, #Alasoo_2018.macrophage_naive
   # Get metadata
   ui <- unique_id
   qm <- quant_method
-  meta <- catalogueR.list_eQTL_datasets(force_new = F)
+  meta <- catalogueR.list_eQTL_datasets(force_new = F, save_path = F)
   meta.sub <- subset(meta, unique_id==ui) %>% data.frame()
   if(qm %in% unique(meta.sub$quant_method) ){
     meta.sub <- subset(meta.sub, quant_method==qm)
@@ -332,13 +335,15 @@ catalogueR.merge_gwas_qtl <- function(gwas_data,
 catalogueR.run <- function(sumstats_paths,
                            loci_names=NULL,
                            output_path="./example_data/Nalls23andMe_2019/eQTL_Catalogue.tsv.gz",
-                           qtl_datasets=NULL,
+                           qtl_search=NULL,
                            use_tabix=T,
                            nThread=4, 
                            multithread_qtl=T,
                            multithread_loci=F,
                            quant_method="ge",
-                           infer_region=T){
+                           infer_region=T, 
+                           split_files=T,
+                           merge_with_gwas=T){
   library("dplyr")
   library("ggplot2")
   library("readr")
@@ -354,17 +359,29 @@ catalogueR.run <- function(sumstats_paths,
 
    
   # sumstats_paths <-  list.files("./example_data",pattern = "*_subset.tsv.gz", recursive = T, full.names = T);  nThread=4; qtl_datasets=c("Fairfax_2014","ROSMAP","Alasoo_2018","Nedelec_2016","BLUEPRINT", "HipSci.iPSC","Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018"); use_tabix=T; qtl_datasets=c("Alasoo_2018","ROSMAP");  infer_region=T;  quant_method="ge"; unique_id=qtl_datasets[1]; output_path="./example_data/Nalls23andMe_2019.eQTL_Catalogue.tsv.gz"; loci_names=c("BIN3","BST1","SNCA"); coordinates <- c("8:21527069-23525543", "4:15238141-16237140")
-  # loc=loci[1]; qtl.id=qtl_datasets[1]  
+  # loc=loci[1]; qtl.id=qtl_datasets[1] 
+  
+  if(multithread_qtl & multithread_loci){
+    printer("++ `multithread_qtl` and `multithread_loci` can't both =TRUE. Setting `multithread_loci=F`");
+    multithread_loci <- F
+  } 
   construct_locus_name <- function(gwas_data){ 
      paste0("locus_",gwas_data$CHR[1],":",min(gwas_data$POS),"-",max(gwas_data$POS)) 
   }
+  # Cleanup tbi files
+  cleanup_tbi <- function(DIR="./"){
+    tbi_files <- list.files(DIR, pattern = ".gz.tbi$")
+    if(length(tbi_files)>0)file.remove(tbi_files)
+  }
+  
+  cleanup_tbi(DIR="./")
   
   meta <- catalogueR.list_eQTL_datasets(force_new = F)
-  if(is.null(qtl_datasets)){
+  if(is.null(qtl_search)){
     printer("eQTL_catalogue:: Gathering data for all QTL Catalogue datasets...")
     qtl_datasets <- unique(meta$unique_id)
   }else {
-    qtl_datasets <- grep(pattern = paste(qtl_datasets,collapse="|"),
+    qtl_datasets <- grep(pattern = paste(qtl_search,collapse="|"),
                          x = meta$unique_id,
                          value = T,
                          ignore.case = T) %>% unique()
@@ -394,6 +411,7 @@ catalogueR.run <- function(sumstats_paths,
             if(is.null(loci_names)){ 
               loc <- construct_locus_name(gwas_data)
             }
+            gwas_data <- cbind(Locus=loc, gwas_data)
             message(paste(" +",loc)) 
             qtl.subset <- catalogueR.fetch(unique_id = unique_id,
                                            quant_method=quant_method,
@@ -404,23 +422,39 @@ catalogueR.run <- function(sumstats_paths,
                                            use_tabix=use_tabix,
                                            chrom=NULL,
                                            bp_upper=NULL,
-                                           bp_lower=NULL)
+                                           bp_lower=NULL) 
             # Merge results
-            gwas.qtl <- catalogueR.merge_gwas_qtl(gwas_data, qtl.subset)
+            if(merge_with_gwas){
+              gwas.qtl <- catalogueR.merge_gwas_qtl(gwas_data, qtl.subset)
+            } else {
+              gwas.qtl <- qtl.subset
+            } 
           })
           return(gwas.qtl)
         }, mc.cores = ifelse(multithread_loci,nThread,1)) %>% data.table::rbindlist(fill = T)
         GWAS.QTL <- data.table::data.table(qtl.id=unique_id, GWAS.QTL)
       })
-      return(GWAS.QTL)
-    }, mc.cores = ifelse(multithread_qtl,nThread,1))%>% data.table::rbindlist(fill = T)
+      if(split_files){
+        split.path <- file.path(dirname(output_path),"eQTL_catalogue",paste0(unique_id,".query.tsv.gz"))
+        printer("++ Splitting results by QTL dataset ==>", split.path)
+        message("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_")
+        message()
+        if(!dir.exists(dirname(split.path)))dir.create(dirname(split.path)) 
+        data.table::fwrite(x = GWAS.QTL, 
+                           file = split.path,
+                           sep = "\t", nThread = 4)
+        return(split.path)
+      } else { return(GWAS.QTL) } 
+    }, mc.cores = ifelse(multithread_qtl,nThread,1))
+    if(split_files){
+      printer("++ Returning list of split files paths.")
+      return(unlist(GWAS.QTL_all))
+    } else{ return(data.table::rbindlist(GWAS.QTL_all, fill = T))  }
     end_time <- Sys.time()
     print(end_time - start_time)
   }
 
-  # Cleanup tbi files
-  tbi_files <- list.files("./", pattern = ".gz.tbi$")
-  file.remove(tbi_files)
+  cleanup_tbi(DIR="./")
   
   # Get QTL gene names 
   gene_dict <- ensembl_to_hgnc(ensembl_ids = GWAS.QTL_all$gene_id.QTL)
@@ -432,15 +466,72 @@ catalogueR.run <- function(sumstats_paths,
     for(x in missing.qtls){printer("  +",x)}
   }
   printer("Saving merged query results ==>",output_path)
+  if(!dir.exists(dirname(output_path)))dir.create(dirname(output_path))
   data.table::fwrite(GWAS.QTL_filt,
-                     file = file.path(output_path),
+                     file = output_path,
                      nThread = nThread) 
   return(GWAS.QTL_all)
 } ### End main function
 
 
+catalogueR.gather_results <- function(qtl.paths, 
+                                      qtl_pval_filter=.05){
+  qtl.paths <- list.files("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_catalogue/", 
+                          pattern="*.query.tsv.gz$", full.names = T)
+  qtl = rbind.file.list(qtl.paths[1:2])
+  
+  
+  
+}
   
 
+
+## ---------------- General Functions ----------------  ##
+
+rbind.file.list <- function(file.list, verbose=T, nThread=4){
+  merged.dat <- lapply(file.list, function(x){
+    printer(x, v = verbose)
+    dat <- data.table::fread(x, nThread = nThread)
+    return(dat)
+  }) %>% data.table::rbindlist(fill=T)
+  return(merged.dat)
+}
+
+printer <- function(..., v=T){if(v){print(paste(...))}}
+
+hgnc_to_ensembl <- function(gene_symbols){
+  # columns(EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75)
+  gene_symbols[is.na(gene_symbols)] <- "NA"
+  conversion <- AnnotationDbi::mapIds(EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75,
+                                      keys = gene_symbols,
+                                      keytype = "SYMBOL",
+                                      column = "GENEID")
+  return(conversion)
+}
+ensembl_to_hgnc <- function(ensembl_ids){
+  ensembl_ids[is.na(ensembl_ids)] <- "NA"
+  conversion <- AnnotationDbi::mapIds(EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75,
+                                      keys = ensembl_ids,
+                                      keytype = "GENEID",
+                                      column = "SYMBOL")
+  return(conversion)
+}
+
+createDT <- function(DF, caption="", scrollY=400){
+  data <- DT::datatable(DF, caption=caption,
+                        extensions = 'Buttons',
+                        options = list( dom = 'Bfrtip',
+                                        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                        scrollY = scrollY, scrollX=T, scrollCollapse = T, paging = F,
+                                        columnDefs = list(list(className = 'dt-center', targets = "_all"))
+                        )
+  )
+  return(data)
+}
+
+createDT_html <- function(DF, caption="", scrollY=400){
+  htmltools::tagList( createDT(DF, caption, scrollY))
+}
 
 
 

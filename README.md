@@ -7,7 +7,7 @@ The following extends and build upon the APIs provided by [eQTL Catalogue](https
 - **FTP Server**: *ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv*  
 - [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
 
-A list of all current tabix-indexed QTL datasets is provided [here](https://github.com/RajLabMSSM/catalogueR/blob/master/resources/eQTLcatalogue_tabix_ftp_paths.tsv) (or [here]() for the original source).  
+A list of all current tabix-indexed QTL datasets is provided [here](https://github.com/RajLabMSSM/catalogueR/blob/master/resources/eQTLcatalogue_tabix_ftp_paths.tsv) (or [here](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/tabix/tabix_ftp_paths.tsv) for the original source).  
 
 
 <hr>  
@@ -83,9 +83,13 @@ gwas.qtl <- catalogueR.run(# Any number of summary stats files
                            output_path="./example_data/Nalls23andMe_2019/eQTL_Catalogue.tsv.gz",
                            
                            # This function will automatically search for any datasets that match your criterion.
-                           ## For example, if you search "Alasoo_2018", it will query the datasets "Alasoo_2018.macrophage_naive", "Alasoo_2018.macrophage_IFNg",Alasoo_2018.macrophage_Salmonella", and "Alasoo_2018.macrophage_IFNg+Salmonella").
-                           ## You can be more specific about which datasets you want to 
-                           qtl_datasets=c("ROSMAP","Alasoo_2018"),
+                           ## For example, if you search "Alasoo_2018", it will query the datasets
+                           ##"Alasoo_2018.macrophage_naive","Alasoo_2018.macrophage_IFNg",Alasoo_2018.macrophage_Salmonella", 
+                           ## and "Alasoo_2018.macrophage_IFNg+Salmonella").
+                           ## You can be more specific about which datasets you want to include, for example by searching: "Alasoo_2018.macrophage_IFNg".
+                           ## You can even search by tissue or condition type (e.g.c("blood","brain")) 
+                           ##and any QTL datasets containing those terms will be quried too.
+                           qtl_search=c("ROSMAP","Alasoo_2018"),
                            
                            # Tabix is about ~17x faster (default; =T) than the REST API (=F).
                            use_tabix=T,
@@ -97,7 +101,16 @@ gwas.qtl <- catalogueR.run(# Any number of summary stats files
                            multithread_qtl=T,
                            
                            # Multi-thread across loci (good when you have lots of gwas loci)
-                           multithread_loci=F)
+                           multithread_loci=F,
+                           
+                           # Save the results as one file per QTL dataset (with all loci within each file).
+                           ## If this is set to `=T`, then this function will return the list of paths where these files were saved.
+                           ### A helper function is provided to import and merge them back together in R.
+                           ## If this is set to `=F`, then this function will instead return one big merged data.table
+                           ### containing results from all QTL datasets and all loci. 
+                           ### `=F` is not recommended when you have many large loci and/or many QTL datasets, 
+                           ### because you can only fit so much data into memory.
+                           split_files=T)
 ```
 
 
