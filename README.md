@@ -55,7 +55,7 @@ source("./functions/catalogueR.R")
 ## Import functions
 
 
-### [Approach 1]  
+### [Approach 1] Query with summary stats  
 
 Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range. The files can be any of these formats, either *gzip*-compressed (`.gz`) or uncompressed: `.csv`, `.tsv`, `space-separated`  
 <br>
@@ -101,7 +101,7 @@ gwas.qtl <- catalogueR.run(# Any number of summary stats files
 ```
 
 
-### [Approach 2]
+### [Approach 2] Query with coordinates  
 
 Download a subset of QTL summary stats directly by specifying the coordinates you want to extract:  
  
@@ -109,7 +109,7 @@ Download a subset of QTL summary stats directly by specifying the coordinates yo
 # Returns a data.table with the QTL summary stats subset.  
 
 gwas.qtl <- catalogueR.fetch(# Unique QTL id (<study>.<qtl_group>)
-							 unique_id="Alasoo_2018.macrophage_IFNg",
+	unique_id="Alasoo_2018.macrophage_IFNg",
 
                               # You can specify the QTL quantification method you want to use.
                               ## (options: "ge","exon", "tx","txrev","microarray")
