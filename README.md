@@ -15,9 +15,12 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
 ## Getting started  
 
 ### Clone this repo  
-`cd <your_preferred_path>`  
-`git clone https://github.com/RajLabMSSM/catalogueR.git`  
-`cd catalogueR`
+
+```r
+cd <your_preferred_path>   
+git clone https://github.com/RajLabMSSM/catalogueR.git  
+cd catalogueR
+```
 
 ### Install required software
 
@@ -41,7 +44,9 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
   
 ### Import *catalogueR* functions  
 
-`source("./functions/catalogueR.R")`  
+```r
+source("./functions/catalogueR.R")
+```  
 
 <hr>  
 
@@ -59,7 +64,7 @@ The summary stats file must have the following column names (order doesn't matte
   - `CHR` (chromosome)
   - `POS` (basepair position)
 
-```
+```r
 # Returns both the gwas_data you supplied and the queried QTL summary stats, 
 ## all merged into one data.table.  
 
@@ -100,7 +105,7 @@ gwas.qtl <- catalogueR.run(# Any number of summary stats files
 
 Download a subset of QTL summary stats directly by specifying the coordinates you want to extract:  
  
-```
+```r
 # Returns a data.table with the QTL summary stats subset.  
 
 gwas.qtl <- catalogueR.fetch(# Unique QTL id (<study>.<qtl_group>)
