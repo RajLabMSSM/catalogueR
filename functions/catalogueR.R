@@ -41,7 +41,8 @@ library(AnnotationDbi)
 library(data.table)
 
 
-source("./functions/general.R")
+source("./functions/general.R") 
+
 
 # 1. List available eQTL data
 catalogueR.list_eQTL_datasets <- function(save_path="./resources",

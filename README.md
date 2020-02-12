@@ -13,7 +13,14 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
 
 <hr>  
 
-## Required Software
+## Getting started  
+
+### Clone this repo  
+`cd <your_preferred_path>`  
+`git clone https://github.com/RajLabMSSM/catalogueR.git`  
+`cd catalogueR`
+
+### Install required software
 
 *Command line*  
 - [tabix](http://www.htslib.org/doc/tabix.html)  
@@ -29,14 +36,21 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
 - tidyverse  
 - coloc  
 - biomaRt
-- wiggleplotr
+- wiggleplotr  
 - GenomicRanges  
 - AnnotationDbi   
 - data.table  
   
+### Import *catalogueR* functions  
+
+`source("./functions/catalogueR.R")`  
+
 <hr>  
 
 ## Tutorial
+
+## Import functions
+
 
 ### [Approach 1]  
 
