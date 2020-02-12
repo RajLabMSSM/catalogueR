@@ -22,11 +22,10 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
 
 ### Install required software
 
-*Command line*  
-- [tabix](http://www.htslib.org/doc/tabix.html)  
-  + Install via [conda](https://anaconda.org/bioconda/tabix) or [source](http://www.htslib.org/download/)  
+#### Command line 
+- [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  
 
-*R*  
+#### R  
 - dplyr  
 - ggplot2  
 - readr  
