@@ -5,7 +5,7 @@
 The following extends and build upon the APIs provided by [eQTL Catalogue](https://www.ebi.ac.uk/eqtl/) (with which I am not affiliated):  
 - [GitHub source code](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
 - **FTP Server**: *ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv*  
-- [In-depth API Documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
+- [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
 
 A list of all current tabix-indexed QTL datasets is provided [here](https://github.com/RajLabMSSM/catalogueR/blob/master/resources/eQTLcatalogue_tabix_ftp_paths.tsv) (or [here]() for the original source).  
 
@@ -60,7 +60,9 @@ The summary stats file must have the following column names (order doesn't matte
   - `POS` (basepair position)
 
 ```
-# Returns both the gwas_data you supplied and the queried QTL summary stats, all merged into one data.table.  
+# Returns both the gwas_data you supplied and the queried QTL summary stats, 
+all merged into one data.table.  
+
 gwas.qtl <- catalogueR.run(# Any number of summary stats files
                            sumstats_paths =
                            c("./example_data/Nalls23andMe_2019/BIN3_Nalls23andMe_2019_subset.tsv.gz",
@@ -100,6 +102,7 @@ Download a subset of QTL summary stats directly by specifying the coordinates yo
  
 ```
 # Returns a data.table with the QTL summary stats subset.  
+
 gwas.qtl <- catalogueR.fetch_tabix(unique_id="Alasoo_2018.macrophage_IFNg",
 
                                   # You can specify the QTL quantification method you want to use.
