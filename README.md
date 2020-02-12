@@ -54,7 +54,7 @@ A list of all current tabix-indexed QTL datasets is provided [here](https://gith
 ### [Approach 1]  
 
 Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range.  
-The summary stats file must have the following column names (order doesn't matter):  
+The summary stats file must have the following column names (order doesn't matter). You can have as many additional columns as you want:  
   - `SNP` (rsid for each SNP)
   - `CHR` (chromosome)
   - `POS` (basepair position)
