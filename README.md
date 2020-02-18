@@ -2,7 +2,7 @@
 
 ## Intro    
 
-The following extends and build upon the APIs provided by [eQTL Catalogue](https://www.ebi.ac.uk/eqtl/) (with which I am not affiliated):  
+The following extends and build upon the APIs provided by [eQTL Catalogue](https://www.ebi.ac.uk/eqtl/) (with which I am not affiliated, but happily contribute to):  
 - [GitHub source code](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
 - **FTP Server**: *ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv*  
 - [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  

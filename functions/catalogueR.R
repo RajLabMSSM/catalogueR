@@ -11,6 +11,7 @@
 # In-depth API documentation: https://www.ebi.ac.uk/eqtl/api-docs/
 # Tabix Instructions: https://www.ebi.ac.uk/eqtl/Data_access/
 # FTP server: ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv
+# Table of tabix files on ftp server: 
 
 # Notes on parallelization
 ## There's multiple levlels to parallelize on.
@@ -412,7 +413,8 @@ catalogueR.run <- function(sumstats_paths,
               loc <- construct_locus_name(gwas_data)
             }
             gwas_data <- cbind(Locus=loc, gwas_data)
-            message(paste(" +",loc)) 
+            message("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_")
+            message(paste("+ Locus:",loc)) 
             qtl.subset <- catalogueR.fetch(unique_id = unique_id,
                                            quant_method=quant_method,
                                            infer_region=infer_region,
@@ -436,8 +438,7 @@ catalogueR.run <- function(sumstats_paths,
       })
       if(split_files){
         split.path <- file.path(dirname(output_path),"eQTL_catalogue",paste0(unique_id,".query.tsv.gz"))
-        printer("++ Splitting results by QTL dataset ==>", split.path)
-        message("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_")
+        printer("++ Splitting results by QTL dataset ==>", split.path) 
         message()
         if(!dir.exists(dirname(split.path)))dir.create(dirname(split.path)) 
         data.table::fwrite(x = GWAS.QTL, 
