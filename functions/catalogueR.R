@@ -87,10 +87,12 @@ catalogueR.fetch_tabix <- function(unique_id,
                                       is_gwas=F,
                                       nThread=4){
   # quant_method="ge"; infer_region=T;is_gwas=F; remove_tmp=F;  add_chr=T
+  tabix.start = Sys.time()
   # Get region
   if(infer_region & !is.null(gwas_data)){
     print("+ Inferring coordinates from gwas_data")
-    chrom <- unique(gwas_data$CHR)[1]
+    chrom <- unique(gwas_data$CHR)
+    if(length(chrom)>1){stop("More than one chromosome detected.")}
     bp_lower <- min(gwas_data$POS)
     bp_upper <- max(gwas_data$POS)
   }
@@ -131,8 +133,9 @@ catalogueR.fetch_tabix <- function(unique_id,
                                      meta.sub$ftp_path,
                                      region),
                            nThread = nThread)
-  colnames(qtl.subset) <- c("Locus.QTL",paste0(header,".QTL")) 
-  printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned.") 
+  colnames(qtl.subset) <- c("Locus.QTL",paste0(header,".QTL"))
+  tabix.end = Sys.time() 
+  printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned in", round(as.numeric(tabix.end-tabix.start),1),"seconds.")  
   return(qtl.subset)
 }
 
@@ -193,6 +196,7 @@ catalogueR.fetch_restAPI <- function(unique_id, #Alasoo_2018.macrophage_naive
                                      bp_upper=NULL,
                                      is_gwas=F, # refers to the datasets being queried
                                      size=NULL) {
+  restAPI.start = Sys.time()
   # Get region
   if(infer_region & !is.null(gwas_data)){
     print("+ Inferring coordinates from gwas_data")
@@ -233,7 +237,8 @@ catalogueR.fetch_restAPI <- function(unique_id, #Alasoo_2018.macrophage_naive
   message("Fetching: ", link)
   qtl.subset <- fetch_from_eqtl_cat_API(link = link,  is_gwas = is_gwas)
   colnames(qtl.subset) <-  paste0(colnames(qtl.subset),".QTL")  
-  printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned.") 
+  restAPI.end = Sys.time()
+  printer("eQTL_catalogue::",nrow(qtl.subset),"eSNPs returned in", round(as.numeric(restAPI.end-restAPI.start),1),"seconds.")  
   return(qtl.subset)
 }
 
@@ -266,34 +271,7 @@ catalogueR.fetch <- function(unique_id,
 }
 
 # 4. Run coloc
-# Method to perform colocalisation analysis.
-get_colocs <- function(eqtl_data_for_region, gwas_data_for_trait) {
-  shared_positions = intersect(eqtl_data_for_region$position,
-                               gwas_data_for_trait$base_pair_location)
-
-  eqtl_shared = dplyr::filter(eqtl_data_for_region, position %in% shared_positions) %>%
-    dplyr::mutate(variant_id = as.character(position))
-  gwas_shared = dplyr::filter(gwas_data_for_trait, base_pair_location %in% shared_positions) %>%
-    dplyr::mutate(variant_id = as.character(base_pair_location))
-
-  eQTL_dataset = list(pvalues = eqtl_shared$pvalue,
-                      N = (eqtl_shared$an)[1]/2, #The sample size of the eQTL dataset was 84
-                      MAF = eqtl_shared$maf,
-                      type = "quant",
-                      beta = eqtl_shared$beta,
-                      snp = eqtl_shared$variant_id)
-  gwas_dataset = list(beta = gwas_shared$log_OR, #If log_OR column is full of NAs then use beta column instead
-                      varbeta = gwas_shared$se^2,
-                      type = "cc",
-                      snp = gwas_shared$variant_id,
-                      s = 0.5, #This is acutally not used, because we already specified varbeta above.
-                      MAF = eqtl_shared$maf)
-
-  coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset,
-                               dataset2 = gwas_dataset,
-                               p1 = 1e-4, p2 = 1e-4, p12 = 1e-5)
-  return(coloc_res$summary)
-}
+# Method to perform colocalisation analysis. 
 
 
 
@@ -332,10 +310,92 @@ catalogueR.merge_gwas_qtl <- function(gwas_data,
   return(gwas.qtl)
 }
 
+catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths, 
+                                                   loci_names=NULL,
+                                                   output_path,
+                                                    qtl_id,
+                                                    quant_method="ge",
+                                                    infer_region=T, 
+                                                    use_tabix=T,
+                                                    multithread_loci=T,
+                                                    nThread=4,
+                                                    split_files=T,
+                                                    merge_with_gwas=F,
+                                                    force_new_subset=F,
+                                                    progress_bar=T){
+  apply_func <- ifelse(progress_bar, pbmcapply::pbmclapply, parallel::mclapply)
+  GWAS.QTL <-  apply_func(sumstats_paths, function(loc_path){  
+    # Import GWAS data
+    gwas_data <- data.table::fread(loc_path)
+    gwas_data$CHR <- gsub("chr","",gwas_data$CHR)   # get rid of "chr" just in case
+    # Name Locus
+    if("Locus" %in% colnames(gwas_data)){
+      printer("++ Using GWAS locus as locus name.")
+      loc <- unique(gwas_data$Locus)[1]
+    } else {
+      if(length(loci_names)==length(sumstats_paths)){
+        i <- setNames(1:length(sumstats_paths),sumstats_paths)[[loc_path]]
+        loc <- loci_names[i]
+      }
+      if(length(loci_names)!=length(sumstats_paths)|is.null(loci_names)){
+        printer("+ `loci_names` and `sumstats_paths` are of different lengths.",
+                "Constructing new loci names instead.")
+        loc <- construct_locus_name(gwas_data)
+      }
+      gwas_data <- cbind(Locus=loc, gwas_data)
+    }
+    
+    message("_+_+_+_+_+_+_+_+_--- Locus ",loc)
+    # Test if query file already exists
+    split_path <- file.path(output_path, qtl_id, paste0(loc,"_locus__&__",qtl_id,".tsv.gz"))
+    dir.create(dirname(split_path), showWarnings = F, recursive = T) 
+    
+    if(file.exists(split_path) & force_new_subset==F){
+      printer("++ Using pre-existing file...")
+      qtl.subset <- data.table::fread(split_path)
+    } else {
+      gwas.qtl <- data.table::data.table()
+      try({  
+        qtl.subset <- catalogueR.fetch(unique_id = qtl_id,
+                                       quant_method=quant_method,
+                                       infer_region=infer_region,
+                                       gwas_data=gwas_data,
+                                       is_gwas=F,
+                                       nThread=1,
+                                       use_tabix=use_tabix,
+                                       chrom=NULL,
+                                       bp_upper=NULL,
+                                       bp_lower=NULL) 
+        # Merge results
+        if(merge_with_gwas){
+          gwas.qtl <- catalogueR.merge_gwas_qtl(gwas_data, qtl.subset)
+        } else {gwas.qtl <- qtl.subset}  
+        # Add locus name
+        gwas.qtl <- cbind(Locus.GWAS=loc, gwas.qtl)
+        # Get QTL gene names 
+        gene_dict <- ensembl_to_hgnc(ensembl_ids = gwas.qtl$gene_id.QTL)
+        gwas.qtl$gene.QTL <- gene_dict[gwas.qtl$molecular_trait_object_id.QTL] 
+      })  
+      # Save
+      if(split_files){data.table::fwrite(gwas.qtl, split_path, sep="\t")}
+    }  
+    # Return
+    if(split_files){return(split_path)} else {return(gwas.qtl)} 
+  }, mc.cores = ifelse(multithread_loci,nThread,1))
+  # Return
+  if(split_files){return(unlist(GWAS.QTL))} else {
+    GWAS.QTL <- data.table::data.table(qtl.id=qtl_id, GWAS.QTL) %>% data.table::rbindlist(fill = T)
+    return(GWAS.QTL)
+  } 
+  message(" ")
+}
 
-catalogueR.run <- function(sumstats_paths,
+
+
+
+catalogueR.run <- function(sumstats_paths=NULL,
                            loci_names=NULL,
-                           output_path="./example_data/Nalls23andMe_2019/eQTL_Catalogue.tsv.gz",
+                           output_path="./example_data/Nalls23andMe_2019",
                            qtl_search=NULL,
                            use_tabix=T,
                            nThread=4, 
@@ -344,7 +404,9 @@ catalogueR.run <- function(sumstats_paths,
                            quant_method="ge",
                            infer_region=T, 
                            split_files=T,
-                           merge_with_gwas=T){
+                           merge_with_gwas=T,
+                           force_new_subset=F,
+                           progress_bar=T){
   library("dplyr")
   library("ggplot2")
   library("readr")
@@ -357,26 +419,27 @@ catalogueR.run <- function(sumstats_paths,
   library("wiggleplotr")
   library("GenomicRanges")
   library("biomaRt")
-
-   
-  # sumstats_paths <-  list.files("./example_data",pattern = "*_subset.tsv.gz", recursive = T, full.names = T);  nThread=4; qtl_datasets=c("Fairfax_2014","ROSMAP","Alasoo_2018","Nedelec_2016","BLUEPRINT", "HipSci.iPSC","Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018"); use_tabix=T; qtl_datasets=c("Alasoo_2018","ROSMAP");  infer_region=T;  quant_method="ge"; unique_id=qtl_datasets[1]; output_path="./example_data/Nalls23andMe_2019.eQTL_Catalogue.tsv.gz"; loci_names=c("BIN3","BST1","SNCA"); coordinates <- c("8:21527069-23525543", "4:15238141-16237140")
-  # loc=loci[1]; qtl.id=qtl_datasets[1] 
+  # sumstats_paths <- list.files("./Data/GWAS/Nalls23andMe_2019",  pattern = "*Multi-finemap_results.txt|*Multi-finemap.tsv.gz",  recursive = T, full.names = T) 
+  # merge_with_gwas=F; nThread=4; loci_names = basename(dirname(dirname(sumstats_paths))); qtl.id=qtl_datasets; multithread_qtl=T;  multithread_loci=F; quant_method="ge";   split_files=T;
+  # qtl_search =c("ROSMAP","Alasoo_2018","Fairfax_2014", "Nedelec_2016","BLUEPRINT","HipSci.iPSC", "Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018", "blood","brain")
+  # output_path = "/Volumes/Scizor/eQTL_catalogue/Nalls23andMe_2019"; qtl.id="Alasoo_2018.macrophage_naive"; force_new_subset=F;
   
-  if(multithread_qtl & multithread_loci){
-    printer("++ `multithread_qtl` and `multithread_loci` can't both =TRUE. Setting `multithread_loci=F`");
-    multithread_loci <- F
-  } 
+  # Helper functions
   construct_locus_name <- function(gwas_data){ 
-     paste0("locus_",gwas_data$CHR[1],":",min(gwas_data$POS),"-",max(gwas_data$POS)) 
-  }
-  # Cleanup tbi files
+    paste0("locus_",gwas_data$CHR[1],":",min(gwas_data$POS),"-",max(gwas_data$POS)) 
+  } 
   cleanup_tbi <- function(DIR="./"){
     tbi_files <- list.files(DIR, pattern = ".gz.tbi$")
     if(length(tbi_files)>0)file.remove(tbi_files)
   }
   
+  # Setup
   cleanup_tbi(DIR="./")
-  
+  if(multithread_qtl & multithread_loci){
+    printer("++ `multithread_qtl` and `multithread_loci` can't both =TRUE. Setting `multithread_loci=F`");
+    multithread_loci <- F
+  } 
+  # Search metadata for matching datasets
   meta <- catalogueR.list_eQTL_datasets(force_new = F)
   if(is.null(qtl_search)){
     printer("eQTL_catalogue:: Gathering data for all QTL Catalogue datasets...")
@@ -387,66 +450,36 @@ catalogueR.run <- function(sumstats_paths,
                          value = T,
                          ignore.case = T) %>% unique()
   }
-  printer("eQTL_catalogue:: Querying",length(qtl_datasets),"QTL datasets...") 
-  # RUN
+  
+  # QUERY eQTL Catalogue
+  printer("eQTL_catalogue:: Querying",length(qtl_datasets),"QTL datasets x",length(sumstats_paths),"GWAS loci.")  
   { start_time <- Sys.time()
-    GWAS.QTL_all <- parallel::mclapply(qtl_datasets, function(unique_id){
-      GWAS.QTL <- data.table::data.table()
-      try({
-        message(unique_id)
-        GWAS.QTL <-  parallel::mclapply(sumstats_paths, function(loc_path){ 
-          gwas.qtl <- data.table::data.table()
-          try({
-            gwas_data <- data.table::fread(loc_path)  
-            # get rid of "chr" just in case
-            gwas_data$CHR <- gsub("chr","",gwas_data$CHR)
-            if(length(loci_names)==length(sumstats_paths)){
-              i <- setNames(1:length(sumstats_paths),sumstats_paths)[[loc_path]] 
-              loc <- loci_names[i]
-            }
-            if(length(loci_names)!=length(sumstats_paths)){
-              printer("+ `loci_names` and `sumstats_paths` are of different lengths.",
-                      "Constructing new loci names instead.")
-              loc <- construct_locus_name(gwas_data)
-            }
-            if(is.null(loci_names)){ 
-              loc <- construct_locus_name(gwas_data)
-            }
-            gwas_data <- cbind(Locus=loc, gwas_data)
-            message("_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_")
-            message(paste("+ Locus:",loc)) 
-            qtl.subset <- catalogueR.fetch(unique_id = unique_id,
-                                           quant_method=quant_method,
-                                           infer_region=infer_region,
-                                           gwas_data=gwas_data,
-                                           is_gwas=F,
-                                           nThread=1,
-                                           use_tabix=use_tabix,
-                                           chrom=NULL,
-                                           bp_upper=NULL,
-                                           bp_lower=NULL) 
-            # Merge results
-            if(merge_with_gwas){
-              gwas.qtl <- catalogueR.merge_gwas_qtl(gwas_data, qtl.subset)
-            } else {
-              gwas.qtl <- qtl.subset
-            } 
-          })
-          return(gwas.qtl)
-        }, mc.cores = ifelse(multithread_loci,nThread,1)) %>% data.table::rbindlist(fill = T)
-        GWAS.QTL <- data.table::data.table(qtl.id=unique_id, GWAS.QTL)
-      })
-      if(split_files){
-        split.path <- file.path(dirname(output_path),"eQTL_catalogue",paste0(unique_id,".query.tsv.gz"))
-        printer("++ Splitting results by QTL dataset ==>", split.path) 
-        message()
-        if(!dir.exists(dirname(split.path)))dir.create(dirname(split.path)) 
-        data.table::fwrite(x = GWAS.QTL, 
-                           file = split.path,
-                           sep = "\t", nThread = 4)
-        return(split.path)
-      } else { return(GWAS.QTL) } 
-    }, mc.cores = ifelse(multithread_qtl,nThread,1))
+    # ---- Iterate over QTL datasets  
+    GWAS.QTL_all <- parallel::mclapply(qtl_datasets, function(qtl.id){ 
+        # qtl.start = Sys.time()
+        message(qtl.id)
+        try({ 
+          # ---- Iterate over GWAS loci 
+          GWAS.QTL <- catalogueR.eQTL_catalogue.iterate_loci(sumstats_paths=sumstats_paths,
+                                                             loci_names=loci_names, 
+                                                             output_path=output_path,
+                                                             qtl_id=qtl.id,
+                                                             quant_method=quant_method,
+                                                             infer_region=infer_region, 
+                                                             use_tabix=use_tabix,
+                                                             multithread_loci=multithread_loci,
+                                                             nThread=nThread, 
+                                                             split_files=split_files,
+                                                             merge_with_gwas=merge_with_gwas, 
+                                                             force_new_subset=force_new_subset,
+                                                             progress_bar=progress_bar)
+        })
+        # qtl.end = Sys.time()
+        # printer("+ Completed queries in",as.numeric(round(qtl.end-qtl.start,1)),"seconds.")
+      return(GWAS.QTL)
+    }, mc.cores = ifelse(multithread_qtl,nThread,1)) 
+    
+    # Gather results
     if(split_files){
       printer("++ Returning list of split files paths.")
       return(unlist(GWAS.QTL_all))
@@ -458,8 +491,9 @@ catalogueR.run <- function(sumstats_paths,
   cleanup_tbi(DIR="./")
   
   # Get QTL gene names 
-  gene_dict <- ensembl_to_hgnc(ensembl_ids = GWAS.QTL_all$gene_id.QTL)
-  GWAS.QTL_all$gene.QTL <- gene_dict[GWAS.QTL_all$molecular_trait_object_id.QTL]
+  # gene_dict <- ensembl_to_hgnc(ensembl_ids = GWAS.QTL_all$gene_id.QTL)
+  # GWAS.QTL_all$gene.QTL <- gene_dict[GWAS.QTL_all$molecular_trait_object_id.QTL]
+  
   GWAS.QTL_filt <- subset(GWAS.QTL_all, !is.na(beta.QTL))
   missing.qtls <- qtl_datasets[!qtl_datasets %in% unique(GWAS.QTL_filt$qtl.id)]
   if(length(missing.qtls)>0){
@@ -469,7 +503,7 @@ catalogueR.run <- function(sumstats_paths,
   printer("Saving merged query results ==>",output_path)
   if(!dir.exists(dirname(output_path)))dir.create(dirname(output_path))
   data.table::fwrite(GWAS.QTL_filt,
-                     file = output_path,
+                     file = file.path(output_path,"eQTL_Catalogue.tsv.gz"),
                      nThread = nThread) 
   return(GWAS.QTL_all)
 } ### End main function
@@ -479,22 +513,21 @@ catalogueR.gather_results <- function(qtl.paths,
                                       qtl_pval_filter=.05){
   qtl.paths <- list.files("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_catalogue/", 
                           pattern="*.query.tsv.gz$", full.names = T)
-  qtl = rbind.file.list(qtl.paths[1:2])
-  
-  
-  
+  qtl = rbind.file.list(qtl.paths[1:2]) 
 }
   
 
 
 ## ---------------- General Functions ----------------  ##
 
-rbind.file.list <- function(file.list, verbose=T, nThread=4){
-  merged.dat <- lapply(file.list, function(x){
+rbind.file.list <- function(file.list, 
+                            verbose=T, 
+                            nCores=4){
+  merged.dat <- parallel::mclapply(file.list, function(x){
     printer(x, v = verbose)
-    dat <- data.table::fread(x, nThread = nThread)
+    dat <- data.table::fread(x)
     return(dat)
-  }) %>% data.table::rbindlist(fill=T)
+  }, mc.cores = nCores) %>% data.table::rbindlist(fill=T)
   return(merged.dat)
 }
 
@@ -533,6 +566,117 @@ createDT <- function(DF, caption="", scrollY=400){
 createDT_html <- function(DF, caption="", scrollY=400){
   htmltools::tagList( createDT(DF, caption, scrollY))
 }
+
+
+
+
+catalogueR.get_colocs <- function(qtl.egene, 
+                                  gwas.region,
+                                  merge_by_rsid=T){
+  # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
+  # Subset to overlapping SNPs only
+  if(merge_by_rsid){
+    shared = intersect(qtl.egene$rsid.QTL, gwas.region$SNP)
+    eqtl_shared = dplyr::filter(qtl.egene, rsid.QTL %in% shared) %>% 
+      dplyr::mutate(variant_id = rsid.QTL)
+    gwas_shared = dplyr::filter(gwas.region, SNP %in% shared) %>% 
+      dplyr::mutate(variant_id = SNP)
+  } else {
+    shared = intersect(qtl.egene$position.QTL, gwas.region$POS)
+    eqtl_shared = dplyr::filter(qtl.egene, position.QTL %in% shared) %>% 
+      dplyr::mutate(variant_id = as.character(position.QTL))
+    gwas_shared = dplyr::filter(gwas.region, POS %in% shared) %>% 
+      dplyr::mutate(variant_id = as.character(POS))
+  }
+  
+  if(length(shared)==0){
+    message("catalogueR:COLOC:: No SNPs shared between GWAS and QTL subsets.")
+    coloc_res <- list(summary="No SNPs shared between GWAS and QTL subsets.",
+                      results=data.table::data.table(    snp=NA,
+                                                         pvalues.df1=NA,
+                                                         MAF.df1=NA,
+                                                         V.df1=NA,
+                                                         z.df1=NA,
+                                                         r.df1=NA,
+                                                         lABF.df1=NA,
+                                                         V.df2=NA,
+                                                         z.df2=NA,
+                                                         r.df2=NA,
+                                                         lABF.df2=NA,
+                                                         internal.sum.lABF=NA),
+                      Locus=gwas_shared$Locus[1])
+
+  } else { 
+    # RUN COLOC
+    # QTL data
+    eQTL_dataset = list(pvalues = eqtl_shared$pvalue.QTL, 
+                        N = (eqtl_shared$an.QTL)[1]/2, #The sample size of the eQTL dataset was 84
+                        MAF = eqtl_shared$maf.QTL, 
+                        type = "quant", 
+                        beta = eqtl_shared$beta.QTL,
+                        snp = eqtl_shared$variant_id)
+    # GWAS data
+    gwas_dataset = list(beta = gwas_shared$Effect, #If log_OR column is full of NAs then use beta column instead
+                        varbeta = gwas_shared$StdErr^2, 
+                        type = "cc", 
+                        snp = gwas_shared$variant_id,
+                        s = 0.5, #This is acutally not used, because we already specified varbeta above.
+                        MAF = gwas_shared$maf)
+    
+    coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, dataset2 = gwas_dataset,
+                                 p1 = 1e-4, p2 = 1e-4, p12 = 1e-5)
+    coloc_res$Locus <- gwas_shared$Locus[1]
+    report <- COLOC.report_summary(coloc.res = coloc_res, 
+                                   PP_threshold = .8)
+    }
+  return(coloc_res)
+}
+
+
+
+
+catalogueR.run_coloc <- function(qtl.paths,
+                                 gwas_data, 
+                                 nCores=4){
+  # qtl.ID=unique(qtl.dat$qtl.id)[1]; eGene=unique(qtl.dataset$gene.QTL)[1];
+  # qtl.ID = "Fairfax_2014.monocyte_naive"; eGene = "TSC22D2"; qtl.path=gwas.qtl_paths[1]
+  
+  # ---- Iterate over QTL datasets 
+  coloc_qtls <- lapply(unique(qtl.paths), function(qtl.path){
+    qtl.ID <- gsub(".query.tsv.gz","", basename(qtl.path))
+    printer("+ QTL Dataset =",qtl.ID)
+    qtl.dat <- data.table::fread(qtl.path, nThread = 4)
+    qtl.dataset <- subset(qtl.dat, qtl.id==qtl.ID & !is.na(gene.QTL))
+    
+    # ---- Iterate over QTL eGenes
+    coloc_eGenes<- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
+      printer("+++ eGene =",eGene)
+      qtl.egene <- subset(qtl.dataset, gene.QTL==eGene) 
+      # gwas.region <- subset(gwas_data, SNP %in% qtl.egene$rsid.QTL) 
+      coloc_res <- catalogueR.get_colocs(qtl.egene = qtl.egene, 
+                                         gwas.region = gwas_data, 
+                                         merge_by_rsid = T)
+      coloc_summary <- as.list(coloc_res$summary)
+      
+      coloc_DT <- data.table::data.table(Locus.GWAS=coloc_res$Locus, 
+                                         qtl.id=qtl.ID,
+                                         eGene=eGene,
+                                         coloc_res$results,
+                                         PP.H0=coloc_summary$PP.H0.abf,
+                                         PP.H1=coloc_summary$PP.H1.abf,
+                                         PP.H2=coloc_summary$PP.H2.abf,
+                                         PP.H3=coloc_summary$PP.H3.abf,
+                                         PP.H4=coloc_summary$PP.H4.abf)
+      return(coloc_DT)
+    }, mc.cores = nCores) %>% data.table::rbindlist(fill=T)  
+    return(coloc_eGenes)
+  }) %>% data.table::rbindlist(fill=T)
+  return(coloc_qtls)
+}
+
+
+
+
 
 
 
