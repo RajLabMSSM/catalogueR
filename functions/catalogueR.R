@@ -253,7 +253,8 @@ catalogueR.fetch <- function(unique_id,
                              use_tabix=T,
                              chrom=NULL,
                              bp_upper=NULL,
-                             bp_lower=NULL){
+                             bp_lower=NULL,
+                             multithread_tabix=F){
   if(use_tabix){
     # Tabix is about ~17x faster than the REST API.
     gwas.qtl <- catalogueR.fetch_tabix(unique_id=unique_id,
@@ -261,7 +262,7 @@ catalogueR.fetch <- function(unique_id,
                                        infer_region=T,
                                        gwas_data=gwas_data,
                                        is_gwas=F,
-                                       nThread = 1,)
+                                       nThread = ifelse(multithread_tabix,nThread,1))
   } else {
     gwas.qtl <- catalogueR.fetch_restAPI(unique_id=unique_id,
                                          quant_method="ge",
@@ -321,6 +322,7 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
                                                     infer_region=T, 
                                                     use_tabix=T,
                                                     multithread_loci=T,
+                                                    multithread_tabix=F,
                                                     nThread=4,
                                                     split_files=T,
                                                     merge_with_gwas=F,
@@ -352,7 +354,7 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
     
     message("_+_+_+_+_+_+_+_+_--- Locus ",loc)
     # Test if query file already exists
-    split_path <- file.path(output_path, qtl_id, paste0(loc,"_locus__&__",qtl_id,".tsv.gz"))
+    split_path <- file.path(output_path, qtl_id, paste0(loc,"_locus___",qtl_id,".tsv.gz"))
     dir.create(dirname(split_path), showWarnings = F, recursive = T) 
     
     if(file.exists(split_path) & force_new_subset==F){
@@ -377,7 +379,8 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
                                        infer_region=infer_region,
                                        gwas_data=gwas_data,
                                        is_gwas=F,
-                                       nThread=1,
+                                       nThread=ifelse(multithread_tabix,nThread,1),
+                                       multithread_tabix=multithread_tabix,
                                        use_tabix=use_tabix,
                                        chrom=NULL,
                                        bp_upper=NULL,
@@ -393,7 +396,8 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
         gwas.qtl$gene.QTL <- gene_dict[gwas.qtl$molecular_trait_object_id.QTL] 
       })  
       # Save
-      if(split_files){data.table::fwrite(gwas.qtl, split_path, sep="\t")}
+      if(split_files){data.table::fwrite(gwas.qtl, split_path, sep="\t", 
+                                         nThread = ifelse(multithread_tabix,nThread,1))}
     }  
     # Return
     if(split_files){return(split_path)} else {return(gwas.qtl)} 
@@ -439,6 +443,7 @@ catalogueR.run <- function(sumstats_paths=NULL,
                            nThread=4, 
                            multithread_qtl=T,
                            multithread_loci=F,
+                           multithread_tabix=F,
                            quant_method="ge",
                            infer_region=T, 
                            split_files=T,
@@ -512,7 +517,8 @@ catalogueR.run <- function(sumstats_paths=NULL,
                                                              merge_with_gwas=merge_with_gwas, 
                                                              force_new_subset=force_new_subset,
                                                              progress_bar=progress_bar,
-                                                             genome_build=genome_build)
+                                                             genome_build=genome_build,
+                                                             multithread_tabix=multithread_tabix)
         })
         # qtl.end = Sys.time()
         # printer("+ Completed queries in",as.numeric(round(qtl.end-qtl.start,1)),"seconds.")
