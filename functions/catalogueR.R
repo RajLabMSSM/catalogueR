@@ -41,6 +41,7 @@ library("biomaRt")
 library(AnnotationDbi)
 library(data.table)
 library(EnsDb.Hsapiens.v75)
+library(XGR)
 
   
 
@@ -97,6 +98,7 @@ catalogueR.fetch_tabix <- function(unique_id,
     bp_upper <- max(gwas_data$POS)
   }
   region <- paste0(chrom,":",bp_lower,"-",bp_upper)
+  # printer("+ TABIX:: Querying region:", region)
   # Get metadata
   # Rename var to avoid issues with subsetting
   ui <-unique_id
@@ -310,6 +312,7 @@ catalogueR.merge_gwas_qtl <- function(gwas_data,
   return(gwas.qtl)
 }
 
+
 catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths, 
                                                    loci_names=NULL,
                                                    output_path,
@@ -322,12 +325,14 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
                                                     split_files=T,
                                                     merge_with_gwas=F,
                                                     force_new_subset=F,
-                                                    progress_bar=T){
+                                                    progress_bar=T,
+                                                    genome_build="hg19"){
   apply_func <- ifelse(progress_bar, pbmcapply::pbmclapply, parallel::mclapply)
   GWAS.QTL <-  apply_func(sumstats_paths, function(loc_path){  
     # Import GWAS data
     gwas_data <- data.table::fread(loc_path)
     gwas_data$CHR <- gsub("chr","",gwas_data$CHR)   # get rid of "chr" just in case
+    
     # Name Locus
     if("Locus" %in% colnames(gwas_data)){
       printer("++ Using GWAS locus as locus name.")
@@ -354,6 +359,17 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
       printer("++ Using pre-existing file...")
       qtl.subset <- data.table::fread(split_path)
     } else {
+      
+      # Convert from GRCh37 to GRCh38
+      if(genome_build %in% c('hg19','hg18')){
+        gr.lifted <- XGR.liftover(gwas_data, build.conversion = paste0(genome_build,".to.hg38"))
+        gwas_data <- data.frame(gr.lifted)  %>% 
+          dplyr::mutate(CHR=gsub("chr","",seqnames),
+                        POS=start) %>% 
+          dplyr::select(-c("seqnames","start","end","width","strand")) %>%
+          data.table::as.data.table()
+      }
+      
       gwas.qtl <- data.table::data.table()
       try({  
         qtl.subset <- catalogueR.fetch(unique_id = qtl_id,
@@ -392,6 +408,28 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
 
 
 
+XGR.liftover <- function(gwas_data, 
+                         build.conversion="hg19.to.hg38",
+                         verbose=F){  
+  printer("XGR:: Lifting genome build:", build.conversion, v = verbose)
+  # Save original coordinates and SNP IDs
+  gwas_data <- gwas_data %>% dplyr::mutate(chrom=paste0("chr",CHR),
+                                           POS.orig=POS,
+                                           SNP.orig=SNP)
+  # chain <- rtracklayer::import.chain(con = chain_paths$hg19_to_hg38)
+  gr.gwas <- GenomicRanges::makeGRangesFromDataFrame(df =gwas_data, 
+                                                     keep.extra.columns = T, 
+                                                     seqnames.field = "chrom", 
+                                                     start.field = "POS", 
+                                                     end.field = "POS") 
+  gr.lifted <- XGR::xLiftOver(data.file = gr.gwas, #dplyr::select(gwas_data, CHR, POS), 
+                              format.file = "GRanges",
+                              build.conversion = build.conversion, 
+                              verbose = verbose , 
+                              merged = F)  # merge must =F in order to work
+  return(gr.lifted)
+}
+
 
 catalogueR.run <- function(sumstats_paths=NULL,
                            loci_names=NULL,
@@ -406,7 +444,8 @@ catalogueR.run <- function(sumstats_paths=NULL,
                            split_files=T,
                            merge_with_gwas=T,
                            force_new_subset=F,
-                           progress_bar=T){
+                           progress_bar=T,
+                           genome_build="hg19"){
   library("dplyr")
   library("ggplot2")
   library("readr")
@@ -472,7 +511,8 @@ catalogueR.run <- function(sumstats_paths=NULL,
                                                              split_files=split_files,
                                                              merge_with_gwas=merge_with_gwas, 
                                                              force_new_subset=force_new_subset,
-                                                             progress_bar=progress_bar)
+                                                             progress_bar=progress_bar,
+                                                             genome_build=genome_build)
         })
         # qtl.end = Sys.time()
         # printer("+ Completed queries in",as.numeric(round(qtl.end-qtl.start,1)),"seconds.")
@@ -576,11 +616,11 @@ catalogueR.get_colocs <- function(qtl.egene,
   # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
   # Subset to overlapping SNPs only
   if(merge_by_rsid){
-    shared = intersect(qtl.egene$rsid.QTL, gwas.region$SNP)
-    eqtl_shared = dplyr::filter(qtl.egene, rsid.QTL %in% shared) %>% 
-      dplyr::mutate(variant_id = rsid.QTL)
+    shared = intersect(qtl.egene$SNP, gwas.region$SNP)
+    eqtl_shared = dplyr::filter(qtl.egene, SNP %in% shared) %>% 
+      dplyr::mutate(variant_id = SNP) %>% unique()
     gwas_shared = dplyr::filter(gwas.region, SNP %in% shared) %>% 
-      dplyr::mutate(variant_id = SNP)
+      dplyr::mutate(variant_id = SNP) %>% unique()
   } else {
     shared = intersect(qtl.egene$position.QTL, gwas.region$POS)
     eqtl_shared = dplyr::filter(qtl.egene, position.QTL %in% shared) %>% 
@@ -620,10 +660,11 @@ catalogueR.get_colocs <- function(qtl.egene,
                         varbeta = gwas_shared$StdErr^2, 
                         type = "cc", 
                         snp = gwas_shared$variant_id,
-                        s = 0.5, #This is acutally not used, because we already specified varbeta above.
-                        MAF = gwas_shared$maf)
+                        s = 0.5, #This is actually not used, because we already specified varbeta above.
+                        MAF = gwas_shared$MAF)
     
-    coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, dataset2 = gwas_dataset,
+    coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, 
+                                 dataset2 = gwas_dataset,
                                  p1 = 1e-4, p2 = 1e-4, p12 = 1e-5)
     coloc_res$Locus <- gwas_shared$Locus[1]
     report <- COLOC.report_summary(coloc.res = coloc_res, 
@@ -635,26 +676,33 @@ catalogueR.get_colocs <- function(qtl.egene,
 
 
 
-catalogueR.run_coloc <- function(qtl.paths,
-                                 gwas_data, 
+catalogueR.run_coloc <- function(gwas.qtl_paths,
+                                 # gwas_paths=NULL,
+                                 # qtl_paths=NULL,
                                  nCores=4){
   # qtl.ID=unique(qtl.dat$qtl.id)[1]; eGene=unique(qtl.dataset$gene.QTL)[1];
   # qtl.ID = "Fairfax_2014.monocyte_naive"; eGene = "TSC22D2"; qtl.path=gwas.qtl_paths[1]
-  
+  # qtl.path="/Volumes/Scizor/eQTL_catalogue/Nalls23andMe_2019/Alasoo_2018.macrophage_IFNg/MCCC1_locus__&__Alasoo_2018.macrophage_IFNg.tsv.gz"
+
   # ---- Iterate over QTL datasets 
-  coloc_qtls <- lapply(unique(qtl.paths), function(qtl.path){
-    qtl.ID <- gsub(".query.tsv.gz","", basename(qtl.path))
+  coloc_qtls <- lapply(unique(gwas.qtl_paths), function(qtl.path){
+    qtl.ID <- strsplit(gsub(".tsv.gz","", basename(qtl.path)), "__&__")[[1]][2]
     printer("+ QTL Dataset =",qtl.ID)
     qtl.dat <- data.table::fread(qtl.path, nThread = 4)
-    qtl.dataset <- subset(qtl.dat, qtl.id==qtl.ID & !is.na(gene.QTL))
-    
+    if(!"qtl.id" %in% colnames(qtl.dat)){qtl.dat <- cbind(qtl.dat, qtl.id=qtl.ID)}
+    qtl.dataset <- subset(qtl.dat, qtl.id==qtl.ID & !is.na(gene.QTL) & gene.QTL!="")
+    if("Effect" %in% colnames(qtl.dat)){
+      gwas.region <- qtl.dataset %>% 
+        dplyr::select(Locus,Locus.GWAS, SNP, CHR,POS, P, Effect, StdErr, Freq, MAF, N_cases, N_controls, proportion_cases, A1, A2)
+    }  
+       
     # ---- Iterate over QTL eGenes
-    coloc_eGenes<- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
+    coloc_eGenes <- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
       printer("+++ eGene =",eGene)
       qtl.egene <- subset(qtl.dataset, gene.QTL==eGene) 
       # gwas.region <- subset(gwas_data, SNP %in% qtl.egene$rsid.QTL) 
       coloc_res <- catalogueR.get_colocs(qtl.egene = qtl.egene, 
-                                         gwas.region = gwas_data, 
+                                         gwas.region = gwas.region, 
                                          merge_by_rsid = T)
       coloc_summary <- as.list(coloc_res$summary)
       
@@ -669,7 +717,8 @@ catalogueR.run_coloc <- function(qtl.paths,
                                          PP.H4=coloc_summary$PP.H4.abf)
       return(coloc_DT)
     }, mc.cores = nCores) %>% data.table::rbindlist(fill=T)  
-    return(coloc_eGenes)
+    return(coloc_eGenes) 
+    
   }) %>% data.table::rbindlist(fill=T)
   return(coloc_qtls)
 }
