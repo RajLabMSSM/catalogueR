@@ -558,14 +558,84 @@ catalogueR.run <- function(sumstats_paths=NULL,
 catalogueR.gather_results <- function(qtl.paths, 
                                       qtl_pval_filter=.05){
   library(dplyr)
-  qtl.paths <- list.files("../eQTL_catalogue/Nalls23andMe_2019/", 
+  qtl.paths <- list.files("../sample_eQTLs", 
                           pattern="*.tsv.gz$", full.names = T, recursive = T)
-  topQTL <- lapply(qtl.paths, function(x){
+   
+  topQTL <- pbmcapply::pbmclapply(qtl.paths, function(x){
+    print(x)
     qtl <- data.table::fread(x)
-    qtl.id <- x
-    qtl %>% dplyr::group_by(qtl.id, gene.QTL) %>% 
-      dplyr::top_n(n=1, wt = c(-pvalue.QTL, beta.QTL) )
-  })
+    qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
+    top_qtls <- qtl %>% 
+      dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
+                    qtl.ID = qtl.id) %>% 
+      dplyr::group_by(eGene) %>%  
+      dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
+      data.table::data.table()
+    return(top_qtls)
+  }, mc.cores = 4) %>% data.table::rbindlist(fill=T)
+  return(topQTL)
+}
+
+
+catalogueR.plot_topQTL_overlap <- function(top_qtls){
+  merged_DT <- merge_finemapping_results(dataset = "./Data/GWAS/Nalls23andMe_2019/",
+                                         minimum_support = 2, 
+                                         include_leadSNPs = T, 
+                                         xlsx_path = F)
+  merged_DT$Locus <- merged_DT$Gene
+  qtl.cols <- grep(".QTL$",colnames(top_qtls), value = T)
+  qtl_DT <- data.table:::merge.data.table(x=merged_DT,
+                                y=subset(topQTL, select=c("Locus",'SNP',"qtl.ID", qtl.cols)),
+                                by=c("Locus","SNP"), 
+                                all=T)
+  pval_thresh=.05
+  qtl_summ <- qtl_DT %>% 
+    dplyr::mutate(sig.QTL=ifelse(is.na(pvalue.QTL),1,pvalue.QTL)<pval_thresh) %>% 
+    dplyr::group_by(Locus, qtl.ID) %>% dplyr::summarise(Consensus= n_distinct(SNP[Consensus_SNP==T], na.rm = T),
+                                                sig_eGenes = n_distinct(SNP[sig.QTL], na.rm = T),
+                                                Consensus.x.sig_eGenes = n_distinct(SNP[Consensus_SNP & sig.QTL], na.rm = T) ) %>% 
+    dplyr::mutate(topQTL.prop = ifelse(sig_eGenes>0, Consensus.x.sig_eGenes/sig_eGenes,NA)) %>% 
+    dplyr::mutate(topQTL.any = topQTL.prop>0) %>% 
+    data.frame()
+  
+  
+  ggplot(qtl_summ, aes(x=Locus, y=qtl.ID)) + 
+    # geom_raster(aes(fill=topQTL.prop)) +  
+    geom_raster(aes(fill=topQTL.any)) +
+    theme_classic() + 
+    theme(axis.text.x = element_text(angle=45, hjust=1))
+  
+}
+
+catalogueR.plot_coloc_summary <- function(){
+  
+  PP_thresh <- .8
+  coloc_plot <- subset(coloc_qtls, !is.na(Locus.GWAS)) %>% 
+    dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
+                  Colocalized= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
+    separate(col = qtl.id, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
+    subset((!is.na(Colocalized)) & (!is.na(PP.H4.thresh))) 
+  
+  # raster plot 
+  gg_coloc <- ggplot(data=coloc_plot, aes(x=Locus.GWAS, y=qtl.id, fill=Colocalized)) + 
+    geom_raster() +  
+    # scale_fill_continuous(limits=c(minPP4,1)) +
+    scale_fill_gradient(na.value = "transparent", low = scales::alpha("blue",.7), high = scales::alpha("red",.7)) +
+    # scale_y_discrete(drop=F) +
+    # scale_fill_manual(limits=c(0,1), palette="Spectral") +
+    facet_grid(facets = . ~ Locus.GWAS + eGene, 
+               switch = "y",scales = "free") +
+    theme_bw() +
+    theme(strip.text.x = element_text(angle = 90), 
+          strip.text.y = element_text(angle = 180),
+          strip.placement = "outside",
+          # axis.text.y = element_text(color=test$QTL.group),
+          axis.text.x = element_blank(), 
+          panel.border = element_rect(colour = "transparent"))
+  print(gg_coloc)
+  
+  ggsave("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/gg_coloc.png",
+         plot=gg_coloc,height = 10, width=30)
 }
   
 
