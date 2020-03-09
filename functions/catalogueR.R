@@ -45,6 +45,14 @@ library(XGR)
 
   
 
+timeit <- function(func, digits=3){
+  start = Sys.time()
+  out <- func
+  end = Sys.time()
+  print(paste("Completed in",round(end-start,digits = digits),"seconds."))
+  return(out)
+}
+
 # 1. List available eQTL data
 catalogueR.list_eQTL_datasets <- function(save_path="./resources",
                                          force_new=F,
@@ -555,24 +563,37 @@ catalogueR.run <- function(sumstats_paths=NULL,
 } ### End main function
 
 
-catalogueR.gather_results <- function(qtl.paths, 
-                                      qtl_pval_filter=.05){
+
+catalogueR.gather_results <- function(root_dir="/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", 
+                                      save_path="./eQTL_catalogue_topHits.tsv.gz",
+                                      nThread=4){
   library(dplyr)
-  qtl.paths <- list.files("../sample_eQTLs", 
+  qtl.paths <- list.files(root_dir, 
                           pattern="*.tsv.gz$", full.names = T, recursive = T)
-   
-  topQTL <- pbmcapply::pbmclapply(qtl.paths, function(x){
-    print(x)
-    qtl <- data.table::fread(x)
-    qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
-    top_qtls <- qtl %>% 
-      dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
-                    qtl.ID = qtl.id) %>% 
-      dplyr::group_by(eGene) %>%  
-      dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
-      data.table::data.table()
-    return(top_qtls)
-  }, mc.cores = 4) %>% data.table::rbindlist(fill=T)
+ 
+  topQTL <- timeit(
+    parallel::mclapply(qtl.paths, function(x){
+      message(basename(x))
+      top_qtls <- NULL
+      try({
+        qtl <- data.table::fread(x, nThread = 1)
+        print(dim(qtl))
+        qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
+        top_qtls <- qtl %>% 
+          dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
+                        qtl.ID = qtl.id) %>% 
+          dplyr::group_by(eGene) %>%  
+          dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
+          data.table::data.table()
+      }) 
+      return(top_qtls)
+    }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)
+  ) 
+  
+  if(save_path!=F){
+    dir.create(dirname(save_path),showWarnings = F, recursive = T)
+    data.table::fwrite(topQTL, save_path, nThread = nThread, sep="\t")
+  } 
   return(topQTL)
 }
 
