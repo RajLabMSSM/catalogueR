@@ -843,7 +843,7 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
   
   # Save all coloc results in one dataframe
   if(save_path!=F){
-    save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/coloc_top-eVariants.tsv"
+    # save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/coloc_topQTL.tsv"
     dir.create(dirname(save_path), showWarnings = F, recursive = T)
     data.table::fwrite(coloc_QTLs, file = save_path)
   }
@@ -880,7 +880,7 @@ catalogueR.plot_coloc_summary <- function(coloc_QTLs){
           panel.border = element_rect(colour = "transparent"))
   print(gg_coloc)
   
-  ggsave("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/gg_coloc_topConsensusQTL.png",
+  ggsave("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/gg_coloc_topQTL.png",
          plot=gg_coloc,height = 7, width=10)
 }
 
