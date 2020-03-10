@@ -337,6 +337,7 @@ catalogueR.eQTL_catalogue.iterate_loci <- function(sumstats_paths,
                                                     force_new_subset=F,
                                                     progress_bar=T,
                                                     genome_build="hg19"){
+  # WARNING!: pbmclapply only worked on Linux/Unix systems (e.g. mac) and NOT on Windows.
   apply_func <- ifelse(progress_bar, pbmcapply::pbmclapply, parallel::mclapply)
   GWAS.QTL <-  apply_func(sumstats_paths, function(loc_path){  
     # Import GWAS data
@@ -568,26 +569,36 @@ catalogueR.gather_results <- function(root_dir="/pd-omics/brian/eQTL_catalogue/N
                                       save_path="./eQTL_catalogue_topHits.tsv.gz",
                                       nThread=4){
   library(dplyr)
+  # root_dir = "/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019"; nThread=4;
   qtl.paths <- list.files(root_dir, 
-                          pattern="*.tsv.gz$", full.names = T, recursive = T)
- 
+                          pattern="*.tsv.gz$", full.names = T, recursive = T) 
+  # Group QTLs so you can get some sense of progress
+  qtl.groups <- unique(basename(dirname(qtl.paths)))
+  
   topQTL <- timeit(
-    parallel::mclapply(qtl.paths, function(x){
-      message(basename(x))
-      top_qtls <- NULL
-      try({
-        qtl <- data.table::fread(x, nThread = 1)
-        print(dim(qtl))
-        qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
-        top_qtls <- qtl %>% 
-          dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
-                        qtl.ID = qtl.id) %>% 
-          dplyr::group_by(eGene) %>%  
-          dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
-          data.table::data.table()
-      }) 
-      return(top_qtls)
-    }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)
+    lapply(qtl.groups, function(group){
+      message("+ ",group)
+      qtl.paths_select <- qtl.paths[basename(dirname(qtl.paths))==group]
+      
+      topqtl <- parallel::mclapply(qtl.paths_select, function(x){
+        message(basename(x))
+        top_qtls <- NULL
+        try({
+          qtl <- data.table::fread(x, nThread = 1)
+          print(dim(qtl))
+          qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
+          top_qtls <- qtl %>% 
+            dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
+                          qtl.ID = qtl.id) %>% 
+            dplyr::group_by(eGene) %>%  
+            dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
+            data.table::data.table()
+        }) 
+        return(top_qtls)
+      }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)
+      return(topqtl)
+    }) %>% data.table::rbindlist(fill=T)
+    
   ) 
   
   if(save_path!=F){
@@ -598,40 +609,254 @@ catalogueR.gather_results <- function(root_dir="/pd-omics/brian/eQTL_catalogue/N
 }
 
 
-catalogueR.plot_topQTL_overlap <- function(top_qtls){
-  merged_DT <- merge_finemapping_results(dataset = "./Data/GWAS/Nalls23andMe_2019/",
+catalogueR.plot_topQTL_overlap <- function(topQTL,
+                                           save_path="./topQTL_allLoci.png"){ 
+  # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
+  merged_DT <- merge_finemapping_results(dataset = "./Data/GWAS/Nalls23andMe_2019/", 
                                          minimum_support = 2, 
                                          include_leadSNPs = T, 
                                          xlsx_path = F)
   merged_DT$Locus <- merged_DT$Gene
-  qtl.cols <- grep(".QTL$",colnames(top_qtls), value = T)
+  qtl.cols <- grep(".QTL$",colnames(topQTL), value = T)
   qtl_DT <- data.table:::merge.data.table(x=merged_DT,
-                                y=subset(topQTL, select=c("Locus",'SNP',"qtl.ID", qtl.cols)),
+                                y=subset(topQTL, select=c("Locus",'SNP',"qtl.ID", qtl.cols, "eGene")),
                                 by=c("Locus","SNP"), 
                                 all=T)
-  pval_thresh=.05
-  qtl_summ <- qtl_DT %>% 
-    dplyr::mutate(sig.QTL=ifelse(is.na(pvalue.QTL),1,pvalue.QTL)<pval_thresh) %>% 
-    dplyr::group_by(Locus, qtl.ID) %>% dplyr::summarise(Consensus= n_distinct(SNP[Consensus_SNP==T], na.rm = T),
-                                                sig_eGenes = n_distinct(SNP[sig.QTL], na.rm = T),
-                                                Consensus.x.sig_eGenes = n_distinct(SNP[Consensus_SNP & sig.QTL], na.rm = T) ) %>% 
-    dplyr::mutate(topQTL.prop = ifelse(sig_eGenes>0, Consensus.x.sig_eGenes/sig_eGenes,NA)) %>% 
-    dplyr::mutate(topQTL.any = topQTL.prop>0) %>% 
-    data.frame()
+   
+  p_thresh <- 5e-8 / length(unique(qtl_DT$qtl.ID)) /length(unique(qtl_DT$eGene))
+  qtl_sig <- qtl_DT %>%
+    # subset(!is.na(pvalue.QTL) & pvalue.QTL<p_thresh) %>%
+    dplyr::group_by(qtl.ID, Locus) %>% top_n(n=1, wt = -pvalue.QTL) %>% 
+    dplyr::mutate(Locus.eGene = paste0(Locus,"  (",eGene,")")) %>%
+    data.table::data.table()
   
+  # Find which files are a good place to start with coloc
+  top_files <- (unique(subset(qtl_sig, Consensus_SNP | Support>0 | leadSNP, select=c("Locus","qtl.ID")) ) %>% 
+    dplyr::mutate(file= file.path(qtl.ID,paste0(Locus,"_locus___",qtl.ID,".tsv.gz")) ))$file %>% unique()
   
-  ggplot(qtl_summ, aes(x=Locus, y=qtl.ID)) + 
+  locus.gene_plot <- ggplot(subset(qtl_sig, leadSNP, .drop=F), aes(x=Locus.eGene, y=qtl.ID)) + 
     # geom_raster(aes(fill=topQTL.prop)) +  
-    geom_raster(aes(fill=topQTL.any)) +
-    theme_classic() + 
-    theme(axis.text.x = element_text(angle=45, hjust=1))
+    geom_raster(aes(fill=pvalue.QTL)) + 
+    scale_fill_gradient(low = "red", high = "blue", na.value = "transparent") +
+    scale_y_discrete(drop = F) +
+    # facet_grid(facets = .~ Locus.eGene, scales = "free_x") + 
+    scale_x_discrete(position = "top") +
+    theme_bw() +
+    labs(title=paste("Top eVariants per QTL dataset per GWAS Locus\n",
+                     "Overlapping lead GWAS SNPs only"),
+         # subtitle="Overlapping lead GWAS SNPs only",
+         x="\nGWAS Locus (QTL eGene)\n") +
+    theme(plot.title = element_text(hjust = .5), 
+          plot.subtitle = element_text(hjust = .5),
+          axis.text.x = element_text(angle=45, hjust=0))
+  locus.gene_plot
   
+  if(save_path!=F){
+    save_path <- "./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/topQTL_leadGWAS-SNPs.png"
+    ggsave(save_path, plot=locus.gene_plot, height=10, width=10)
+  }
+  
+   
 }
 
-catalogueR.plot_coloc_summary <- function(){
+
+
+
+
+COLOC.report_summary <- function(coloc.res, PP_threshold=.8){ 
+  # MAF = dataset1$MAF) 
+  hypothesis_key <- setNames(
+    c("Neither trait has a genetic association in the region.",
+      "Only trait 1 has a genetic association in the region.",
+      "Only trait 2 has a genetic association in the region.",
+      "Both traits are associated, but with different causal variants (one in each dataset).",
+      "Both traits are associated and share a single causal variant.") ,
+    c("PP.H0.abf","PP.H1.abf","PP.H2.abf","PP.H3.abf","PP.H4.abf")) 
+  # Report hypothess results
+  printer("Hypothesis Results @ PP_threshold =",PP_threshold,":")
+  true_hyp <-""
+  for(h in names(hypothesis_key)){
+    if(!is.na(coloc.res$summary[h])){
+      if(coloc.res$summary[h]>=PP_threshold){
+        hyp <- hypothesis_key[h]
+        printer("    ",h,"== TRUE: **",hyp )
+        true_hyp <- paste0(names(hyp),": ", hyp)
+      }
+    } else{
+      printer("    ",h,"== FALSE: ")
+    } 
+  } 
   
+  # Save raw results   
+  coloc_DT <- coloc.res$results
+  # Process results  
+  coloc_DT$Colocalized <- ifelse(coloc_DT$SNP.PP.H4 >= PP_threshold, T, F)
+  colocalized_snps <- subset(coloc_DT, Colocalized==T)$snp# subset(coloc_DT, Colocalized==1)$SNP
+  subtitle2 <- paste0("Colocalized SNPs: ", paste(colocalized_snps,sep=", "))
+  if(!is.na(coloc.res$summary)["PP.H4.abf"] ){
+    if((coloc.res$summary["PP.H3.abf"] + coloc.res$summary["PP.H4.abf"] >= PP_threshold) & 
+       (coloc.res$summary["PP.H4.abf"]/coloc.res$summary["PP.H3.abf"] >= 2)){
+      # "We called the signals colocalized when (coloc H3+H4 ≥ 0.8 and H4∕H3 ≥ 2)" -Yi et al. (2019)
+      report <- paste("Datasets colocalized")  
+    } else {report <- paste("Datasets NOT colocalized") }
+  } else { report <- paste("Datasets NOT colocalized")}   
+  printer("+ COLOC::",report,"at: PP.H3 + PP.H4 >=",PP_threshold," and PP.H3 / PP.H4 >= 2.") 
+  return(coloc_DT)
+}
+
+
+
+catalogueR.get_colocs <- function(qtl.egene, 
+                                  gwas.region,
+                                  merge_by_rsid=T,
+                                  PP_threshold=.8,
+                                  verbose=T){
+  # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
+  # Subset to overlapping SNPs only
+  if(merge_by_rsid){
+    shared = intersect(qtl.egene$SNP, gwas.region$SNP)
+    eqtl_shared = dplyr::filter(qtl.egene, SNP %in% shared) %>% 
+      dplyr::mutate(variant_id = SNP) %>% unique()
+    gwas_shared = dplyr::filter(gwas.region, SNP %in% shared) %>% 
+      dplyr::mutate(variant_id = SNP) %>% unique()
+  } else {
+    shared = intersect(qtl.egene$position.QTL, gwas.region$POS)
+    eqtl_shared = dplyr::filter(qtl.egene, position.QTL %in% shared) %>% 
+      dplyr::mutate(variant_id = as.character(position.QTL))
+    gwas_shared = dplyr::filter(gwas.region, POS %in% shared) %>% 
+      dplyr::mutate(variant_id = as.character(POS))
+  }
+  
+  if(length(shared)==0){
+    if(verbose){  message("catalogueR:COLOC:: No SNPs shared between GWAS and QTL subsets.")  }
+  
+    coloc_res <- list(summary="No SNPs shared between GWAS and QTL subsets.",
+                      results=data.table::data.table(    snp=NA,
+                                                         pvalues.df1=NA,
+                                                         MAF.df1=NA,
+                                                         V.df1=NA,
+                                                         z.df1=NA,
+                                                         r.df1=NA,
+                                                         lABF.df1=NA,
+                                                         V.df2=NA,
+                                                         z.df2=NA,
+                                                         r.df2=NA,
+                                                         lABF.df2=NA,
+                                                         internal.sum.lABF=NA),
+                      Locus=gwas_shared$Locus[1])
+
+  } else { 
+    # RUN COLOC
+    # QTL data
+    eQTL_dataset = list(pvalues = eqtl_shared$pvalue.QTL, 
+                        N = (eqtl_shared$an.QTL)[1]/2, #The sample size of the eQTL dataset was 84
+                        MAF = eqtl_shared$maf.QTL, 
+                        type = "quant", 
+                        beta = eqtl_shared$beta.QTL,
+                        snp = eqtl_shared$variant_id)
+    # GWAS data
+    gwas_dataset = list(beta = gwas_shared$Effect, #If log_OR column is full of NAs then use beta column instead
+                        varbeta = gwas_shared$StdErr^2, 
+                        type = "cc", 
+                        snp = gwas_shared$variant_id,
+                        s = 0.5, #This is actually not used, because we already specified varbeta above.
+                        MAF = gwas_shared$MAF)
+    
+    # wrap <- ifelse(verbose, function(x)x, suppressMessages)
+    coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, 
+                                 dataset2 = gwas_dataset,
+                                 p1 = 1e-4, p2 = 1e-4, p12 = 1e-5) # defaults
+    coloc_res$Locus <- gwas_shared$Locus[1]
+    if(verbose){
+      report <- COLOC.report_summary(coloc.res = coloc_res, 
+                                     PP_threshold = PP_threshold)
+    }
+  
+    }
+  return(coloc_res)
+}
+
+
+
+
+catalogueR.run_coloc <- function(gwas.qtl_paths,
+                                 # gwas_paths=NULL,
+                                 # qtl_paths=NULL,
+                                 nThread=3){
+  # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
+  # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
+  # gwas.qtl_paths <- file.path("/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019",top_files)
+  # qtl.ID=unique(qtl.dat$qtl.id)[1]; eGene=unique(qtl.dataset$gene.QTL)[1];
+  # qtl.ID = "Fairfax_2014.monocyte_naive"; eGene = "TSC22D2"; qtl.path=gwas.qtl_paths[1]
+  # qtl.path="/Volumes/Scizor/eQTL_catalogue/Nalls23andMe_2019/Alasoo_2018.macrophage_IFNg/MCCC1_locus__&__Alasoo_2018.macrophage_IFNg.tsv.gz"
+  qtl.groups <- unique(basename(dirname(gwas.qtl_paths)))
+  
+  # Iterate over QTL groups 
+  coloc_QTLs<- lapply(qtl.groups, function(group){
+    message("+ QTL Group = ",group)
+    gwas.qtl_paths_select <- gwas.qtl_paths[basename(dirname(gwas.qtl_paths))==group]
+    
+    # ---- Iterate over QTL datasets 
+    coloc_qtls <- timeit(parallel::mclapply(gwas.qtl_paths_select, function(qtl.path){
+      qtl.ID <- strsplit(gsub(".tsv.gz","", basename(qtl.path)), "___")[[1]][2]
+      gwas.locus <- strsplit(gsub(".tsv.gz","", basename(qtl.path)), "___")[[1]][1] 
+      coloc_eGenes <- data.table::data.table()
+      try({
+        qtl.dat <- data.table::fread(qtl.path)
+        message("++ GWAS =",gwas.locus," x ",length(unique(qtl.dat$gene.QTL))," eGenes")
+        if(!"qtl.id" %in% colnames(qtl.dat)){qtl.dat <- cbind(qtl.dat, qtl.id=qtl.ID)}
+        qtl.dataset <- subset(qtl.dat, qtl.id==qtl.ID & !is.na(gene.QTL) & gene.QTL!="")
+        remove(qtl.dat)
+        if("Effect" %in% colnames(qtl.dataset)){
+          gwas_cols <- c("Locus","Locus.GWAS", "SNP", "CHR","POS", "P", "Effect", "StdErr", "Freq", "MAF", "N_cases", "N_controls", "proportion_cases", "A1", "A2")
+          gwas_cols <- gwas_cols[gwas_cols %in% colnames(qtl.dataset)]
+          gwas.region <- subset(qtl.dataset, select=gwas_cols)
+        }  
+        
+        # ---- Iterate over QTL eGenes
+          coloc_eGenes <- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
+            printer("+++ QTL eGene =",eGene)
+            qtl.egene <- subset(qtl.dataset, gene.QTL==eGene) 
+            # gwas.region <- subset(gwas_data, SNP %in% qtl.egene$rsid.QTL) 
+            coloc_res <- catalogueR.get_colocs(qtl.egene = qtl.egene, 
+                                               gwas.region = gwas.region, 
+                                               merge_by_rsid = T,
+                                               verbose = F)
+            coloc_summary <- as.list(coloc_res$summary)
+            
+            coloc_DT <- data.table::data.table(Locus.GWAS=coloc_res$Locus, 
+                                               qtl.id=qtl.ID,
+                                               eGene=eGene,
+                                               coloc_res$results,
+                                               PP.H0=coloc_summary$PP.H0.abf,
+                                               PP.H1=coloc_summary$PP.H1.abf,
+                                               PP.H2=coloc_summary$PP.H2.abf,
+                                               PP.H3=coloc_summary$PP.H3.abf,
+                                               PP.H4=coloc_summary$PP.H4.abf)
+            return(coloc_DT)
+          }) %>% data.table::rbindlist(fill=T)   
+        }) # end try()
+        return(coloc_eGenes)  
+      }, mc.cores = nThread) %>% data.table::rbindlist(fill=T) )  
+    return(coloc_qtls)
+  }) %>% data.table::rbindlist(fill=T)
+  
+  # Save all coloc results in one dataframe
+  if(save_path!=F){
+    save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/coloc_top-eVariants.tsv"
+    dir.create(dirname(save_path), showWarnings = F, recursive = T)
+    data.table::fwrite(coloc_QTLs, file = save_path)
+  }
+  
+ return(coloc_QTLs) 
+}
+
+
+
+
+catalogueR.plot_coloc_summary <- function(coloc_QTLs){ 
   PP_thresh <- .8
-  coloc_plot <- subset(coloc_qtls, !is.na(Locus.GWAS)) %>% 
+  coloc_plot <- subset(coloc_QTLs, !is.na(Locus.GWAS)) %>% 
     dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
                   Colocalized= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
     separate(col = qtl.id, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
@@ -655,10 +880,21 @@ catalogueR.plot_coloc_summary <- function(){
           panel.border = element_rect(colour = "transparent"))
   print(gg_coloc)
   
-  ggsave("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/gg_coloc.png",
-         plot=gg_coloc,height = 10, width=30)
+  ggsave("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/gg_coloc_topConsensusQTL.png",
+         plot=gg_coloc,height = 7, width=10)
 }
-  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## ---------------- General Functions ----------------  ##
@@ -709,123 +945,6 @@ createDT <- function(DF, caption="", scrollY=400){
 createDT_html <- function(DF, caption="", scrollY=400){
   htmltools::tagList( createDT(DF, caption, scrollY))
 }
-
-
-
-
-catalogueR.get_colocs <- function(qtl.egene, 
-                                  gwas.region,
-                                  merge_by_rsid=T){
-  # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
-  # Subset to overlapping SNPs only
-  if(merge_by_rsid){
-    shared = intersect(qtl.egene$SNP, gwas.region$SNP)
-    eqtl_shared = dplyr::filter(qtl.egene, SNP %in% shared) %>% 
-      dplyr::mutate(variant_id = SNP) %>% unique()
-    gwas_shared = dplyr::filter(gwas.region, SNP %in% shared) %>% 
-      dplyr::mutate(variant_id = SNP) %>% unique()
-  } else {
-    shared = intersect(qtl.egene$position.QTL, gwas.region$POS)
-    eqtl_shared = dplyr::filter(qtl.egene, position.QTL %in% shared) %>% 
-      dplyr::mutate(variant_id = as.character(position.QTL))
-    gwas_shared = dplyr::filter(gwas.region, POS %in% shared) %>% 
-      dplyr::mutate(variant_id = as.character(POS))
-  }
-  
-  if(length(shared)==0){
-    message("catalogueR:COLOC:: No SNPs shared between GWAS and QTL subsets.")
-    coloc_res <- list(summary="No SNPs shared between GWAS and QTL subsets.",
-                      results=data.table::data.table(    snp=NA,
-                                                         pvalues.df1=NA,
-                                                         MAF.df1=NA,
-                                                         V.df1=NA,
-                                                         z.df1=NA,
-                                                         r.df1=NA,
-                                                         lABF.df1=NA,
-                                                         V.df2=NA,
-                                                         z.df2=NA,
-                                                         r.df2=NA,
-                                                         lABF.df2=NA,
-                                                         internal.sum.lABF=NA),
-                      Locus=gwas_shared$Locus[1])
-
-  } else { 
-    # RUN COLOC
-    # QTL data
-    eQTL_dataset = list(pvalues = eqtl_shared$pvalue.QTL, 
-                        N = (eqtl_shared$an.QTL)[1]/2, #The sample size of the eQTL dataset was 84
-                        MAF = eqtl_shared$maf.QTL, 
-                        type = "quant", 
-                        beta = eqtl_shared$beta.QTL,
-                        snp = eqtl_shared$variant_id)
-    # GWAS data
-    gwas_dataset = list(beta = gwas_shared$Effect, #If log_OR column is full of NAs then use beta column instead
-                        varbeta = gwas_shared$StdErr^2, 
-                        type = "cc", 
-                        snp = gwas_shared$variant_id,
-                        s = 0.5, #This is actually not used, because we already specified varbeta above.
-                        MAF = gwas_shared$MAF)
-    
-    coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, 
-                                 dataset2 = gwas_dataset,
-                                 p1 = 1e-4, p2 = 1e-4, p12 = 1e-5)
-    coloc_res$Locus <- gwas_shared$Locus[1]
-    report <- COLOC.report_summary(coloc.res = coloc_res, 
-                                   PP_threshold = .8)
-    }
-  return(coloc_res)
-}
-
-
-
-
-catalogueR.run_coloc <- function(gwas.qtl_paths,
-                                 # gwas_paths=NULL,
-                                 # qtl_paths=NULL,
-                                 nCores=4){
-  # qtl.ID=unique(qtl.dat$qtl.id)[1]; eGene=unique(qtl.dataset$gene.QTL)[1];
-  # qtl.ID = "Fairfax_2014.monocyte_naive"; eGene = "TSC22D2"; qtl.path=gwas.qtl_paths[1]
-  # qtl.path="/Volumes/Scizor/eQTL_catalogue/Nalls23andMe_2019/Alasoo_2018.macrophage_IFNg/MCCC1_locus__&__Alasoo_2018.macrophage_IFNg.tsv.gz"
-
-  # ---- Iterate over QTL datasets 
-  coloc_qtls <- lapply(unique(gwas.qtl_paths), function(qtl.path){
-    qtl.ID <- strsplit(gsub(".tsv.gz","", basename(qtl.path)), "__&__")[[1]][2]
-    printer("+ QTL Dataset =",qtl.ID)
-    qtl.dat <- data.table::fread(qtl.path, nThread = 4)
-    if(!"qtl.id" %in% colnames(qtl.dat)){qtl.dat <- cbind(qtl.dat, qtl.id=qtl.ID)}
-    qtl.dataset <- subset(qtl.dat, qtl.id==qtl.ID & !is.na(gene.QTL) & gene.QTL!="")
-    if("Effect" %in% colnames(qtl.dat)){
-      gwas.region <- qtl.dataset %>% 
-        dplyr::select(Locus,Locus.GWAS, SNP, CHR,POS, P, Effect, StdErr, Freq, MAF, N_cases, N_controls, proportion_cases, A1, A2)
-    }  
-       
-    # ---- Iterate over QTL eGenes
-    coloc_eGenes <- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
-      printer("+++ eGene =",eGene)
-      qtl.egene <- subset(qtl.dataset, gene.QTL==eGene) 
-      # gwas.region <- subset(gwas_data, SNP %in% qtl.egene$rsid.QTL) 
-      coloc_res <- catalogueR.get_colocs(qtl.egene = qtl.egene, 
-                                         gwas.region = gwas.region, 
-                                         merge_by_rsid = T)
-      coloc_summary <- as.list(coloc_res$summary)
-      
-      coloc_DT <- data.table::data.table(Locus.GWAS=coloc_res$Locus, 
-                                         qtl.id=qtl.ID,
-                                         eGene=eGene,
-                                         coloc_res$results,
-                                         PP.H0=coloc_summary$PP.H0.abf,
-                                         PP.H1=coloc_summary$PP.H1.abf,
-                                         PP.H2=coloc_summary$PP.H2.abf,
-                                         PP.H3=coloc_summary$PP.H3.abf,
-                                         PP.H4=coloc_summary$PP.H4.abf)
-      return(coloc_DT)
-    }, mc.cores = nCores) %>% data.table::rbindlist(fill=T)  
-    return(coloc_eGenes) 
-    
-  }) %>% data.table::rbindlist(fill=T)
-  return(coloc_qtls)
-}
-
 
 
 
