@@ -780,8 +780,7 @@ catalogueR.get_colocs <- function(qtl.egene,
 
 
 catalogueR.run_coloc <- function(gwas.qtl_paths,
-                                 # gwas_paths=NULL,
-                                 # qtl_paths=NULL,
+                                 save_path="./coloc_results.tsv.gz",
                                  nThread=3){
   # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
