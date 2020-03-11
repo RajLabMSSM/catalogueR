@@ -649,14 +649,17 @@ catalogueR.top_eVariants_overlap <- function(topQTL,
 }
 
 
-catalogueR.top_files <- function(topQTL, root_dir){
+catalogueR.file_names <- function(topQTL, root_dir="./"){
   printer("Constructing file names for each GWAS-QTL locus...") 
   # Find which files are a good place to start with coloc
-  select_loci <- unique(subset(topQTL, Consensus_SNP | Support>0 | leadSNP, select=c("Locus","qtl.ID"))$Locus)
-  top_files <- (subset(topQTL, Locus %in% select_loci) %>%
+  # select_loci <- unique(subset(topQTL, Consensus_SNP | Support>0 | leadSNP, select=c("Locus","qtl.ID"))$Locus)
+  # subset(topQTL, Locus %in% select_loci)
+  if("qtl.id" %in% colnames(topQTL)){topQTL$qtl.ID <- topQTL$qtl.id }
+  if("Locus.GWAS" %in% colnames(topQTL)){topQTL$Locus <- topQTL$Locus.GWAS }
+  top_files <- ( topQTL%>%
                   dplyr::mutate(file= file.path(qtl.ID,paste0(Locus,"_locus___",qtl.ID,".tsv.gz")) ))$file %>% unique()
   printer("+",length(top_files),"file names returned.")
-  return(top_files)
+  return(file.path(root_dir,top_files))
 }
 
 
@@ -858,7 +861,8 @@ catalogueR.get_colocs <- function(qtl.egene,
 catalogueR.run_coloc <- function(gwas.qtl_paths,
                                  save_path="./coloc_results.tsv.gz",
                                  nThread=3,
-                                 top_snp_only=T){
+                                 top_snp_only=T,
+                                 split_by_group=F){
   # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("../eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
@@ -869,12 +873,12 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
   qtl.groups <- unique(basename(dirname(gwas.qtl_paths)))
   
   # Iterate over QTL groups 
-  coloc_QTLs <- lapply(qtl.groups, function(group){
+  coloc_QTLs <- timeit(lapply(qtl.groups, function(group){
     message("+ QTL Group = ",group)
     gwas.qtl_paths_select <- gwas.qtl_paths[basename(dirname(gwas.qtl_paths))==group]
     
     # ---- Iterate over QTL datasets 
-    coloc_qtls <- timeit(parallel::mclapply(gwas.qtl_paths_select, function(qtl.path){
+    coloc_qtls <- parallel::mclapply(gwas.qtl_paths_select, function(qtl.path){
       qtl.ID <- strsplit(gsub(".tsv.gz","", basename(qtl.path)), "___")[[1]][2]
       gwas.locus <- strsplit(gsub(".tsv.gz","", basename(qtl.path)), "___")[[1]][1] 
       coloc_eGenes <- data.table::data.table()
@@ -919,18 +923,30 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
           }) %>% data.table::rbindlist(fill=T)   
         }) # end try()
         return(coloc_eGenes)  
-      }, mc.cores = nThread) %>% data.table::rbindlist(fill=T) )  
-    return(coloc_qtls)
-  }) %>% data.table::rbindlist(fill=T)
+      }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)  
+    
+    if(split_by_group){
+      split_path <- file.path(dirname(save_path),group)
+      printer("Saving split file ==>", split_path) 
+      dir.create(dirname(split_path), showWarnings = F, recursive = T)
+      data.table::fwrite(coloc_qtls, file = split_path)
+      return(split_path)
+    } else { return(coloc_qtls)}
+   
+  }) ) # end timeit()
   
-  # Save all coloc results in one dataframe
-  if(save_path!=F){
-    # save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/coloc_topQTL.tsv"
-    dir.create(dirname(save_path), showWarnings = F, recursive = T)
-    data.table::fwrite(coloc_QTLs, file = save_path)
-  }
-  
- return(coloc_QTLs) 
+  if(split_by_group){
+    printer("+ Returning split file paths.")
+  } else {
+    coloc_QTLs <- data.table::rbindlist(coloc_QTLs, fill=T)
+    # Save all coloc results in one dataframe
+    if(save_path!=F){
+      # save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/coloc_topQTL.tsv"
+      dir.create(dirname(save_path), showWarnings = F, recursive = T)
+      data.table::fwrite(coloc_QTLs, file = save_path, sep='\t')
+    } 
+  } 
+  return(coloc_QTLs) 
 }
 
 
@@ -1022,6 +1038,101 @@ catalogueR.plot_coloc_summary <- function(coloc_QTLs,
 
 
 
+# Insanely large faceted manhattan plots of QTL datasets
+catalogueR.manhattan_facets <- function(gwas.qtl_paths,
+                                        qtl.thresh = 1e-5,
+                                        gwas_label="GWAS"){
+  # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", full.names = T, recursive = T)
+  # gwas.qtl_paths <- gwas.qtl_paths[1:10]
+  PP.H4.thresh=.8
+  coloc_QTLs_sig <- coloc_QTLs %>% dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
+                PP.Hyp4= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>% 
+    subset(!is.na(PP.Hyp4))# %>% 
+    # subset(Locus.GWAS %in% c("BIN3","MED12L","LRRK2"))
+  top_files <- catalogueR.file_names(topQTL = coloc_QTLs_sig,
+                                    root_dir = "/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019") 
+  qtl.dat <- rbind.file.list(top_files)
+  
+  qtl.dat$qtl.id <- gsub(".tsv.gz$","",strsplit(basename(gwas.qtl_paths),"___")[[1]][2] )
+  if(!"Support" %in% colnames(qtl.dat)){
+    qtl.dat <- find_consensus_SNPs(qtl.dat, consensus_thresh = 2)
+  }
+  plot.subset <- qtl.dat %>% dplyr::mutate(UCS = Support>0, 
+                                        GWAS_label=gwas_label,
+                                        MB=POS/1000000) %>% 
+    subset(pvalue.QTL<qtl.thresh) %>%
+    add_eGene_col()  
+    # Only show colocalized plots within EACH LOCUS.
+    ## Otherwise, there's too many to see.
+  
+    gg.gwas <- ggplot(plot.subset, aes(x=MB, y=-log10(P), color=-log10(P))) + 
+      geom_hline(yintercept = -log10(5e-8), alpha=.5, linetype = "dashed", size=.5) + 
+      geom_point(size=.5) + 
+      labs(x=NULL) +
+      facet_grid(facets = GWAS_label ~ Locus , 
+                 scales = "free_x") +
+      theme_bw() +
+      theme(axis.text.x = element_blank(), 
+            strip.text.y = element_text(angle = 0)) 
+    
+    gg.qtls <-  ggplot(plot.subset, aes(x=MB, y=-log10(pvalue.QTL))) +  
+      geom_point(aes(color=eGene), size=.5, show.legend = F) + 
+      geom_hline(yintercept = -log10(qtl.thresh), alpha=.5, linetype = "dashed", size=.5) + 
+      facet_grid(facets = qtl.id ~ eGene + Locus, 
+                 scales = "free_x") +
+      theme_bw() +
+      theme(strip.text.y = element_text(angle = 0))
+    
+    # Merge plots
+  gg.gwas + gg.qtls + 
+      patchwork::plot_layout(ncol = 1)#, heights = c(.1,1))
+  
+  
+  
+  
+  
+  # Group and melt
+  gwas.qtl.melt <-  setDT(gwas.qtl)[, .(Count = uniqueN(SNP[UCS==T],na.rm = T)),
+                                    by=c("Locus","qtl.id","SNP","gene.QTL")] #"leadSNP","Consensus_SNP","UCS"
+  gwas.qtl.melt <- gwas.qtl.melt %>% 
+    dplyr::group_by(Locus, qtl.id, SNP) %>% 
+    dplyr::summarise(Count = sum(Count, na.rm=T),
+                     Genes = paste(gene.QTL,collapse=", "))
+  
+  gwas.qtl.melt[gwas.qtl.melt$Count==0,"Count"] <- NA
+  gg_gwas.qtl <- ggplot(data=gwas.qtl.melt, aes(x=qtl.id, y=Locus, fill=Count)) +
+    geom_raster() +  
+    # scale_fill_manual(values = consensus_colors) +  
+    scale_fill_gradient(na.value = "transparent", low = scales::alpha("blue",.7), high = scales::alpha("red",.7)) +
+    geom_point(aes(size=ifelse(Count>0, "dot", "no_dot")), show.legend = F, alpha=.8, color="white") +
+    scale_size_manual(values=c(dot=.5, no_dot=NA), guide="none") +
+    labs(fill = "UCS SNP Count") +
+    theme_classic() +
+    theme(legend.position = "top",  
+          legend.title.align = .5,
+          axis.text.x = element_text(angle = 40, hjust = 1),
+          # legend.background =  element_rect(fill = "lightgray"),
+          legend.key = element_rect(colour = "gray60"), 
+          legend.text = element_text(size = 8),
+          legend.text.align = .5,
+          # legend.key.size = unit(.5, units = "cm" ),
+          legend.box="horizontal",
+          # panel.background = element_rect(fill = 'transparent'),
+          # panel.grid = element_line(color="gray", size=5),
+          panel.grid.major = element_line(color="grey", size=5) ) +  
+    guides(color = guide_legend(nrow = 1, reverse = F,
+                                title.position = "top",
+                                # label.position = "top",
+                                title.hjust = .5,
+                                label.hjust = -1)) +
+    # Keep unused levels/Loci
+    scale_y_discrete(drop=FALSE)
+  print(gg_gwas.qtl)
+  return(gg_gwas.qtl)
+}
+
+
+
 
 
 
@@ -1075,5 +1186,54 @@ createDT_html <- function(DF, caption="", scrollY=400){
   htmltools::tagList( createDT(DF, caption, scrollY))
 }
 
+find_consensus_SNPs <- function(finemap_DT,
+                                verbose=T,
+                                credset_thresh=.95,
+                                consensus_thresh=2,
+                                sort_by_support=T,
+                                exclude_methods=NULL){
+  printer("+ Identifying Consensus SNPs...",v=verbose)
+  exclude_methods <- append(exclude_methods,"mean")
+  # Find SNPs that are in the credible set for all fine-mapping tools
+  CS_cols <- colnames(finemap_DT)[endsWith(colnames(finemap_DT),".Credible_Set")]
+  CS_cols <- CS_cols[!(CS_cols %in% paste0(exclude_methods,".Credible_Set"))]
+  if(consensus_thresh=="all"){consensus_thresh<-length(CS_cols)}
+  printer("++ support_thresh =",consensus_thresh)
+  # Get the number of tools supporting each SNP
+  ## Make sure each CS is set to 1
+  support_sub <- subset(finemap_DT, select = CS_cols) %>% data.frame()
+  support_sub[sapply(support_sub, function(e){e>1})] <- 1
+  finemap_DT$Support <- rowSums(support_sub, na.rm = T)
+  finemap_DT$Consensus_SNP <- finemap_DT$Support >= consensus_thresh
+  # Sort
+  if(sort_by_support){
+    finemap_DT <- finemap_DT %>% arrange(desc(Consensus_SNP), desc(Support))
+  }
+  
+  # Calculate mean PP
+  printer("+ Calculating mean Posterior Probability (mean.PP)...")
+  PP.cols <- grep(".PP",colnames(finemap_DT), value = T)
+  PP.cols <- PP.cols[!(PP.cols %in% paste0(exclude_methods,".PP"))]
+  PP.sub <- subset(finemap_DT, select=c("SNP",PP.cols)) %>% data.frame()# %>% unique()
+  PP.sub[is.na(PP.sub)] <- 0
+  if(NCOL(PP.sub[,-1]) > 1){
+    finemap_DT$mean.PP <- rowMeans(PP.sub[,-1])
+  } else{
+    finemap_DT$mean.PP <- PP.sub[,-1]
+  }
+  finemap_DT$mean.Credible_Set <- ifelse(finemap_DT$mean.PP>=credset_thresh,1,0)
+  
+  # PP.sub %>% arrange(desc(mean.PP)) %>% head()
+  printer("++",length(CS_cols),"fine-mapping methods used.")
+  printer("++",dim(subset(finemap_DT,Support>0))[1],"Credible Set SNPs identified.")
+  printer("++",dim(subset(finemap_DT,Consensus_SNP==T))[1],"Consensus SNPs identified.")
+  return(finemap_DT)
+}
 
 
+add_eGene_col <- function(qtl.dat){
+  # Remove any old col
+  if("eGene" %in% colnames(qtl.dat)){qtl.dat <- subset(qtl.dat, select=-eGene)}
+  qtl.dat <- qtl.dat %>% dplyr::mutate(eGene = ifelse(!is.na(gene.QTL) & gene.QTL!="",gene.QTL, molecular_trait_id.QTL))
+  return(qtl.dat)
+}
