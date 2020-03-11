@@ -902,7 +902,7 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
             coloc_summary <- as.list(coloc_res$summary)
             coloc_results <- coloc_res$results
             if(top_snp_only){
-              coloc_results <- coloc_results %>% top_n(n=1, wt=SNP.PP.H4)[1,]
+              coloc_results <- (coloc_results %>% top_n(n=1, wt=SNP.PP.H4))[1,]
             }
             
             
