@@ -857,7 +857,8 @@ catalogueR.get_colocs <- function(qtl.egene,
 
 catalogueR.run_coloc <- function(gwas.qtl_paths,
                                  save_path="./coloc_results.tsv.gz",
-                                 nThread=3){
+                                 nThread=3,
+                                 top_snp_only=T){
   # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("../eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
@@ -899,11 +900,16 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
                                                merge_by_rsid = T,
                                                verbose = F)
             coloc_summary <- as.list(coloc_res$summary)
+            coloc_results <- coloc_res$results
+            if(top_snp_only){
+              coloc_results <- coloc_results %>% top_n(n=1, wt=SNP.PP.H4)[1,]
+            }
+            
             
             coloc_DT <- data.table::data.table(Locus.GWAS=coloc_res$Locus, 
                                                qtl.id=qtl.ID,
                                                eGene=eGene,
-                                               coloc_res$results,
+                                               coloc_results,
                                                PP.H0=coloc_summary$PP.H0.abf,
                                                PP.H1=coloc_summary$PP.H1.abf,
                                                PP.H2=coloc_summary$PP.H2.abf,
