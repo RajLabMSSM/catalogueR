@@ -577,7 +577,9 @@ catalogueR.run <- function(sumstats_paths=NULL,
 
 catalogueR.gather_top_eVariants <- function(root_dir="/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", 
                                             save_path="./eQTL_catalogue_topHits.tsv.gz",
-                                            nThread=4){
+                                            nThread=4,
+                                            criterion="top_eVariant",
+                                            pval_thresh=1e-5){
   library(dplyr)
   # root_dir = "/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019"; nThread=4;
   qtl.paths <- list.files(root_dir, 
@@ -597,12 +599,22 @@ catalogueR.gather_top_eVariants <- function(root_dir="/pd-omics/brian/eQTL_catal
           qtl <- data.table::fread(x, nThread = 1)
           print(dim(qtl))
           qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
-          top_qtls <- qtl %>% 
+          qtl <- qtl %>% 
             dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
-                          qtl.ID = qtl.id) %>% 
-            dplyr::group_by(eGene) %>%  
-            dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
-            data.table::data.table()
+                          qtl.ID = qtl.id)  
+         
+            if(criterion=="pval_thresh"){
+              # Get sig eVariants
+              top_qtls <- subset(qtl, pvalue.QTL < pval_thresh)
+            } else if(criterion=="top_eVariant"){
+              # Get top eVariants per eGene
+              top_qtls <- qtl %>% 
+                dplyr::group_by(eGene) %>%  
+                dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
+                data.table::data.table()
+            }
+          
+          
         }) 
         return(top_qtls)
       }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)
@@ -955,14 +967,15 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
 catalogueR.plot_coloc_summary <- function(coloc_QTLs, 
                                           topQTL,
                                           PP_thresh = .8, 
-                                          save_path="coloc_topQTL.png"){ 
+                                          save_path="./coloc_topQTL.png"){ 
   # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
-  # PP_thresh <- .8
+  # coloc_QTLs <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz", nThread = 4)
+  # PP_thresh <- .99
  
   coloc_plot <- subset(coloc_QTLs, !is.na(Locus.GWAS)) %>% 
     dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
                   PP.Hyp4= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
-    separate(col = qtl.id, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
+    tidyr::separate(col = qtl.id, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
     # only plot colocalized loci-egene combinations (otherwise, plot will be massive)
     data.table::data.table() %>%
     data.table:::merge.data.table(y=topQTL,
@@ -977,24 +990,14 @@ catalogueR.plot_coloc_summary <- function(coloc_QTLs,
                   Lead_GWAS_SNP = leadSNP) %>%
     # Get only the top eGene per locus
     dplyr::group_by(Locus.GWAS, qtl.id) %>% 
-    top_n(n=1,wt=-pvalue.QTL)
+    top_n(n=1,wt=-pvalue.QTL) %>% 
+    data.table::data.table()
   
   max_x <- length(unique(coloc_plot$Locus.eGene))
    
   # raster plot 
   gg_coloc <- ggplot(data=coloc_plot, aes(x=Locus.eGene, y=qtl.id, fill=PP.Hyp4)) + 
-    geom_raster() +  
-    # Consensus SNP markers
-    geom_point(data = subset(coloc_plot, Consensus_SNP), aes(x=Locus.eGene, y=qtl.id, color="Consensus_SNP"), color="goldenrod2", show.legend = T) +
-     
-    # UCS SNP markers
-    geom_point(data = subset(coloc_plot, Union_Credible_Set), aes(x=Locus.eGene, y=qtl.id, color="Union_Credible_Set"), size=3, shape=1, color="green2", show.legend = T) +
-   
-    # lead GWAS SNP markers
-    geom_point(data = subset(coloc_plot, Lead_GWAS_SNP), aes(x=Locus.eGene, y=qtl.id, color="Lead_GWAS_SNP"), size=5, shape=1, color="black", show.legend=T) +
-
-    
-
+    geom_raster() +   
     # scale_fill_continuous(limits=c(minPP4,1)) +
     scale_fill_gradient(na.value = "transparent", low = scales::alpha("blue",.7), high = scales::alpha("red",.7)) +
     scale_y_discrete(drop=F) +
@@ -1002,28 +1005,33 @@ catalogueR.plot_coloc_summary <- function(coloc_QTLs,
     # scale_fill_manual(limits=c(0,1), palette="Spectral") +
     # facet_grid(facets = . ~ Locus.GWAS + eGene, 
     #            switch = "y",scales = "free") +
-    labs(title="Colocalized GWAS loci x QTL loci\n",
+    labs(title=paste0("Colocalized GWAS loci x QTL loci (>",PP_thresh*100,"% probability)\n"),
          x="GWAS Locus (QTL eGene)",
          fill="Colocalization\nProbability") +
     theme_bw() +
     theme(plot.title = element_text(hjust = .5),
           axis.text.x = element_text(angle=45, hjust=0), 
-          panel.border = element_rect(colour = "transparent")) +
-    scale_color_manual(name = "SNP group x lead eVariant overlap",
-                  breaks = c("Consensus_SNP", "Union_Credible_Set", "Lead_GWAS_SNP"),
-                  values = c(Consensus_SNP = "goldenrod2", Union_Credible_Set = "green2", Union_Credible_Set = "grey30") ) +
-    coord_cartesian(xlim=c(0,max_x+2), clip = 'off') +
-    annotate("text", x=max_x+2, y=3, label = "• Consensus SNP", vjust = 2, hjust = 0, colour = "goldenrod2", size=3) +
-    annotate("text",x=max_x+2, y=3, label = "○ Union Credible Set", vjust = 0, hjust = 0, colour = "green2", size=3) +
-    annotate("text", x=max_x+2, y=3, label = "○ Lead GWAS SNP", vjust = -2,  hjust = 0, colour = "black", size=3)
-    
-    
+          panel.border = element_rect(colour = "transparent")) 
+    # scale_color_manual(name = "SNP group x lead eVariant overlap",
+    #               breaks = c("Consensus_SNP", "Union_Credible_Set", "Lead_GWAS_SNP"),
+    #               values = c(Consensus_SNP = "goldenrod2", Union_Credible_Set = "green2", Union_Credible_Set = "grey30") ) 
+    # coord_cartesian(xlim=c(0,max_x+2), clip = 'off') +
+    # annotate("text", x=max_x+2, y=3, label = "• Consensus SNP", vjust = 2, hjust = 0, colour = "goldenrod2", size=3) +
+    # annotate("text",x=max_x+2, y=3, label = "○ Union Credible Set", vjust = 0, hjust = 0, colour = "green2", size=3) +
+    # annotate("text", x=max_x+2, y=3, label = "○ Lead GWAS SNP", vjust = -2,  hjust = 0, colour = "black", size=3)
+  # Consensus SNP markers
+  # geom_point(data = subset(coloc_plot, Consensus_SNP), aes(x=Locus.eGene, y=qtl.id, color="Consensus_SNP"), color="goldenrod2", show.legend = T) +
+  #   # UCS SNP markers
+  #   geom_point(data = subset(coloc_plot, Union_Credible_Set), aes(x=Locus.eGene, y=qtl.id, color="Union_Credible_Set"), size=3, shape=1, color="green2", show.legend = T) +
+  #   # lead GWAS SNP markers
+  #   geom_point(data = subset(coloc_plot, Lead_GWAS_SNP), aes(x=Locus.eGene, y=qtl.id, color="Lead_GWAS_SNP"), size=5, shape=1, color="black", show.legend=T) +
   print(gg_coloc)
+  
   if(save_path!=F){
-    # save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc_topQTL.png"
-    dir.create(save_path, showWarnings = F, recursive = T)
+    # save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc_PP80.png"
+    dir.create(dirname(save_path), showWarnings = F, recursive = T)
     ggsave(save_path,
-           plot=gg_coloc,height = 7, width=9)
+           plot=gg_coloc, height = 11, width=25)
   }
   # Return merged data
  return(coloc_plot)
