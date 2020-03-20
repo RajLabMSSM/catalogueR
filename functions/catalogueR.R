@@ -640,6 +640,8 @@ catalogueR.top_eVariants_overlap <- function(topQTL,
                                              gwas_min_support=1,
                                              qtl_pvalue_thresh=NULL){
   # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
+  topQTL <- data.table::fread("/pd-omics/brian/Fine_Mapping//Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_sigHits.tsv.gz", nThread = 4)
+  
   merged_DT <- merge_finemapping_results(dataset = gwas_dataset,
                                          minimum_support = gwas_min_support,
                                          include_leadSNPs = T,
