@@ -596,8 +596,7 @@ catalogueR.gather_top_eVariants <- function(root_dir="/pd-omics/brian/eQTL_catal
         message(basename(x))
         top_qtls <- NULL
         try({
-          qtl <- data.table::fread(x, nThread = 1)
-          print(dim(qtl))
+          qtl <- data.table::fread(x, nThread = 1) 
           qtl.id <- strsplit(gsub(".tsv.gz$","",basename(x)), split = "___")[[1]][2]
           qtl <- qtl %>% 
             dplyr::mutate(eGene = ifelse((!is.na(gene.QTL) & gene.QTL!=""),gene.QTL,molecular_trait_id.QTL),
@@ -613,7 +612,7 @@ catalogueR.gather_top_eVariants <- function(root_dir="/pd-omics/brian/eQTL_catal
                 dplyr::top_n(n = 1, wt = -pvalue.QTL) %>% 
                 data.table::data.table()
             }
-          
+          print(dim(top_qtls))
           
         }) 
         return(top_qtls)
@@ -629,6 +628,11 @@ catalogueR.gather_top_eVariants <- function(root_dir="/pd-omics/brian/eQTL_catal
   } 
   return(topQTL)
 }
+# topQTL <- catalogueR.gather_top_eVariants(root_dir="../eQTL_catalogue/Nalls23andMe_2019", 
+#                                             save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_sigHits.tsv.gz",
+#                                             nThread=4,
+#                                             criterion="pval_thresh",
+#                                             pval_thresh=1e-5)
 
 
 catalogueR.top_eVariants_overlap <- function(topQTL, 
@@ -648,11 +652,11 @@ catalogueR.top_eVariants_overlap <- function(topQTL,
                                           all=T)
   
   if(is.null(qtl_pvalue_thresh)){
-    qtl_pvalue_thresh <- 5e-8 / length(unique(topQTL$qtl.ID)) /length(unique(topQTL$eGene))
+    qtl_pvalue_thresh <- 1e-5 / length(unique(topQTL$qtl.ID)) /length(unique(topQTL$eGene))
   }
   
   qtl_sig <- topQTL %>%
-    subset(!is.na(pvalue.QTL) & pvalue.QTL<p_thresh) %>%
+    subset(!is.na(pvalue.QTL) & pvalue.QTL<qtl_pvalue_thresh) %>%
     dplyr::group_by(qtl.ID, Locus) %>% top_n(n=1, wt = -pvalue.QTL) %>% 
     dplyr::mutate(Locus.eGene = paste0(Locus,"  (",eGene,")")) %>%
     data.table::data.table()
@@ -967,32 +971,35 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
 catalogueR.plot_coloc_summary <- function(coloc_QTLs, 
                                           topQTL,
                                           PP_thresh = .8, 
-                                          save_path="./coloc_topQTL.png"){ 
+                                          save_dir=".",
+                                          no_no_loci=NULL){ 
   # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
-  # coloc_QTLs <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz", nThread = 4)
-  # PP_thresh <- .99
+  coloc_QTLs <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz", nThread = 4)
+  # no_no_loci = c("HLA-DRB5","ATG14","SP1","LMNB1","ATP6V0A1",
+  #                "CRHR1","MAPT-AS1","KANSL1","NSF","WNT3")
+  PP_thresh <- .99
  
   coloc_plot <- subset(coloc_QTLs, !is.na(Locus.GWAS)) %>% 
     dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
                   PP.Hyp4= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
     tidyr::separate(col = qtl.id, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
     # only plot colocalized loci-egene combinations (otherwise, plot will be massive)
-    data.table::data.table() %>%
-    data.table:::merge.data.table(y=topQTL,
-                                  by.x=c("Locus.GWAS","eGene","qtl.id"),
-                                  by.y=c("Locus","eGene","qtl.ID"), 
-                                  all = T)  %>%
+    # data.table::data.table() %>%
+    # data.table:::merge.data.table(y=topQTL,
+    #                               by.x=c("Locus.GWAS","eGene","qtl.id"),
+    #                               by.y=c("Locus","eGene","qtl.ID"), 
+    #                               all = T)  %>%
     # subset((!is.na(PP.Hyp4) & !is.na(PP.H4.thresh) | (Support>0) | (leadSNP)), .drop=F) %>%
     subset((!is.na(PP.Hyp4) & !is.na(PP.H4.thresh)), .drop=F) %>%
-    dplyr::mutate(Locus.eGene = paste0(Locus.GWAS," (",eGene,")"),
-                  Consensus_SNP = Consensus_SNP,
-                  Union_Credible_Set = Support>0,
-                  Lead_GWAS_SNP = leadSNP) %>%
-    # Get only the top eGene per locus
-    dplyr::group_by(Locus.GWAS, qtl.id) %>% 
-    top_n(n=1,wt=-pvalue.QTL) %>% 
+    dplyr::mutate(Locus.eGene = paste0(Locus.GWAS," (",eGene,")")) %>%
+                  # Consensus_SNP = Consensus_SNP,
+                  # Union_Credible_Set = Support>0,
+                  # Lead_GWAS_SNP = leadSNP) %>%
+    # # Get only the top eGene per locus
+    # dplyr::group_by(Locus.GWAS, qtl.id) %>% 
+    # top_n(n=1,wt=-pvalue.QTL) %>% 
+    subset(!Locus.GWAS %in% no_no_loci) %>%
     data.table::data.table()
-  
   max_x <- length(unique(coloc_plot$Locus.eGene))
    
   # raster plot 
@@ -1005,8 +1012,10 @@ catalogueR.plot_coloc_summary <- function(coloc_QTLs,
     # scale_fill_manual(limits=c(0,1), palette="Spectral") +
     # facet_grid(facets = . ~ Locus.GWAS + eGene, 
     #            switch = "y",scales = "free") +
+    # ylab(paste0('**',Locus.GWAS,'** (',eGene,')')) +
     labs(title=paste0("Colocalized GWAS loci x QTL loci (>",PP_thresh*100,"% probability)\n"),
          x="GWAS Locus (QTL eGene)",
+         y="QTL dataset ID",
          fill="Colocalization\nProbability") +
     theme_bw() +
     theme(plot.title = element_text(hjust = .5),
@@ -1027,11 +1036,12 @@ catalogueR.plot_coloc_summary <- function(coloc_QTLs,
   #   geom_point(data = subset(coloc_plot, Lead_GWAS_SNP), aes(x=Locus.eGene, y=qtl.id, color="Lead_GWAS_SNP"), size=5, shape=1, color="black", show.legend=T) +
   print(gg_coloc)
   
-  if(save_path!=F){
-    # save_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc_PP80.png"
+  if(save_dir!=F){
+    # save_dir = "./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC"
+    save_path <- file.path(save_dir,paste0("coloc_PP",PP_thresh*100,".png"))
     dir.create(dirname(save_path), showWarnings = F, recursive = T)
     ggsave(save_path,
-           plot=gg_coloc, height = 11, width=25)
+           plot=gg_coloc, height = 7, width=9)
   }
   # Return merged data
  return(coloc_plot)
