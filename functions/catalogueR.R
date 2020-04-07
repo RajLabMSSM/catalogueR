@@ -28,20 +28,20 @@
 # First things first: Loading needed libraries
 library("dplyr")
 library("ggplot2")
-library("readr")
-library("stringr")
-library("httr")
-library("jsonlite")
-library("tidyverse")
-library("coloc")
-library("biomaRt")
-library("wiggleplotr")
-library("GenomicRanges")
-library("biomaRt")
-library(AnnotationDbi)
-library(data.table)
-library(EnsDb.Hsapiens.v75)
-library(XGR)
+# library("readr")
+# library("stringr")
+# library("httr")
+# library("jsonlite")
+# library("tidyverse")
+# library("coloc")
+# library("biomaRt")
+# library("wiggleplotr")
+# library("GenomicRanges")
+# library("biomaRt")
+# library(AnnotationDbi)
+# library(data.table)
+# library(EnsDb.Hsapiens.v75)
+# library(XGR)
 
   
 
@@ -87,6 +87,15 @@ catalogueR.list_eQTL_datasets <- function(save_path="./resources",
   }
   printer(length(unique(meta$study)),"unique eQTL datasets:",v=verbose)
   # printer(unique(meta$study))
+  
+  # Add group-level annotations 
+  T_cells <- c("CD4+ T cell","CD8+ T cell","B cell","T cell","Tfh cell","Th17 cell","Th1 cell","Th2 cell","Treg naive","Treg memory")
+  meta <- dplyr::mutate(meta, Tissue_group=ifelse(tissue_label %in% T_cells, "T-cell",tissue_label))
+  
+  # Add system-level annotations
+  blood <- c("blood","macrophage","monocyte","CD16+ monocyte","neutrophil","NK cell","platelet",T_cells)
+  CNS <- c("DLPFC") 
+  meta$System <- ifelse(meta$tissue_label %in% blood,"Blood",ifelse(meta$tissue_label %in% CNS, "CNS", "Other"))
   return(meta)
 }
 
@@ -636,19 +645,18 @@ catalogueR.gather_top_eVariants <- function(root_dir="/pd-omics/brian/eQTL_catal
 
 
 catalogueR.top_eVariants_overlap <- function(topQTL, 
+                                             merged_DT,
                                              gwas_dataset="./Data/GWAS/Nalls23andMe_2019",
                                              gwas_min_support=1,
-                                             qtl_pvalue_thresh=NULL){
+                                             qtl_pvalue_thresh=NULL, 
+                                             save_dir="."){
   # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
-  # topQTL <- data.table::fread("/pd-omics/brian/Fine_Mapping//Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_sigHits.tsv.gz", nThread = 4)
+  # topQTL <- data.table::fread("/pd-omics/brian/Fine_Mapping/Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_sigHits6e-11_finemapOverlap.tsv", nThread = 4)
   
-  merged_DT <- merge_finemapping_results(dataset = gwas_dataset,
-                                         minimum_support = gwas_min_support,
-                                         include_leadSNPs = T,
-                                         xlsx_path = F)
+ 
   merged_DT$Locus <- merged_DT$Gene
   qtl.cols <- grep(".QTL$",colnames(topQTL), value = T)
-  topQTL <- data.table:::merge.data.table(x=merged_DT,
+  topQTL <- data.table:::merge.data.table(x=data.table::data.table(merged_DT),
                                           y=subset(topQTL, select=c("Locus",'SNP',"qtl.ID", qtl.cols, "eGene")),
                                           by=c("Locus","SNP"),
                                           all=T)
@@ -656,13 +664,78 @@ catalogueR.top_eVariants_overlap <- function(topQTL,
   if(is.null(qtl_pvalue_thresh)){
     qtl_pvalue_thresh <- 1e-5 / length(unique(topQTL$qtl.ID)) /length(unique(topQTL$eGene))
   }
-  
-  qtl_sig <- topQTL %>%
+  printer("+ Filtering: p <",qtl_pvalue_thresh)
+  sigQTL <- topQTL %>%
     subset(!is.na(pvalue.QTL) & pvalue.QTL<qtl_pvalue_thresh) %>%
-    dplyr::group_by(qtl.ID, Locus) %>% top_n(n=1, wt = -pvalue.QTL) %>% 
+    # dplyr::group_by(qtl.ID, Locus, eGene) %>% top_n(n=1, wt = -pvalue.QTL) %>%
     dplyr::mutate(Locus.eGene = paste0(Locus,"  (",eGene,")")) %>%
+    subset(Support>0 | leadSNP) %>%
     data.table::data.table()
-  return(qtl_sig)
+  
+  if(save_dir!=F){
+    # save_dir="./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue"
+    save_path <- file.path(save_dir, paste0("eQTL_catalogue_sigHits",format(qtl_pvalue_thresh, digits=1),"_finemapOverlap.tsv"))
+    data.table::fwrite(qtl_sig, save_path, sep="\t")
+  }
+  return(sigQTL)
+}
+
+catalogueR.annotate_tissues <- function(dat){
+  meta <- catalogueR.list_eQTL_datasets()
+  meta$tissue_label <- gsub('CD16+ monocyte','monocyte',meta$tissue_label)
+  tissueDict <- setNames(meta$tissue_label, meta$unique_id) 
+  tissue_groupDict <- setNames(meta$Tissue_group, meta$unique_id)
+  sysDict <- setNames(meta$System, meta$unique_id)
+  
+  # dat <- tidyr::separate(dat, col=qtl.ID,into=c("Study","Tissue_label"), sep="[.]", remove = F) %>%
+  #   dplyr::mutate(Tissue = tissueDict[Tissue_label])
+  dat$Tissue <- tissueDict[dat$qtl.ID]
+  dat$Tissue_group <- tissue_groupDict[dat$qtl.ID]
+  dat$System <- sysDict[dat$qtl.ID]
+  # Add the number of datasets per Tissue as a col
+  dat_count <- dat %>% 
+    dplyr::group_by(Tissue) %>% 
+    dplyr::summarise(dataset_count=n_distinct(qtl.ID, na.rm = T)) %>% 
+    data.table::data.table() 
+  countDict <-  setNames(dat_count$dataset_count, dat_count$Tissue)
+  dat$dataset_count <- countDict[dat$Tissue]   #data.table::merge.data.table(x=dat, y=dat_count, by="Tissue")
+  dat$Tissue_count <- paste0(dat$Tissue," (n=",dat$dataset_count,")")
+  dat$Tissue_count <- factor(dat$Tissue_count, levels = unique(dat$Tissue_count), ordered = T)
+  dat$Tissue <- factor(dat$Tissue, levels = unique(dat$Tissue), ordered = T)
+  return(dat)
+}
+
+catalogueR.top_eVariants_overlap_plot <- function(sigQTL,
+                                                  locus_order=NULL,
+                                                  no_no_loci=NULL){ 
+  sigQTL <- catalogueR.annotate_tissues(sigQTL)
+  sigQTL_count <- sigQTL %>% 
+    subset(!Locus %in% no_no_loci) %>%  
+    dplyr::group_by(Locus, Tissue) %>%  
+    dplyr::summarise('Lead GWAS SNPs' = n_distinct(SNP[leadSNP], na.rm=T),
+                     "Consensus SNPs" = n_distinct(SNP[Consensus_SNP], na.rm=T),
+                     "UCS SNPs" = n_distinct(SNP[Support>0],na.rm = T) ) %>%  
+    data.table::data.table() %>%
+    data.table::melt.data.table(id.vars = c("Locus","Tissue"), 
+                                variable.name = "SNP Group", 
+                                value.name = "Significant eVariant Overlap")
+  
+  sigQTL_count[sigQTL_count$`Significant eVariant Overlap`==0, "Significant eVariant Overlap"] <- NA
+  
+  if(!is.null(locus_order)){
+    sigQTL_count$Locus <- factor(sigQTL_count$Locus,  levels = levels(locus_order$Locus), ordered = T)
+  }
+  
+  ggplot(sigQTL_count, aes(x = Tissue, y = Locus, fill=`Significant eVariant Overlap`)) + 
+    geom_tile() + 
+    scale_y_discrete(drop=F) + 
+    scale_fill_gradient(low = "blue", high="yellow", na.value = "transparent") + 
+    facet_grid(facets = .~`SNP Group`) + 
+    scale_x_discrete(position = "top") + 
+    labs(fill="SNPs overlapping\nwith Significant eVariants") + 
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 0))
+ 
   
 }
 
@@ -683,12 +756,16 @@ catalogueR.file_names <- function(topQTL, root_dir="./"){
 
 catalogueR.plot_top_eVariants_overlap <- function(topQTL,
                                                  save_path="./topQTL_allLoci.png",
-                                                 qtl_pvalue_thresh=NULL){ 
+                                                 qtl_pvalue_thresh=NULL,
+                                                 no_no_loci=NULL){ 
   # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
+  # topQTL <- data.table::fread("/pd-omics/brian/Fine_Mapping/Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_sigHits6e-11_finemapOverlap.tsv", nThread = 4)
+  # no_no_loci = c("HLA-DRB5","ATG14","SP1","LMNB1","ATP6V0A1", "CRHR1","MAPT-AS1","KANSL1","NSF","WNT3")
+  
   if(is.null(qtl_pvalue_thresh)){
     qtl_pvalue_thresh <- 5e-8 / length(unique(topQTL$qtl.ID)) /length(unique(topQTL$eGene))
   }
-  topQTL_sig <- subset(topQTL, pvalue.QTL<qtl_pvalue_thresh)
+  topQTL_sig <- subset(topQTL, (pvalue.QTL<qtl_pvalue_thresh) & Consensus_SNP & (!Locus %in% no_no_loci))
   
   max_x <- length(unique(topQTL_sig$Locus.eGene))
   
@@ -696,24 +773,23 @@ catalogueR.plot_top_eVariants_overlap <- function(topQTL,
     # geom_raster(aes(fill=topQTL.prop)) +  
     geom_raster(aes(fill=pvalue.QTL)) + 
     scale_fill_gradient(low = "red", high = "blue", na.value = "transparent") +
+    
     # Consensus SNP markers
-    geom_point(data = subset(topQTL_sig, Consensus_SNP), aes(x=Locus.eGene, y=qtl.ID), color="goldenrod2", show.legend = T) +
-    
-    # UCS SNP markers
-    geom_point(data = subset(topQTL_sig, Support>0), aes(x=Locus.eGene, y=qtl.ID), size=3, shape=1, color="green2", show.legend = T) +
-    
+    # geom_point(data = subset(topQTL_sig, Consensus_SNP), aes(x=Locus.eGene, y=qtl.ID), color="goldenrod2", show.legend = T) +
+    # # UCS SNP markers
+    # geom_point(data = subset(topQTL_sig, Support>0), aes(x=Locus.eGene, y=qtl.ID), size=3, shape=1, color="green2", show.legend = T) +
     # lead GWAS SNP markers
-    geom_point(data = subset(topQTL_sig, leadSNP), aes(x=Locus.eGene, y=qtl.ID), size=5, shape=1, color="black", show.legend=T) +
+    geom_point(data = subset(topQTL_sig, leadSNP), aes(x=Locus.eGene, y=qtl.ID), size=3, shape=1, color="black", show.legend=T) +
     coord_cartesian(xlim=c(0,max_x+2), clip = 'off') +
-    annotate("text", x=max_x+2, y=3, label = "• Consensus SNP", vjust = 2, hjust = 0, colour = "goldenrod2", size=3) +
-    annotate("text",x=max_x+2, y=3, label = "○ Union Credible Set", vjust = 0, hjust = 0, colour = "green2", size=3) +
+    # annotate("text", x=max_x+2, y=3, label = "• Consensus SNP", vjust = 2, hjust = 0, colour = "goldenrod2", size=3) +
+    # annotate("text",x=max_x+2, y=3, label = "○ Union Credible Set", vjust = 0, hjust = 0, colour = "green2", size=3) +
     annotate("text", x=max_x+2, y=3, label = "○ Lead GWAS SNP", vjust = -2,  hjust = 0, colour = "black", size=3) +
+    
     scale_y_discrete(drop = F) +
     # facet_grid(facets = .~ Locus.eGene, scales = "free_x") + 
     scale_x_discrete(position = "top") +
     theme_bw() +
-    labs(title=paste("Top eVariants per QTL dataset per GWAS Locus\n",
-                     "Overlapping lead GWAS SNPs only"),
+    labs(title=paste0("Significant QTL eVariants (p < ",format(qtl_pvalue_thresh, digits=2),") that overlap with Consensus SNPs"),
          # subtitle="Overlapping lead GWAS SNPs only",
          x="\nGWAS Locus (QTL eGene)\n") +
     theme(plot.title = element_text(hjust = .5), 
@@ -880,7 +956,7 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
                                  save_path="./coloc_results.tsv.gz",
                                  nThread=3,
                                  top_snp_only=T,
-                                 split_by_group=F){
+                                 split_by_group=F){ 
   # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("../eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
@@ -968,82 +1044,146 @@ catalogueR.run_coloc <- function(gwas.qtl_paths,
 }
 
 
+add_old_coloc_results <- function(old_results_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/old_results/COLOC_results_flip-gwasEffect.txt",
+                                  coloc_QTLs){
+  old_coloc <- data.table::fread(old_results_path)
+  old_coloc <- subset(old_coloc, !startsWith(Dataset2,"Fairfax")) %>% 
+    dplyr::rename(PP.H0=PP.H0.abf, PP.H1=PP.H1.abf, 
+                  PP.H2=PP.H2.abf, PP.H3=PP.H3.abf, PP.H4=PP.H4.abf,
+                  Locus.GWAS = Locus) 
+  old_coloc$eGene <- old_coloc$Locus.GWAS
+  old_coloc$qtl.id <- sub("^([^_]*_[^_]*)_", "\\1.",old_coloc$Dataset2)
+  old_coloc$qtl.id <- gsub("MESA_", "MESA.",old_coloc$qtl.id)
+  coloc_QTLs <- rbind(coloc_QTLs, old_coloc, fill=T)
+  return(coloc_QTLs)
+}
 
 
 catalogueR.plot_coloc_summary <- function(coloc_QTLs, 
                                           topQTL,
+                                          merged_DT,
                                           PP_thresh = .8, 
                                           save_dir=".",
-                                          no_no_loci=NULL){ 
+                                          no_no_loci=NULL,
+                                          gwas_dataset="./Data/GWAS/Nalls23andMe_2019",
+                                          label_snp_groups=T){ 
+  library(dplyr)
   # topQTL <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_topHits.tsv.gz", nThread = 4)
-  coloc_QTLs <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz", nThread = 4)
-  # no_no_loci = c("HLA-DRB5","ATG14","SP1","LMNB1","ATP6V0A1",
-  #                "CRHR1","MAPT-AS1","KANSL1","NSF","WNT3")
-  PP_thresh <- .99
+  # no_no_loci = c("HLA-DRB5","ATG14","SP1","LMNB1","ATP6V0A1", "RETREG3","UBTF","FAM171A2","MAP3K14","CRHR1","MAPT-AS1","KANSL1","NSF","WNT3"); label_snp_groups=T;gwas_dataset="./Data/GWAS/Nalls23andMe_2019";
+  # coloc_QTLs <- data.table::fread("./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz", nThread = 4)
+  # topQTL <- data.table::fread("/pd-omics/brian/Fine_Mapping/Data/GWAS/Nalls23andMe_2019/_genome_wide/eQTL_Catalogue/eQTL_catalogue_sigHits6e-11_finemapOverlap.tsv", nThread = 4)
+  # merged_DT <- merge_finemapping_results(dataset = gwas_dataset,
+  #                                        minimum_support = 1,
+  #                                        include_leadSNPs = T,
+  #                                        xlsx_path = F)
+  
+  # ---------------------------- Add old pipeline results 
+  coloc_QTLs <- add_old_coloc_results(old_results_path="./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC/old_results/COLOC_results_flip-gwasEffect.txt",
+                                      coloc_QTLs)
+  # ---------------------------- 
+  
+  
+  sigQTL <- catalogueR.top_eVariants_overlap(topQTL = topQTL, 
+                                             merged_DT = merged_DT,
+                                             gwas_dataset = gwas_dataset, 
+                                             save_dir = F) 
+  # PP_thresh <- .9
  
   coloc_plot <- subset(coloc_QTLs, !is.na(Locus.GWAS)) %>% 
+    dplyr::rename(qtl.ID=qtl.id) %>%
     dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
                   PP.Hyp4= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
-    tidyr::separate(col = qtl.id, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
+    tidyr::separate(col = qtl.ID, into = c("QTL.group","id"), sep = "\\.", remove = F) %>%
     # only plot colocalized loci-egene combinations (otherwise, plot will be massive)
-    # data.table::data.table() %>%
-    # data.table:::merge.data.table(y=topQTL,
-    #                               by.x=c("Locus.GWAS","eGene","qtl.id"),
-    #                               by.y=c("Locus","eGene","qtl.ID"), 
-    #                               all = T)  %>%
-    # subset((!is.na(PP.Hyp4) & !is.na(PP.H4.thresh) | (Support>0) | (leadSNP)), .drop=F) %>%
-    subset((!is.na(PP.Hyp4) & !is.na(PP.H4.thresh)), .drop=F) %>%
-    dplyr::mutate(Locus.eGene = paste0(Locus.GWAS," (",eGene,")")) %>%
-                  # Consensus_SNP = Consensus_SNP,
-                  # Union_Credible_Set = Support>0,
-                  # Lead_GWAS_SNP = leadSNP) %>%
-    # # Get only the top eGene per locus
-    # dplyr::group_by(Locus.GWAS, qtl.id) %>% 
-    # top_n(n=1,wt=-pvalue.QTL) %>% 
+    subset((!is.na(PP.Hyp4) & !is.na(PP.H4.thresh)), .drop=F) %>% 
     subset(!Locus.GWAS %in% no_no_loci) %>%
     data.table::data.table()
-  max_x <- length(unique(coloc_plot$Locus.eGene))
    
-  # raster plot 
-  gg_coloc <- ggplot(data=coloc_plot, aes(x=Locus.eGene, y=qtl.id, fill=PP.Hyp4)) + 
-    geom_raster() +   
+  
+  # if(label_snp_groups){ 
+    coloc_dat <- data.table:::merge.data.table(x=data.table::data.table(coloc_plot),
+                                                y=data.table::data.table(sigQTL),
+                                                by.x=c("Locus.GWAS","eGene","qtl.ID"),
+                                                by.y=c("Locus","eGene","qtl.ID"), 
+                                                all.x=T) %>%
+      dplyr::group_by(Locus.GWAS,eGene,qtl.ID) %>% 
+      dplyr::summarise(PP.Hyp4=unique(PP.Hyp4),
+                       leadGWAS.sigQTL = sum(leadSNP, na.rm=T),
+                       Consensus.sigQTL = sum(Consensus_SNP, na.rm=T),
+                       UCS.sigQTL = n_distinct(SNP[Support>0],na.rm = T)
+                       ) %>% 
+      subset(!is.na(PP.Hyp4)) %>%
+      data.table::data.table()
+    # coloc_dat
+  # }
+  
+  coloc_dat <- catalogueR.annotate_tissues(dat = coloc_dat) 
+  # Do manually for old colocs results 
+  coloc_dat[grep("GTEx_V7.Brain", coloc_dat$qtl.ID),"Tissue"] <- "brain" 
+  coloc_dat[grep("MESA.", coloc_dat$qtl.ID),"Tissue"] <- "monocytes" 
+  coloc_dat[grep("GTEx_V7.Brain", coloc_dat$qtl.ID),"System"] <- "CNS"
+  coloc_dat[grep("MESA.", coloc_dat$qtl.ID),"System"] <- "Blood"
+  
+  coloc_dat$Tissue_count <- gsub(" [(]n=","\n(n=",coloc_dat$Tissue_count)
+  coloc_dat <- coloc_dat %>% dplyr::arrange(System, Tissue)
+  coloc_dat$qtl.ID <- factor(coloc_dat$qtl.ID, unique(coloc_dat$qtl.ID), ordered = T)
+  coloc_dat$Locus.eGene <- paste0(coloc_dat$Locus.GWAS,"  (",coloc_dat$eGene,")")
+  max_x <- length(unique(coloc_dat$Locus.eGene))
+  coloc_dat <- subset(coloc_dat, !is.na(eGene) & eGene!="NA")
+  
+  # Heatmap
+  gg_coloc <- ggplot(data=coloc_dat, aes(x=Locus.eGene, y=qtl.ID, fill=PP.Hyp4)) + 
+    # annotate("rect", xmin=-Inf, xmax=Inf, ymin=Tissue_group, ymax=Tissue_group) +
+    # geom_rect(data = coloc_dat, aes(xmin=-Inf, xmax=Inf, ymin= qtl.ID, ymax=qtl.ID, color=Tissue_group), alpha=0.4, inherit.aes = F) +
+    geom_tile(stat = "identity") +   
+    
     # scale_fill_continuous(limits=c(minPP4,1)) +
     scale_fill_gradient(na.value = "transparent", low = scales::alpha("blue",.7), high = scales::alpha("red",.7)) +
-    scale_y_discrete(drop=F) +
-    scale_x_discrete(position = "top") +
-    # scale_fill_manual(limits=c(0,1), palette="Spectral") +
-    # facet_grid(facets = . ~ Locus.GWAS + eGene, 
-    #            switch = "y",scales = "free") +
-    # ylab(paste0('**',Locus.GWAS,'** (',eGene,')')) +
-    labs(title=paste0("Colocalized GWAS loci x QTL loci (>",PP_thresh*100,"% probability)\n"),
+    scale_y_discrete(drop=T) +
+    scale_x_discrete(position = "top") + 
+    facet_grid(facets = System ~ .,
+               switch = "y",scales = "free", space = "free") +
+    labs(title=paste0("Colocalized GWAS loci x QTL loci (> ",PP_thresh*100,"% probability)\n"),
          x="GWAS Locus (QTL eGene)",
-         y="QTL dataset ID",
+         y="QTL Dataset\n",
          fill="Colocalization\nProbability") +
     theme_bw() +
     theme(plot.title = element_text(hjust = .5),
           axis.text.x = element_text(angle=45, hjust=0), 
-          panel.border = element_rect(colour = "transparent")) 
-    # scale_color_manual(name = "SNP group x lead eVariant overlap",
-    #               breaks = c("Consensus_SNP", "Union_Credible_Set", "Lead_GWAS_SNP"),
-    #               values = c(Consensus_SNP = "goldenrod2", Union_Credible_Set = "green2", Union_Credible_Set = "grey30") ) 
-    # coord_cartesian(xlim=c(0,max_x+2), clip = 'off') +
-    # annotate("text", x=max_x+2, y=3, label = "• Consensus SNP", vjust = 2, hjust = 0, colour = "goldenrod2", size=3) +
-    # annotate("text",x=max_x+2, y=3, label = "○ Union Credible Set", vjust = 0, hjust = 0, colour = "green2", size=3) +
-    # annotate("text", x=max_x+2, y=3, label = "○ Lead GWAS SNP", vjust = -2,  hjust = 0, colour = "black", size=3)
-  # Consensus SNP markers
-  # geom_point(data = subset(coloc_plot, Consensus_SNP), aes(x=Locus.eGene, y=qtl.id, color="Consensus_SNP"), color="goldenrod2", show.legend = T) +
-  #   # UCS SNP markers
-  #   geom_point(data = subset(coloc_plot, Union_Credible_Set), aes(x=Locus.eGene, y=qtl.id, color="Union_Credible_Set"), size=3, shape=1, color="green2", show.legend = T) +
-  #   # lead GWAS SNP markers
-  #   geom_point(data = subset(coloc_plot, Lead_GWAS_SNP), aes(x=Locus.eGene, y=qtl.id, color="Lead_GWAS_SNP"), size=5, shape=1, color="black", show.legend=T) +
-  print(gg_coloc)
+          # axis.text.y = element_text(ifelse(unique(coloc_dat$Tissue_group) == 'T-cell', 'red', 'black')),
+          panel.border = element_rect(colour = "transparent"),
+          strip.placement = "outside", 
+          strip.background = element_rect(fill="transparent"), 
+          strip.text.y = element_text(angle=90)) +
+    
+    # coord_cartesian(xlim=c(0,max_x+2), clip = 'off') + 
+    # annotate("text", x=max_x+2, y=2.5, label = "Significant eVariant\noverlaps with ≥ 1:", vjust = -1.5, hjust = 0, colour = "black", size=3.5) +
+    # annotate("text", x=max_x+2, y=2.5, label = "•  Consensus SNP", vjust = 2, hjust = 0, colour = "goldenrod2", size=3) +
+    # annotate("text",x=max_x+2, y=2.5, label = "○ Union Credible Set SNP", vjust = 0, hjust = 0, colour = "green3", size=3) +
+    # annotate("text", x=max_x+2, y=2.5, label = "○ Lead GWAS SNP", vjust = -2,  hjust = 0, colour = "black", size=3) + 
+    # Consensus SNP markers
+    geom_point(data = subset(coloc_dat, Consensus.sigQTL>0), aes(x=Locus.eGene, y=qtl.ID, color="Consensus_SNP"), color="cyan2", shape=16, size=1.5, show.legend = F) +
+    # UCS SNP markers
+    geom_point(data = subset(coloc_dat, UCS.sigQTL>0), aes(x=Locus.eGene, y=qtl.ID, color="Union_Credible_Set"), size=3, shape=5, color="cyan2", show.legend = F) +
+    # lead GWAS SNP markers
+    geom_tile(data = subset(coloc_dat, leadGWAS.sigQTL>0), aes(x=Locus.eGene, y=qtl.ID), fill="transparent", color="black", size=.7) 
+    # geom_point(data = subset(coloc_dat, leadGWAS.sigQTL>0), aes(x=Locus.eGene, y=qtl.ID, color="Lead_GWAS_SNP"), size=5, shape=0, color="black", stroke=1, show.legend=F)
+  print(gg_coloc) 
+  
   
   if(save_dir!=F){
     # save_dir = "./Data/GWAS/Nalls23andMe_2019/_genome_wide/COLOC"
     save_path <- file.path(save_dir,paste0("coloc_PP",PP_thresh*100,".png"))
     dir.create(dirname(save_path), showWarnings = F, recursive = T)
+    if(PP_thresh==.99){
+      width <- 7; height <- 9
+    } else {
+      width <- length(unique(coloc_dat$qtl.ID)) * .23#.333333
+      height <- length(unique(coloc_dat$Locus.eGene)) * .3 # 0.6428571
+    }
+   
     ggsave(save_path,
-           plot=gg_coloc, height = 7, width=9)
+           plot=gg_coloc, height=width, width=height, dpi=400)
   }
   # Return merged data
  return(coloc_plot)
@@ -1249,6 +1389,7 @@ find_consensus_SNPs <- function(finemap_DT,
   printer("++",dim(subset(finemap_DT,Consensus_SNP==T))[1],"Consensus SNPs identified.")
   return(finemap_DT)
 }
+
 
 
 add_eGene_col <- function(qtl.dat){
