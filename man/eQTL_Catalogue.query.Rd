@@ -49,7 +49,7 @@ For example, if you search "Alasoo_2018", it will query the datasets:
 } 
 You can be more specific about which datasets you want to include, 
 for example by searching: "Alasoo_2018.macrophage_IFNg".
-You can even search by tissue or condition type (e.g.c("blood","brain")) 
+You can even search by tissue or condition type (e.g. \code{c("blood","brain")}) 
 and any QTL datasets containing those substrings (case-insensitive) in their name or metadata will be queried too.}
 
 \item{use_tabix}{Tabix is about ~17x faster (\emph{default:} =T) than the REST API (\emph{=F}).}
@@ -89,7 +89,7 @@ Requires R package \code{\link{pbmcapply}}.}
 \item{verbose}{Show more (\code{=T}) or fewer (\code{=F}) messages.}
 }
 \description{
-Deetermines which datasets to query using \code{qtl_search}.
+Determines which datasets to query using \code{qtl_search}.
 Uses coordinates from stored summary stats files (e.g. GWAS) 
 to determine which regions to query from \emph{eQTL Catalogue}. 
 Each locus file can be stored separately, 
@@ -99,16 +99,15 @@ or merged together to form one large file with all query results.
 sumstats_paths <- example_sumstats_paths()
 
 # Merged results
-GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset=T, merge_with_gwas=F, progress_bar=T, split_files=F)
+# GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset=T, merge_with_gwas=F, progress_bar=T, split_files=F)
 # Merged results (parallel)
 GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=4, force_new_subset=T, merge_with_gwas=F, progress_bar=T, split_files=F)
 
 # Split results
-gwas.qtl <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset=T, merge_with_gwas=F, progress_bar=T)
-GWAS.QTL <- gather_files(file_paths = gwas.qtl)
+# gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset=T, merge_with_gwas=F, progress_bar=T) 
 # Split results (parallel)
-gwas.qtl <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=4, force_new_subset=T, merge_with_gwas=F, progress_bar=T)
-GWAS.QTL <- gather_files(file_paths = gwas.qtl)
+gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=4, force_new_subset=T, merge_with_gwas=F, progress_bar=T)
+GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
 }
 \seealso{
 Other eQTL Catalogue: 

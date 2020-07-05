@@ -9,11 +9,17 @@ The functions in **catalogueR** are partly derived from the following
 Additional eQTL Catalogue Resources:  
 - [GitHub](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
 - [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
-- [FTP server](ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv) 
+- FTP server: ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv  
 
 *NOTE*: [The ALT allele is always the effect allele in eQTL Catalogue](https://www.ebi.ac.uk/eqtl/Data_access/).  
 
 <hr>  
+
+## Documentation  
+
+## [Website](https://rajlabmssm.github.io/catalogueR/)  
+## [PDF](https://rajlabmssm.github.io/catalogueR/catalogueR_0.1.0.pdf)  
+
 
 ## Getting started  
 

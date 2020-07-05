@@ -417,7 +417,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
 
 #' Iterate queries to \emph{eQTL Catalogue}
 #' 
-#' Deetermines which datasets to query using \code{qtl_search}.
+#' Determines which datasets to query using \code{qtl_search}.
 #' Uses coordinates from stored summary stats files (e.g. GWAS) 
 #' to determine which regions to query from \emph{eQTL Catalogue}. 
 #' Each locus file can be stored separately, 
