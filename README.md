@@ -1,157 +1,66 @@
-# catalogueR
+# catalogueR  
+
+Rapid querying, colocalization, and plotting of summary stats from the eQTL Catalogue.  
 
 ## Intro    
 
-The following extends and build upon the APIs provided by [eQTL Catalogue](https://www.ebi.ac.uk/eqtl/) (with which I am not affiliated, but happily contribute to):  
-- [GitHub source code](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
-- **FTP Server**: *ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv*  
+The functions in **catalogueR** are partly derived from the following
+[eQTL Catalogue tutorial](http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html).  
+Additional eQTL Catalogue Resources:  
+- [GitHub](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
 - [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
+- [FTP server](ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv) 
 
-A list of all current tabix-indexed QTL datasets is provided [here](https://github.com/RajLabMSSM/catalogueR/blob/master/resources/eQTLcatalogue_tabix_ftp_paths.tsv) (or [here](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/tabix/tabix_ftp_paths.tsv) for the original source).  
-
+*NOTE*: [The ALT allele is always the effect allele in eQTL Catalogue](https://www.ebi.ac.uk/eqtl/Data_access/).  
 
 <hr>  
 
 ## Getting started  
 
-### Clone this repo  
 
-```r
-cd <your_preferred_path>   
-git clone https://github.com/RajLabMSSM/catalogueR.git  
-cd catalogueR
+### Installation
+
+```R
+if(!"devtools" %in% installed.packages()){install.packages("devtools")}
+devtools::install_github("RajLabMSSM/catalogueR")
 ```
 
-### Install required software
 
-#### Command line 
+### Command line dependencies  
+
 - [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  
 
-#### R  
-- dplyr  
-- ggplot2  
-- readr  
-- stringr  
-- httr  
-- jsonlite  
-- tidyverse  
-- coloc  
-- biomaRt
-- wiggleplotr  
-- GenomicRanges  
-- AnnotationDbi   
-- data.table  
-  
-### Import *catalogueR* functions  
 
-```r
-source("./functions/catalogueR.R")
-```  
-
-<hr>  
-
-## Tutorial
-
-## Import functions
-
-
-### [Approach 1] Query with summary stats  
+### Intro example  
 
 Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range. The files can be any of these formats, either *gzip*-compressed (`.gz`) or uncompressed: `.csv`, `.tsv`, `space-separated`  
+
 <br>
-The summary stats file must have the following column names (order doesn't matter). You can have as many additional columns as you want:  
+
+The summary stats files must have the following column names (order doesn't matter):
   - `SNP` (rsid for each SNP)
   - `CHR` (chromosome; with or without the "chr" prefix is fine)
   - `POS` (basepair position)
+  - ... (optional extra columns)
 
-```r
-# Returns both the gwas_data you supplied and the queried QTL summary stats, 
-## all merged into one data.table.  
+```R 
+sumstats_paths <- example_sumstats_paths()
 
-gwas.qtl <- catalogueR.run(# Any number of summary stats files
-                           sumstats_paths =
-                           c("./example_data/Nalls23andMe_2019/BIN3_Nalls23andMe_2019_subset.tsv.gz",
-                             "./example_data/Nalls23andMe_2019/BST1_Nalls23andMe_2019_subset.tsv.gz",
-                             "./example_data/Nalls23andMe_2019/SNCA_Nalls23andMe_2019_subset.tsv.gz"),
-                           
-                           # Name of each locus (a vector of the same length as the sumstats_paths)  
-                           # If none are supplied (NULL), names will be assigned based on the chromosomal coordinates.
-                           loci_names=c("BIN3","BST1","SNCA"),
-                           
-                           # The file you want the merged gwas/qtl results to be saved in.
-                           ## The file will be tab-delimited, but you can choose to leave it uncompressed by removing the '.gz' at the end of the path here.
-                           output_path="./example_data/Nalls23andMe_2019/eQTL_Catalogue.tsv.gz",
-                           
-                           # This function will automatically search for any datasets that match your criterion.
-                           ## For example, if you search "Alasoo_2018", it will query the datasets
-                           ##"Alasoo_2018.macrophage_naive","Alasoo_2018.macrophage_IFNg",Alasoo_2018.macrophage_Salmonella", 
-                           ## and "Alasoo_2018.macrophage_IFNg+Salmonella").
-                           ## You can be more specific about which datasets you want to include, for example by searching: "Alasoo_2018.macrophage_IFNg".
-                           ## You can even search by tissue or condition type (e.g.c("blood","brain")) 
-                           ##and any QTL datasets containing those terms will be quried too.
-                           qtl_search=c("ROSMAP","Alasoo_2018"),
-                           
-                           # Tabix is about ~17x faster (default; =T) than the REST API (=F).
-                           use_tabix=T,
-                           
-                           # Use multiple CPU cores to speed up your queries
-                           nThread=4, 
-                           
-                           # Multi-thread across QTL datasets (good when you're querying lots of QTL datasets.)
-                           multithread_qtl=T,
-                           
-                           # Multi-thread across loci (good when you have lots of gwas loci)
-                           multithread_loci=F,
-                           
-                           # Save the results as one file per QTL dataset (with all loci within each file).
-                           ## If this is set to `=T`, then this function will return the list of paths where these files were saved.
-                           ### A helper function is provided to import and merge them back together in R.
-                           ## If this is set to `=F`, then this function will instead return one big merged data.table
-                           ### containing results from all QTL datasets and all loci. 
-                           ### `=F` is not recommended when you have many large loci and/or many QTL datasets, 
-                           ### because you can only fit so much data into memory.
-                           split_files=T)
-```
-
-
-### [Approach 2] Query with coordinates  
-
-Download a subset of QTL summary stats directly by specifying the coordinates you want to extract:  
+gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths,  
+                                       qtl_search = c("myeloid","Alasoo_2018"),
+                                       output_dir = "./catalogueR_queries", 
+                                       split_files = T,  
+                                       merge_with_gwas = T,
+                                       force_new_subset = T,
+                                       nThread=4)
+GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
+# Interactive datatable of results 
+## WARNING: Don't use this function on large datatables, might cause freezing.
+createDT(head(GWAS.QTL))
+``` 
+  
+<hr>  
  
-```r
-# Returns a data.table with the QTL summary stats subset.  
-
-gwas.qtl <- catalogueR.fetch(# Unique QTL id (<study>.<qtl_group>)
-				unique_id="Alasoo_2018.macrophage_IFNg",
-
-                              # You can specify the QTL quantification method you want to use.
-                              ## (options: "ge","exon", "tx","txrev","microarray")
-                              ## NOTE: Not all methods are available for all datasets. 
-                              ## So if for example you select "ge" for a microarray dataset,   
-                              ## this function will default to a method that is available for that dataset (i.e. "microarray")
-                              quant_method="ge",
-                              
-                              # Set to false since you're not using the gwas_data to infer coordinates.
-                              infer_region=F, 
-                              
-                              # The number of threads to use when reading in the QTL data subset
-                              nThread = 4,
-                               
-                             # Tabix is about ~17x faster (default; =T) than the REST API (=F).
-                              use_tabix = T,
-                              
-                             # Chromosome to query
-                             chrom = 8,
-                             
-                             # Minimum basepair position of the query window
-                             bp_lower=21527069
-                             
-                             # Maximum basepair position of the query window
-                             bp_upper=23525543)
-```
-
-<hr>
-
 ## Author  
 
 Brian M. Schilder  
