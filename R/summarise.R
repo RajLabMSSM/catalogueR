@@ -123,7 +123,7 @@ top_eVariants_overlap <- function(topQTL,
 top_eVariants_overlap_plot <- function(sigQTL,
                                        locus_order=NULL,
                                        no_no_loci=NULL){ 
-  sigQTL <- annotate_tissues(sigQTL)
+  sigQTL <- eQTL_Catalogue.annotate_tissues(sigQTL)
   sigQTL_count <- sigQTL %>% 
     subset(!Locus %in% no_no_loci) %>%  
     dplyr::group_by(Locus, Tissue) %>%  

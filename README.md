@@ -1,25 +1,32 @@
 # catalogueR  
 
-Rapid querying, colocalization, and plotting of summary stats from the eQTL Catalogue.  
+Rapid querying, colocalization, and plotting of summary stats from the *eQTL Catalogue*. 
 
-## Intro    
+*eQTL Catalogue* currently contains 110 QTL datasets (full, genome-wide, standardized summary statistics and metadata) 
+from 20 different studies (including GTEx V8), across many tissues/cell types/conditions (*updated: 7/5/20*).  
 
-The functions in **catalogueR** are partly derived from the following
-[eQTL Catalogue tutorial](http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html).  
-Additional eQTL Catalogue Resources:  
-- [GitHub](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
+## Intro  
+
+The functions in **catalogueR** are partly derived from the 
+[*eQTL Catalogue* tutorial](http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html).  
+Additional *eQTL Catalogue* resources:  
+- [GitHub repository](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
 - [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
+- [Preprint](https://www.biorxiv.org/content/10.1101/2020.01.29.924266v1)  
 - FTP server: ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv  
 
 *NOTE*: [The ALT allele is always the effect allele in eQTL Catalogue](https://www.ebi.ac.uk/eqtl/Data_access/).  
 
 <hr>  
 
+<br>  
+
 ## Documentation  
 
 ## [Website](https://rajlabmssm.github.io/catalogueR/)  
 ## [PDF](https://rajlabmssm.github.io/catalogueR/catalogueR_0.1.0.pdf)  
 
+<br>
 
 ## Getting started  
 
@@ -70,6 +77,6 @@ createDT(head(GWAS.QTL))
 ## Author  
 
 Brian M. Schilder  
-Raj Lab  
+[Raj Lab](http://rajlab.org)  
 Icahn School of Medicine at Mount Sinai  
 New York, New York, USA  

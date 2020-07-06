@@ -30,5 +30,10 @@ by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv
 \examples{
 sumstats_paths <- example_sumstats_paths()
 }
+\seealso{
+Other Nalls23andMe_2019
+These example files can be used: 
+\code{\link{example_eQTL_Catalogue_query_paths}()}
+}
 \concept{Nalls23andMe_2019
 These example files can be used}

@@ -15,9 +15,21 @@ get_colocs(
 \description{
 Run coloc on GWAS-QTL object
 }
+\examples{
+data("BST1__Alasoo_2018.macrophage_IFNg")
+
+qtl.egene <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[,grep("*.QTL$|qtl_id|SNP",colnames(BST1__Alasoo_2018.macrophage_IFNg), value = T)]
+sorted_egenes <- qtl.egene \%>\% dplyr::group_by(gene.QTL) \%>\% dplyr::summarise(mean.P=mean(pvalue.QTL), min.P=min(pvalue.QTL)) \%>\% dplyr::arrange(min.P)
+qtl.egene <- subset(qtl.egene, gene.QTL==sorted_egenes$gene.QTL[1])
+
+gwas.region <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[,grep("*.QTL$|qtl_id",colnames(BST1__Alasoo_2018.macrophage_IFNg), value = T, invert = T)]
+coloc_res <- get_colocs(qtl.egene=qtl.egene, gwas.region=gwas.region)
+}
 \seealso{
 Other coloc: 
 \code{\link{COLOC.report_summary}()},
+\code{\link{coloc_QTLs}},
+\code{\link{plot_coloc_summary}()},
 \code{\link{run_coloc}()}
 }
 \concept{coloc}

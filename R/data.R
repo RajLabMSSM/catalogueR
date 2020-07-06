@@ -115,3 +115,78 @@
 #' usethis::use_data(meta, overwrite=T)
 #' }
 "meta"
+
+
+
+
+#' eQTL Catalogue query results 
+#' 
+#' Query: BST1 GWAS locus, Alasoo_2018.macrophage_IFNg QTL dataset. 
+#' Split output file from \code{eQTL_Catalogue.query()}.
+#' @family eQTL Catalogue
+#' @examples 
+#' \dontrun{
+#' root_dir <- "~/Desktop/catalogueR_queries/Alasoo_2018.macrophage_IFNg"
+#' file_name <- "BST1__Alasoo_2018.macrophage_IFNg.tsv.gz"
+#' BST1__Alasoo_2018.macrophage_IFNg <- data.table::fread(file.path(root_dir, file_name))
+#' usethis::use_data(BST1__Alasoo_2018.macrophage_IFNg, overwrite=T)
+#' }
+"BST1__Alasoo_2018.macrophage_IFNg"
+
+
+
+
+
+#' eQTL Catalogue query results 
+#' 
+#' Query: LRRK2 GWAS locus, Alasoo_2018.macrophage_IFNg QTL dataset. 
+#' Split output file from \code{eQTL_Catalogue.query()}.
+#' @family eQTL Catalogue
+#' @examples 
+#' \dontrun{
+#' root_dir <- "~/Desktop/catalogueR_queries/Alasoo_2018.macrophage_IFNg"
+#' file_name <- "LRRK2__Alasoo_2018.macrophage_IFNg.tsv.gz"
+#' LRRK2__Alasoo_2018.macrophage_IFNg <- data.table::fread(file.path(root_dir, file_name))
+#' usethis::use_data(LRRK2__Alasoo_2018.macrophage_IFNg, overwrite=T)
+#' }
+"LRRK2__Alasoo_2018.macrophage_IFNg"
+
+
+
+
+
+#' eQTL Catalogue query results 
+#' 
+#' Query: MEX3C GWAS locus, Alasoo_2018.macrophage_IFNg QTL dataset. 
+#' Split output file from \code{eQTL_Catalogue.query()}.
+#' @family eQTL Catalogue
+#' @examples 
+#' \dontrun{
+#' root_dir <- "~/Desktop/catalogueR_queries/Alasoo_2018.macrophage_IFNg"
+#' file_name <- "MEX3C__Alasoo_2018.macrophage_IFNg.tsv.gz"
+#' MEX3C__Alasoo_2018.macrophage_IFNg <- data.table::fread(file.path(root_dir, file_name))
+#' usethis::use_data(MEX3C__Alasoo_2018.macrophage_IFNg, overwrite=T)
+#' }
+"MEX3C__Alasoo_2018.macrophage_IFNg"
+
+
+
+
+#' Example colocalization results
+#' 
+#' Example colocalization results from running \code{\link{catalogueR::run_coloc}}
+#' on GWAS summary stats from all loci in \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
+#' @family coloc
+#' @examples 
+#' \dontrun{
+#' library(dplyr)
+#' root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
+#' sub_dir <- "_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz"
+#' coloc_QTLs <- data.table::fread(file.path(root_dir, sub_dir))
+#' coloc_QTLs <- coloc_QTLs %>% dplyr::rename(gene.QTL=eGene, qtl_id=qtl.id)
+#' usethis::use_data(coloc_QTLs, overwrite=T)
+#' }
+"coloc_QTLs"
+
+
+

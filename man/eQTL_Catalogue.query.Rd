@@ -108,9 +108,18 @@ GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alas
 # Split results (parallel)
 gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=4, force_new_subset=T, merge_with_gwas=F, progress_bar=T)
 GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
+
+# Nalls et al example
+\dontrun{
+sumstats_paths_Nalls <- list.files("~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
+gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="~/Desktop/Nalls_QTL_queries", merge_with_gwas=F )
+}
 }
 \seealso{
 Other eQTL Catalogue: 
+\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
+\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
+\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},
 \code{\link{eQTL_Catalogue.search_metadata}()},

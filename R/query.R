@@ -492,6 +492,12 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
 #' # Split results (parallel)
 #' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=4, force_new_subset=T, merge_with_gwas=F, progress_bar=T)
 #' GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
+#' 
+#' # Nalls et al example
+#' \dontrun{
+#' sumstats_paths_Nalls <- list.files("~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
+#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="~/Desktop/Nalls_QTL_queries", merge_with_gwas=F )
+#' }
 eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  output_dir="./catalogueR_queries",
                                  qtl_search=NULL,

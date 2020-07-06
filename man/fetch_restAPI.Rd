@@ -39,6 +39,9 @@ qtl.subset <- fetch_restAPI(unique_id=meta$unique_id[1], gwas_data=BST1)
 }
 \seealso{
 Other eQTL Catalogue: 
+\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
+\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
+\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},
 \code{\link{eQTL_Catalogue.query}()},

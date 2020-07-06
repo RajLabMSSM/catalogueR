@@ -14,6 +14,9 @@ Merge GWAS data (query) and QTL data (results)
 }
 \seealso{
 Other eQTL Catalogue: 
+\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
+\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
+\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},
 \code{\link{eQTL_Catalogue.query}()},

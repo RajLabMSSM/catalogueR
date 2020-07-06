@@ -36,6 +36,46 @@ example_sumstats_paths <- function(Rlib_path=NULL){
 
 
 
+
+#' Paths to example eQTL Catalogue query results
+#' 
+#' Returns the paths to eQTL Catalogue query results stored within \emph{catalogueR}.
+#' Each file is a merged data.table of the GWAS summary stats used to make the query, 
+#' and the eQTL Catalogue query results (which can contain data for multiple eGenes).
+#' 
+#' GWAS data originally comes from the Parkinson's disease GWAS
+#' by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv)}.
+#' 
+#' \describe{
+#'   \item{SNP}{SNP RSID}
+#'   \item{CHR}{Chromosome}
+#'   \item{POS}{Genomic positiion (in basepairs)}
+#'   ...
+#' }
+#' @param Rlib_path This function will automatically find your Rlib path, 
+#' but you can override this by supplying it manually.
+#' @source \url{https://www.biorxiv.org/content/10.1101/388165v3}
+#' @family Nalls23andMe_2019
+#' These example files can be used 
+#' @examples 
+#' gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
+example_eQTL_Catalogue_query_paths <- function(Rlib_path=NULL){
+  if(is.null(Rlib_path)){
+    cat_dir <- system.file("extdata/eQTL_Catalogue_queries",package = "catalogueR")
+  } else {
+    cat_dir <- file.path(Rlib_path,"catalogueR/extdata/eQTL_Catalogue_queries")
+  } 
+  sumstats_paths <- list.files(cat_dir, pattern = "*.tsv.gz", recursive = T, full.names = T)
+  locus_names <- unlist(lapply(strsplit(basename(sumstats_paths),"_"),function(x){x[1]}))
+  names(sumstats_paths) <- locus_names
+  return(sumstats_paths)
+}
+
+
+
+
+
+
 # Consistent means of making split path
 make_split_path <- function(output_dir,
                             qtl_id,
@@ -46,6 +86,20 @@ make_split_path <- function(output_dir,
   names(split_path) <- paste(loc,qtl_id,sep="__")
   dir.create(dirname(split_path), showWarnings = F, recursive = T) 
   return(split_path)
+}
+
+
+
+
+
+parse_gwas.qtl_path <- function(gwas.qtl_path,
+                                get_locus=F,
+                                get_qtl_id=T){
+  split_name <- strsplit(basename(gwas.qtl_path),"__")[[1]]
+  if(get_locus & get_qtl_id==F)return(split_name[1])
+  if(get_locus==F & get_qtl_id)return(gsub(".tsv|.gz","",split_name[2]))
+  if(get_locus & get_qtl_id)return(list(locus=split_name[1],
+                                        qtl_id=gsub(".tsv|.gz","",split_name[2])))
 }
 
 
@@ -153,7 +207,8 @@ timeit <- function(func, digits=3){
   start = Sys.time()
   out <- func
   end = Sys.time()
-  print(paste("Completed in",round(end-start,digits = digits),"seconds."))
+  # print(paste("Completed in",round(end-start,digits = digits),"seconds."))
+  round(end-start,digits = digits)
   return(out)
 }
 
@@ -393,7 +448,11 @@ gather_files <- function(file_paths,
   DAT <- parallel::mclapply(file_paths, function(x){
     dat <- data.table::data.table()
     try({
-      dat <- data.table::fread(x)
+      if(endsWith(tolower(x),".rds")){
+        dat <- readRDS(x)
+      } else {
+        dat <- data.table::fread(x)
+      } 
       dat$file <- basename(x)
     })
   return(dat)

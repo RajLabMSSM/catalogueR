@@ -11,7 +11,9 @@ Report coloc results
 }
 \seealso{
 Other coloc: 
+\code{\link{coloc_QTLs}},
 \code{\link{get_colocs}()},
+\code{\link{plot_coloc_summary}()},
 \code{\link{run_coloc}()}
 }
 \concept{coloc}
