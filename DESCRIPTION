@@ -15,7 +15,7 @@ BugReports: https://github.com/RajLabMSSM/catalogueR/issues
 Depends: R (>= 3.6.0)
 biocViews:
 Imports:
-  dplyr,
+  tidyverse,
   data.table,
   parallel,
   ggplot2, 
@@ -23,8 +23,7 @@ Imports:
   stringr,
   httr,
   rlang,
-  jsonlite,
-  tidyverse,
+  jsonlite, 
   coloc,
   biomaRt,
   wiggleplotr,
@@ -33,5 +32,6 @@ Imports:
   EnsDb.Hsapiens.v75,
   XGR 
 Suggests:
-  pbmcapply
+  pbmcapply,
+  devtools
 RoxygenNote: 7.1.0

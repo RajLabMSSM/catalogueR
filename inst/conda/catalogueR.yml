@@ -1,0 +1,29 @@
+name: catalogueR
+channels:
+  - defaults
+  - bioconda 
+  - biobuilds
+  - conda-forge 
+  - anaconda
+dependencies:
+  - r-base>=3.6.0
+  - r-devtools
+  - r-tidyverse
+  - r-data.table
+  - r-parallel
+  - r-ggplot2
+  - r-readr
+  - r-stringr
+  - r-httr
+  - r-rlang
+  - r-jsonlite 
+  - r-coloc
+  - r-xgr
+  - r-biocmanager 
+  - bioconductor-wiggleplotr
+  - bioconductor-genomicranges
+  - bioconductor-annotationbbi
+  - bioconductor-ensdb.hsapiens.v75 
+  - bioconductor-biomart
+
+ 

@@ -164,6 +164,8 @@ get_colocs <- function(qtl.egene,
 #' coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=F)
 #' 
 #' \dontrun{ 
+#' gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive=T, full.names = T)
+#' coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths[1:100], nThread=4, top_snp_only=F)
 #' }
 run_coloc <- function(gwas.qtl_paths,
                       save_path="./coloc_results.tsv.gz",
