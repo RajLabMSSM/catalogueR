@@ -30,7 +30,9 @@ Imports:
   GenomicRanges,
   AnnotationDbi,
   EnsDb.Hsapiens.v75,
-  XGR 
+  XGR,
+  supraHex,
+  dnet
 Suggests:
   pbmcapply,
   devtools

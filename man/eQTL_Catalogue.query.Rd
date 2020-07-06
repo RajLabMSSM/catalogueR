@@ -111,8 +111,9 @@ GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
 
 # Nalls et al example
 \dontrun{
-sumstats_paths_Nalls <- list.files("~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
-gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="~/Desktop/Nalls_QTL_queries", merge_with_gwas=F )
+sumstats_paths_Nalls <- list.files("Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
+names(sumstats_paths_Nalls) <- basename(dirname(dirname(sumstats_paths_Nalls)))
+gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=4, force_new_subset = T)
 }
 }
 \seealso{

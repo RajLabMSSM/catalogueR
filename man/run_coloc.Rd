@@ -36,6 +36,8 @@ gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
 coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=F)
 
 \dontrun{ 
+gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive=T, full.names = T)
+coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths[1:100], nThread=4, top_snp_only=F)
 }
 }
 \seealso{
