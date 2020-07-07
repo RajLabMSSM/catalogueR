@@ -178,15 +178,31 @@
 #' on GWAS summary stats from all loci in \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
 #' @family coloc
 #' @examples 
+#' \dontrun{ 
+#' gwas.qtl_paths <- example_eQTL_Catalogue_query_paths() 
+#' coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=T, save_path="~/Desktop/coloc_results.tsv.gz")
+#' usethis::use_data(coloc_QTLs, overwrite=T)
+#' }
+"coloc_QTLs"
+
+
+
+
+#' Example colocalization results
+#' 
+#' Example colocalization results from running \code{\link{catalogueR::run_coloc}}
+#' on GWAS summary stats from all loci in \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
+#' @family coloc
+#' @examples 
 #' \dontrun{
 #' library(dplyr)
 #' root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
 #' sub_dir <- "_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz"
-#' coloc_QTLs <- data.table::fread(file.path(root_dir, sub_dir))
-#' coloc_QTLs <- coloc_QTLs %>% dplyr::rename(gene.QTL=eGene, qtl_id=qtl.id)
-#' usethis::use_data(coloc_QTLs, overwrite=T)
+#' coloc_QTLs_full <- data.table::fread(file.path(root_dir, sub_dir))
+#' coloc_QTLs_full <- coloc_QTLs_full %>% dplyr::rename(gene.QTL=eGene, qtl_id=qtl.id)
+#' usethis::use_data(coloc_QTLs_full, overwrite=T)
 #' }
-"coloc_QTLs"
+"coloc_QTLs_full"
 
 
 

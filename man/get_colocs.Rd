@@ -28,8 +28,11 @@ coloc_res <- get_colocs(qtl.egene=qtl.egene, gwas.region=gwas.region)
 \seealso{
 Other coloc: 
 \code{\link{COLOC.report_summary}()},
+\code{\link{coloc_QTLs_full}},
 \code{\link{coloc_QTLs}},
+\code{\link{gather_colocalized_data}()},
 \code{\link{plot_coloc_summary}()},
+\code{\link{retrieve_sumstats_info}()},
 \code{\link{run_coloc}()}
 }
 \concept{coloc}

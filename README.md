@@ -31,17 +31,28 @@ Additional *eQTL Catalogue* resources:
 ## Getting started  
 
 
-### Installation
+### Installation 
+
+### [1] *Optional step: conda*   
+
+To ensure all dependendencies are installed and don't conflict with each other, 
+you can create a *conda* environment by downloading [this *yaml*` file](https://github.com/RajLabMSSM/catalogueR/blob/master/inst/conda/catalogueR.yml) and 
+entering the following in command line:  
+```
+conda env create -n <path_to_yml>/catalogueR.yml
+```
+
+### [2] Install **catalogueR** in R  
+
+If you don't use the *conda* env, you will also need to make sure tabix is installed.
+
+- [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  
 
 ```R
 if(!"devtools" %in% installed.packages()){install.packages("devtools")}
 devtools::install_github("RajLabMSSM/catalogueR")
 ```
 
-
-### Command line dependencies  
-
-- [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  
 
 
 ### Intro example  

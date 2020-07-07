@@ -22,8 +22,11 @@ gg_coloc <- plot_coloc_summary(coloc_QTLs=coloc_QTLs, PP_thresh=.99, label_snp_g
 \seealso{
 Other coloc: 
 \code{\link{COLOC.report_summary}()},
+\code{\link{coloc_QTLs_full}},
 \code{\link{coloc_QTLs}},
+\code{\link{gather_colocalized_data}()},
 \code{\link{get_colocs}()},
+\code{\link{retrieve_sumstats_info}()},
 \code{\link{run_coloc}()}
 }
 \concept{coloc}

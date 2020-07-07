@@ -160,12 +160,15 @@ get_colocs <- function(qtl.egene,
 #' \emph{PP.H0}, \emph{PP.H1}, \emph{PP.H2}, \emph{PP.H3}, \emph{PP.H4}.
 #' @family coloc
 #' @examples 
+#' # With built-in data
 #' gwas.qtl_paths <- example_eQTL_Catalogue_query_paths() 
-#' coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=F)
+#' coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=T, save_path="~/Desktop/coloc_results.tsv.gz")
+#' 
 #' 
 #' \dontrun{ 
+#' # With full  Nalls et al data (not included)
 #' gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_catalogue/Nalls23andMe_2019", recursive=T, full.names = T)
-#' coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths[1:100], nThread=4, top_snp_only=F)
+#' coloc_QTLs.Nalls2019 <- run_coloc(gwas.qtl_paths=gwas.qtl_paths[1:100], nThread=4, top_snp_only=T, save_path="~/Desktop/Nall2019.coloc_results.tsv.gz")
 #' }
 run_coloc <- function(gwas.qtl_paths,
                       save_path="./coloc_results.tsv.gz",
@@ -194,20 +197,23 @@ run_coloc <- function(gwas.qtl_paths,
       try({
         qtl.dat <- data.table::fread(qtl.path)
         message("++ GWAS = ",gwas.locus," x ",length(unique(qtl.dat$gene.QTL))," eGenes")
-        if(!"qtl_id" %in% colnames(qtl.dat)){qtl.dat <- cbind(qtl.dat, qtl_id=qtl_ID)}
+        if(!"qtl_id" %in% colnames(qtl.dat)) {qtl.dat <- cbind(qtl.dat, qtl_id=qtl_ID) }
         qtl.dataset <- subset(qtl.dat, qtl_id==qtl_ID & !is.na(gene.QTL) & gene.QTL!="")
-        remove(qtl.dat)
-        if("Effect" %in% colnames(qtl.dataset)){
-          gwas_cols <- c("Locus","Locus.GWAS", "SNP", "CHR","POS", "P", "Effect", "StdErr", "Freq", "MAF", "N_cases", "N_controls", "proportion_cases", "A1", "A2")
-          gwas_cols <- gwas_cols[gwas_cols %in% colnames(qtl.dataset)]
-          gwas.region <- subset(qtl.dataset, select=gwas_cols)
-        }  
+        remove(qtl.dat) 
         
         # ---- Iterate over QTL eGenes
         coloc_eGenes <- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
           printer("+++ QTL eGene =",eGene)
-          qtl.egene <- subset(qtl.dataset, gene.QTL==eGene) 
-          # gwas.region <- subset(gwas_data, SNP %in% qtl.egene$rsid.QTL) 
+          # Extract QTL cols
+          qtl.egene <- subset(qtl.dataset, gene.QTL==eGene)  
+          # Extract the GWAS cols
+          if("Effect" %in% colnames(qtl.egene)){
+            gwas_cols <- c("Locus","Locus.GWAS", "SNP", "CHR","POS", "P", "Effect", "StdErr", "Freq",
+                           "MAF", "N_cases", "N_controls", "proportion_cases", "A1", "A2")
+            gwas_cols <- gwas_cols[gwas_cols %in% colnames(qtl.egene)]
+            gwas.region <- subset(qtl.egene, select=gwas_cols)
+          }  
+          # Run coloc
           coloc_res <- get_colocs(qtl.egene = qtl.egene, 
                                   gwas.region = gwas.region, 
                                   merge_by_rsid = T,
@@ -217,11 +223,16 @@ run_coloc <- function(gwas.qtl_paths,
           if(top_snp_only){
             coloc_results <- (coloc_results %>% top_n(n=1, wt=SNP.PP.H4))[1,]
           }
-          
-          
+          # Rename columns
+          colnames(coloc_results) <- gsub("\\.df1",".QTL",colnames(coloc_results))
+          colnames(coloc_results) <- gsub("\\.df2",".GWAS",colnames(coloc_results))
+          # Create results dataframe
           coloc_DT <- data.table::data.table(Locus.GWAS=coloc_res$Locus, 
                                              qtl_id=qtl_ID,
                                              gene.QTL=eGene,
+                                             P=gwas.region$P,
+                                             CHR=gwas.region$CHR,
+                                             POS=gwas.region$POS,
                                              pvalue.QTL=qtl.egene$pvalue.QTL,
                                              coloc_results,
                                              PP.H0=coloc_summary$PP.H0.abf,
@@ -230,10 +241,10 @@ run_coloc <- function(gwas.qtl_paths,
                                              PP.H3=coloc_summary$PP.H3.abf,
                                              PP.H4=coloc_summary$PP.H4.abf)
           return(coloc_DT)
-        }) %>% data.table::rbindlist(fill=T)   
+        }) %>% data.table::rbindlist(fill=T)  # END ITERATE OVER eGenes
       }) # end try()
       return(coloc_eGenes)  
-    }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)  
+    }, mc.cores = nThread) %>% data.table::rbindlist(fill=T)  # END ITERATE OVER gwas.qtl_paths_select
     
     if(split_by_group){
       split_path <- file.path(dirname(save_path),group)

@@ -482,3 +482,54 @@ check_missing_queries <- function(qtl_datasets,
   return(missing_queries)
 }
 
+
+
+
+
+#' Merge coloc results with SNP-wise GWAS/QTL data
+#' 
+#' @family coloc
+#' @examples 
+#' \dontrun{
+#' data("coloc_QTLs")
+#' query_paths <- example_eQTL_Catalogue_query_paths()
+#' output_dir <- unique(dirname(dirname(query_paths))) 
+#' } 
+retrieve_sumstats_info <- function(output_dir="./catalogueR_queries",
+                                   coloc_QTLs){ 
+  query_paths <- file.path(output_dir,qtl_id, )
+  lapply(1:nrow(coloc_QTLs), function(snp,
+                                      .output_dir=output_dir){
+    ROW <- coloc_QTLs[i,]
+    dat_path <- make_split_path(output_dir = .output_dir,
+                                qtl_id = ROW$qtl_id, 
+                                loc = ROW$Locus.GWAS)
+    dat <- data.table::fread(dat_path, nThread = 1)
+  })
+  file.path()
+  
+}
+
+
+
+reconstruct_file_names <- function(coloc_QTLs){
+  gwas.qtl_files <- unique(paste0(coloc_QTLs$Locus.GWAS,"__",coloc_QTLs$qtl_id,".tsv.gz")) 
+  return(gwas.qtl_files)
+}
+
+
+
+
+
+get_snp_coordinations <- function(snp_list){
+  library(BSgenome)
+  snp_list <- unique(as.character(snp_list[!is.na(snp_list)]))
+  variants <- motifbreakR::snps.from.rsid(rsid = snp_list,
+                                          dbSNP = SNPlocs.Hsapiens.dbSNP142.GRCh37::SNPlocs.Hsapiens.dbSNP142.GRCh37,
+                                          search.genome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19);
+  snp_list
+  return(variants)
+}
+
+
+

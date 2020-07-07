@@ -497,7 +497,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
 #' \dontrun{
 #' sumstats_paths_Nalls <- list.files("Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
 #' names(sumstats_paths_Nalls) <- basename(dirname(dirname(sumstats_paths_Nalls)))
-#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=4, force_new_subset = T)
+#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=4, force_new_subset=T)
 #' }
 eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  output_dir="./catalogueR_queries",
@@ -560,24 +560,22 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                                      .multithread_tabix=multithread_tabix,
                                                      .verbose=verbose){  
     message(qtl_id)
-    GWAS.QTL <- data.table::data.table()
-    # try({  
-      GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
-                                               output_dir=.output_dir,
-                                               qtl_id=qtl_id,
-                                               quant_method=.quant_method,
-                                               infer_region=.infer_region, 
-                                               use_tabix=.use_tabix, 
-                                               nThread=.nThread, 
-                                               split_files=.split_files,
-                                               merge_with_gwas=.merge_with_gwas, 
-                                               force_new_subset=.force_new_subset, 
-                                               genome_build=.genome_build,
-                                               multithread_loci=.multithread_loci,
-                                               multithread_tabix=.multithread_tabix,
-                                               progress_bar = F,
-                                               verbose=.verbose)
-    # }) 
+    GWAS.QTL <- data.table::data.table() 
+    GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
+                                             output_dir=.output_dir,
+                                             qtl_id=qtl_id,
+                                             quant_method=.quant_method,
+                                             infer_region=.infer_region, 
+                                             use_tabix=.use_tabix, 
+                                             nThread=.nThread, 
+                                             split_files=.split_files,
+                                             merge_with_gwas=.merge_with_gwas, 
+                                             force_new_subset=.force_new_subset, 
+                                             genome_build=.genome_build,
+                                             multithread_loci=.multithread_loci,
+                                             multithread_tabix=.multithread_tabix,
+                                             progress_bar = F,
+                                             verbose=.verbose) 
     return(GWAS.QTL)
   }, mc.cores = if(multithread_qtl) nThread else 1) # END ITERATION OVER QTL_IDS
   

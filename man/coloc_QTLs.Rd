@@ -5,7 +5,7 @@
 \alias{coloc_QTLs}
 \title{Example colocalization results}
 \format{
-An object of class \code{data.table} (inherits from \code{data.frame}) with 155577 rows and 21 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 259495 rows and 25 columns.
 }
 \usage{
 coloc_QTLs
@@ -15,20 +15,20 @@ Example colocalization results from running \code{\link{catalogueR::run_coloc}}
 on GWAS summary stats from all loci in \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
 }
 \examples{
-\dontrun{
-library(dplyr)
-root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
-sub_dir <- "_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz"
-coloc_QTLs <- data.table::fread(file.path(root_dir, sub_dir))
-coloc_QTLs <- coloc_QTLs \%>\% dplyr::rename(gene.QTL=eGene, qtl_id=qtl.id)
+\dontrun{ 
+gwas.qtl_paths <- example_eQTL_Catalogue_query_paths() 
+coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=T, save_path="~/Desktop/coloc_results.tsv.gz")
 usethis::use_data(coloc_QTLs, overwrite=T)
 }
 }
 \seealso{
 Other coloc: 
 \code{\link{COLOC.report_summary}()},
+\code{\link{coloc_QTLs_full}},
+\code{\link{gather_colocalized_data}()},
 \code{\link{get_colocs}()},
 \code{\link{plot_coloc_summary}()},
+\code{\link{retrieve_sumstats_info}()},
 \code{\link{run_coloc}()}
 }
 \concept{coloc}
