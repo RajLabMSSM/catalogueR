@@ -107,7 +107,7 @@ as well as the `unique_id` of the QTL dataset (see `data("meta")` for IDs).
 GWAS.QTL_manual <- eQTL_Catalogue.fetch(unique_id="Alasoo_2018.macrophage_IFNg",  
                                         nThread = 4,  
                                         chrom = 8, 
-                                        bp_lower=23525543,
+                                        bp_lower=21527069,
                                         bp_upper=23525543)
 
 createDT(head(GWAS.QTL_manual))
