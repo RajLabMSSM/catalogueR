@@ -260,10 +260,12 @@ merge_gwas_qtl <- function(gwas_data,
                                             # all.x = T,
                                             by.x = c("SNP"), # effect_allele
                                             by.y = c("rsid.QTL") ) %>%
-    dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
-                  effect.is.alt=ifelse(A2==alt.QTL,T,F) ) %>%
     # subset(effect.is.ref|effect.is.alt) %>%
     data.table::data.table()
+  if("A1" %in% colnames(gwas.qtl) & "A2" %in% colnames(gwas.qtl)){
+    gwas.qtl <- gwas.qtl %>% dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
+                                           effect.is.alt=ifelse(A2==alt.QTL,T,F) )
+  }  
   return(gwas.qtl)
 }
 
@@ -392,6 +394,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
       # Save
       if(.split_files){
         printer("++ Saving split file ==>",split_path, v=.verbose)
+        dir.create(dirname(split_path), showWarnings = F, recursive = T)
         data.table::fwrite(gwas.qtl, split_path, sep="\t", nThread = 1)
       }
     }  
