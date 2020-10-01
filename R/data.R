@@ -1,6 +1,7 @@
 
-#------------Nalls23andMe_2019------------#
 
+
+####------------Nalls23andMe_2019------------####
 
 
 #' \emph{echolocatoR} output example (BST1 locus)
@@ -99,7 +100,19 @@
 
 
 
-#------------eQTL Catalogue------------#
+####------------eQTL Catalogue------------#### 
+
+
+#' eQTL Catalogue tabix header
+#' 
+#' @family eQTL Catalogue
+#' @examples
+#' \dontrun{
+#' eQTL_Catalogue.header <- tabix_header(force_new_header = T)
+#' usethis::use_data(eQTL_Catalogue.header, overwrite=T)
+#' }
+"eQTL_Catalogue.header"
+
 
 
 
@@ -172,6 +185,10 @@
 
 
 
+
+#### ----------coloc -------------####
+
+
 #' Example colocalization results
 #' 
 #' Example colocalization results from running \code{\link{catalogueR::run_coloc}}
@@ -203,6 +220,9 @@
 #' usethis::use_data(coloc_QTLs_full, overwrite=T)
 #' }
 "coloc_QTLs_full"
+
+
+
 
 
 

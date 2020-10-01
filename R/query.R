@@ -1,13 +1,10 @@
 
 
 # Get the header (according to email with Kaur Alassoo)
-tabix_header <- function(tabix_path=NULL, 
+tabix_header <- function(tabix_path= "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv/Alasoo_2018/ge/Alasoo_2018_ge_macrophage_naive.all.tsv.gz", 
                          force_new_header=F){
-  if(is.null(tabix_path)){tabix_path <- "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv/Alasoo_2018/ge/Alasoo_2018_ge_macrophage_naive.all.tsv.gz"}
-  header_path <- file.path(system.file("eQTL_Catalogue_resources",package = "catalogueR"),"tabix_header.txt")
-  
-  if(file.exists(header_path) & force_new_header==F){
-    header <- as.list(data.table::fread(header_path, nThread = 1))[[1]]
+  if(force_new_header==F){
+    header <- catalogueR::eQTL_Catalogue.header
   } else { 
     # Read in header data
     header <-  colnames(data.table::fread(cmd = paste("curl -s",tabix_path,"| zcat | head -n 1"), nThread = 1))
@@ -278,8 +275,8 @@ merge_gwas_qtl <- function(gwas_data,
       # subset(effect.is.ref|effect.is.alt) %>%
       data.table::data.table()
     if("A1" %in% colnames(gwas.qtl) & "A2" %in% colnames(gwas.qtl)){
-      gwas.qtl <- gwas.qtl %>% dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
-                                             effect.is.alt=ifelse(A2==alt.QTL,T,F) )
+      gwas.qtl <- gwas.qtl %>% dplyr::mutate(effect.is.ref = A1==ref.QTL,
+                                             effect.is.alt = A1==alt.QTL )
     }  
     return(gwas.qtl)
   }, error=function(e){return(qtl.subset)})
@@ -395,6 +392,8 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                              verbose = .verbose)
         },
         error=function(x){data.table::data.table()})
+      check_dim(df = qtl.subset)
+      
       # Merge results
       if(.merge_with_gwas){
         gwas.qtl <- tryCatch(expr = {
@@ -402,21 +401,24 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                          qtl.subset=qtl.subset, 
                          verbose=.verbose)
         }, 
-        error=function(e){data.table::data.table()}) 
+        error=function(e){qtl.subset}) 
       } else {
         gwas.qtl <- qtl.subset
       }  
+      check_dim(df = gwas.qtl)
       gwas.qtl <- tryCatch({
         # Add locus name
         printer("++ Adding `Locus.GWAS` column.", v=.verbose)
         gwas.qtl <- cbind(Locus.GWAS=loc,  
                           gwas.qtl)
+        check_dim(df = gwas.qtl)
         # Save
         if(.split_files){
           printer("++ Saving split file ==>",split_path, v=.verbose)
           dir.create(dirname(split_path), showWarnings = F, recursive = T)
           data.table::fwrite(gwas.qtl, split_path, sep="\t", nThread = 1)
         }
+        return(gwas.qtl)
       }, error=function(e){return(data.table::data.table())})
         # Return
       if(.split_files){return(split_path)} else {return(gwas.qtl)}  
@@ -425,6 +427,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
   }, mc.cores = if(multithread_loci) nThread else 1) ## END ITERATE ACROSS LOCI
   
   # Return
+  check_dim(df=GWAS.QTL)
   if(split_files){
     printer("+ Returning list of split query results files.", v=verbose)
     return(unlist(GWAS.QTL))
@@ -586,7 +589,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                                      .multithread_tabix=multithread_tabix,
                                                      .verbose=verbose){  
     message(qtl_id)
-    GWAS.QTL <- NULL
+    GWAS.QTL <- data.table::data.table()
     # try({
       GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
                                                output_dir=.output_dir,
@@ -607,6 +610,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
    
     return(GWAS.QTL)
   }, mc.cores = if(multithread_qtl) nThread else 1) # END ITERATION OVER QTL_IDS
+ 
   
   # Gather paths/results
   if(split_files){
@@ -640,6 +644,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
     }  
   } # END MERGED PROTOCOL
   
+  check_dim(df=GWAS.QTL_all)
   # Clean
   cleanup_tbi(DIR=dirname(output_dir))
   # Clock it

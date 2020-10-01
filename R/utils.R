@@ -533,3 +533,9 @@ get_snp_coordinations <- function(snp_list){
 
 
 
+check_dim <- function(df){
+  try({
+    printer("Data dimensions:",nrow(df),"x",ncol(df))
+  }) 
+}
+

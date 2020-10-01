@@ -122,6 +122,7 @@ Other eQTL Catalogue:
 \code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
 \code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
+\code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},
 \code{\link{eQTL_Catalogue.search_metadata}()},
 \code{\link{fetch_restAPI}()},
