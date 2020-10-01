@@ -4,7 +4,7 @@
 tabix_header <- function(tabix_path=NULL, 
                          force_new_header=F){
   if(is.null(tabix_path)){tabix_path <- "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv/Alasoo_2018/ge/Alasoo_2018_ge_macrophage_naive.all.tsv.gz"}
-  header_path <- system.file("eQTL_Catalogue_resources","tabix_header.txt",package = "catalogueR")
+  header_path <- file.path(system.file("eQTL_Catalogue_resources",package = "catalogueR"),"tabix_header.txt")
   
   if(file.exists(header_path) & force_new_header==F){
     header <- as.list(data.table::fread(header_path, nThread = 1))[[1]]
@@ -406,7 +406,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
       } else {
         gwas.qtl <- qtl.subset
       }  
-      tryCatch({
+      gwas.qtl <- tryCatch({
         # Add locus name
         printer("++ Adding `Locus.GWAS` column.", v=.verbose)
         gwas.qtl <- cbind(Locus.GWAS=loc,  
@@ -417,10 +417,9 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
           dir.create(dirname(split_path), showWarnings = F, recursive = T)
           data.table::fwrite(gwas.qtl, split_path, sep="\t", nThread = 1)
         }
+      }, error=function(e){return(data.table::data.table())})
         # Return
-        if(.split_files){return(split_path)} else {return(gwas.qtl)} 
-      }, error=function(e){return(NULL)})
-      
+      if(.split_files){return(split_path)} else {return(gwas.qtl)}  
     }  
     
   }, mc.cores = if(multithread_loci) nThread else 1) ## END ITERATE ACROSS LOCI
@@ -431,6 +430,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
     return(unlist(GWAS.QTL))
     } else {
     printer("+ Returning merged data.table of query results.", v=verbose)
+    printer(nrow(GWAS.QTL),"x",ncol(GWAS.QTL), v=verbose)
     GWAS.QTL <- data.table::rbindlist(GWAS.QTL, fill = T)  
     return(GWAS.QTL)
   } 
