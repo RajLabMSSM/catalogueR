@@ -618,7 +618,10 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
     # Merged protocol
     GWAS.QTL_all <- data.table::rbindlist(GWAS.QTL_all, fill = T)
     # Remove NAs 
-    GWAS.QTL_all <- subset(GWAS.QTL_all, !is.na(beta.QTL))
+    if("beta.QTL" %in% colnames(GWAS.QTL_all)){
+      GWAS.QTL_all <- subset(GWAS.QTL_all, !is.na(beta.QTL))
+    }
+   
     # Check for completeness
     if(!is.null(names(sumstats_paths))){
       missing_queries <- check_missing_queries(qtl_datasets = qtl_datasets, 
