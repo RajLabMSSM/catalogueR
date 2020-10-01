@@ -58,8 +58,13 @@ fetch_tabix <- function(unique_id,
   meta.sub <- choose_quant_method(ui=unique_id, 
                                   qm=quant_method, 
                                   verbose=verbose) 
-  header <- tabix_header(tabix_path = meta.sub$ftp_path, 
-                         force_new_header = F)
+  header <- tryCatch(expr = {
+    tabix_header(tabix_path = meta.sub$ftp_path, 
+                 force_new_header = F)
+  },error= function(e){
+    tabix_header(tabix_path = meta.sub$ftp_path,
+                 force_new_header = F)
+ })
   
   # Run tabix
   # Read directly into R rather than saving tabix subset
@@ -263,19 +268,22 @@ merge_gwas_qtl <- function(gwas_data,
                            qtl.subset, 
                            verbose=T){ 
   printer("++ Merging GWAS data and QTL query results.",v=verbose)
-  # Merging and allele flipping
-  gwas.qtl <- data.table::merge.data.table(x = data.table::data.table(gwas_data),
-                                            y = data.table::data.table(qtl.subset),
-                                            # all.x = T,
-                                            by.x = c("SNP"), # effect_allele
-                                            by.y = c("rsid.QTL") ) %>%
-    # subset(effect.is.ref|effect.is.alt) %>%
-    data.table::data.table()
-  if("A1" %in% colnames(gwas.qtl) & "A2" %in% colnames(gwas.qtl)){
-    gwas.qtl <- gwas.qtl %>% dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
-                                           effect.is.alt=ifelse(A2==alt.QTL,T,F) )
-  }  
-  return(gwas.qtl)
+  gwas.qtl <- tryCatch(expr = {
+    # Merging and allele flipping
+    gwas.qtl <- data.table::merge.data.table(x = data.table::data.table(gwas_data),
+                                             y = data.table::data.table(qtl.subset),
+                                             # all.x = T,
+                                             by.x = c("SNP"), # effect_allele
+                                             by.y = c("rsid.QTL") ) %>%
+      # subset(effect.is.ref|effect.is.alt) %>%
+      data.table::data.table()
+    if("A1" %in% colnames(gwas.qtl) & "A2" %in% colnames(gwas.qtl)){
+      gwas.qtl <- gwas.qtl %>% dplyr::mutate(effect.is.ref=ifelse(A1==ref.QTL,T,F),
+                                             effect.is.alt=ifelse(A2==alt.QTL,T,F) )
+    }  
+    return(gwas.qtl)
+  }, error=function(e){return(qtl.subset)})
+ return(gwas.qtl)
 }
 
 
@@ -325,7 +333,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                                                              .genome_build=genome_build,
                                                              .split_files=split_files,
                                                              .merge_with_gwas=merge_with_gwas,
-                                                             .verbose=verbose){  
+                                                             .verbose=verbose){
     # Import GWAS data
     # Have to do it this way in order to get names of sumstats_paths
     loc_path <- .sumstats_paths[i]
@@ -370,7 +378,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
       }
        
       qtl.subset <- data.table::data.table()
-      qtl.subset <- try({
+      qtl.subset <- tryCatch(expr = {
         eQTL_Catalogue.fetch(unique_id=.qtl_id,
                              quant_method=.quant_method,
                              infer_region=.infer_region,
@@ -385,30 +393,36 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                              add_qtl_id=T,
                              convert_genes=T,
                              verbose = .verbose)
-        })
+        },
+        error=function(x){data.table::data.table()})
       # Merge results
       if(.merge_with_gwas){
-        try({
-          gwas.qtl <- merge_gwas_qtl(gwas_data=gwas_data, 
-                                     qtl.subset=qtl.subset, 
-                                     verbose=.verbose)
-        }) 
+        gwas.qtl <- tryCatch(expr = {
+          merge_gwas_qtl(gwas_data=gwas_data, 
+                         qtl.subset=qtl.subset, 
+                         verbose=.verbose)
+        }, 
+        error=function(e){data.table::data.table()}) 
       } else {
         gwas.qtl <- qtl.subset
       }  
-      # Add locus name
-      printer("++ Adding `Locus.GWAS` column.", v=.verbose)
-      gwas.qtl <- cbind(Locus.GWAS=loc,  
-                        gwas.qtl)
-      # Save
-      if(.split_files){
-        printer("++ Saving split file ==>",split_path, v=.verbose)
-        dir.create(dirname(split_path), showWarnings = F, recursive = T)
-        data.table::fwrite(gwas.qtl, split_path, sep="\t", nThread = 1)
-      }
+      tryCatch({
+        # Add locus name
+        printer("++ Adding `Locus.GWAS` column.", v=.verbose)
+        gwas.qtl <- cbind(Locus.GWAS=loc,  
+                          gwas.qtl)
+        # Save
+        if(.split_files){
+          printer("++ Saving split file ==>",split_path, v=.verbose)
+          dir.create(dirname(split_path), showWarnings = F, recursive = T)
+          data.table::fwrite(gwas.qtl, split_path, sep="\t", nThread = 1)
+        }
+        # Return
+        if(.split_files){return(split_path)} else {return(gwas.qtl)} 
+      }, error=function(e){return(NULL)})
+      
     }  
-    # Return
-    if(.split_files){return(split_path)} else {return(gwas.qtl)} 
+    
   }, mc.cores = if(multithread_loci) nThread else 1) ## END ITERATE ACROSS LOCI
   
   # Return
@@ -572,22 +586,25 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                                      .multithread_tabix=multithread_tabix,
                                                      .verbose=verbose){  
     message(qtl_id)
-    GWAS.QTL <- data.table::data.table() 
-    GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
-                                             output_dir=.output_dir,
-                                             qtl_id=qtl_id,
-                                             quant_method=.quant_method,
-                                             infer_region=.infer_region, 
-                                             use_tabix=.use_tabix, 
-                                             nThread=.nThread, 
-                                             split_files=.split_files,
-                                             merge_with_gwas=.merge_with_gwas, 
-                                             force_new_subset=.force_new_subset, 
-                                             genome_build=.genome_build,
-                                             multithread_loci=.multithread_loci,
-                                             multithread_tabix=.multithread_tabix,
-                                             progress_bar = F,
-                                             verbose=.verbose) 
+    GWAS.QTL <- NULL
+    # try({
+      GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
+                                               output_dir=.output_dir,
+                                               qtl_id=qtl_id,
+                                               quant_method=.quant_method,
+                                               infer_region=.infer_region, 
+                                               use_tabix=.use_tabix, 
+                                               nThread=.nThread, 
+                                               split_files=.split_files,
+                                               merge_with_gwas=.merge_with_gwas, 
+                                               force_new_subset=.force_new_subset, 
+                                               genome_build=.genome_build,
+                                               multithread_loci=.multithread_loci,
+                                               multithread_tabix=.multithread_tabix,
+                                               progress_bar = F,
+                                               verbose=.verbose) 
+    # })
+   
     return(GWAS.QTL)
   }, mc.cores = if(multithread_qtl) nThread else 1) # END ITERATION OVER QTL_IDS
   
