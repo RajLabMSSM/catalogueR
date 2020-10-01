@@ -1,17 +1,19 @@
 
 
 # Get the header (according to email with Kaur Alassoo)
-tabix_header <- function(tabix_path=NULL){
+tabix_header <- function(tabix_path=NULL, 
+                         force_new_header=F){
   if(is.null(tabix_path)){tabix_path <- "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv/Alasoo_2018/ge/Alasoo_2018_ge_macrophage_naive.all.tsv.gz"}
   header_path <- system.file("eQTL_Catalogue_resources","tabix_header.txt",package = "catalogueR")
   
-  if(file.exists(header_path)){
+  if(file.exists(header_path) & force_new_header==F){
     header <- as.list(data.table::fread(header_path, nThread = 1))[[1]]
-  } else {
-    inst_dir <- "inst/eQTL_Catalogue_resources/tabix_header.txt"
-    dir.create(dirname(inst_dir), showWarnings = F, recursive = T)
+  } else { 
+    # Read in header data
     header <-  colnames(data.table::fread(cmd = paste("curl -s",tabix_path,"| zcat | head -n 1"), nThread = 1))
-    data.table::fwrite(list(header), file=inst_dir, nThread = 1)
+    # Save header data 
+    dir.create(dirname(header_path), showWarnings = F, recursive = T)
+    data.table::fwrite(list(header), file=header_path, nThread = 1)
   }
   return(header)
 }
@@ -27,7 +29,7 @@ tabix_header <- function(tabix_path=NULL){
 #' @family eQTL Catalogue 
 #' @examples 
 #' data("meta"); data("BST1");
-#' qtl.subset <- fetch_tabix(unique_id=meta$unique_id[1], gwas_dat=BST1)
+#' qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_dat=BST1)
 fetch_tabix <- function(unique_id,
                         quant_method="ge",
                         infer_region=T,
@@ -39,7 +41,9 @@ fetch_tabix <- function(unique_id,
                         nThread=4,
                         verbose=T){
   # quant_method="ge"; infer_region=T;is_gwas=F; remove_tmp=F;  add_chr=T 
-  check_coord_input(gwas_data=gwas_data, chrom=chrom, bp_lower=bp_lower, bp_upper=bp_upper)
+  check_coord_input(gwas_data=gwas_data, 
+                    chrom=chrom, 
+                    bp_lower=bp_lower, bp_upper=bp_upper)
   tabix.start = Sys.time()
   # Get region
   if(infer_region & !is.null(gwas_data)){
@@ -54,7 +58,8 @@ fetch_tabix <- function(unique_id,
   meta.sub <- choose_quant_method(ui=unique_id, 
                                   qm=quant_method, 
                                   verbose=verbose) 
-  header <- tabix_header(tabix_path = meta.sub$ftp_path)
+  header <- tabix_header(tabix_path = meta.sub$ftp_path, 
+                         force_new_header = F)
   
   # Run tabix
   # Read directly into R rather than saving tabix subset
@@ -63,7 +68,11 @@ fetch_tabix <- function(unique_id,
                                             meta.sub$ftp_path,
                                             region),
                                   nThread = nThread)
-  colnames(qtl.subset) <- c("Locus.QTL",paste0(header,".QTL"))
+  if(length(header) != ncol(qtl.subset)){
+    header <- tabix_header(tabix_path = meta.sub$ftp_path, 
+                           force_new_header = T)
+  }
+  colnames(qtl.subset) <- paste0(header,".QTL")
   tabix.end = Sys.time() 
   printer("eQTL_Catalogue::",nrow(qtl.subset),"SNPs returned in", round(as.numeric(tabix.end-tabix.start),1),"seconds.", v=verbose)  
   return(qtl.subset)
@@ -255,7 +264,7 @@ merge_gwas_qtl <- function(gwas_data,
                            verbose=T){ 
   printer("++ Merging GWAS data and QTL query results.",v=verbose)
   # Merging and allele flipping
-  gwas.qtl <- data.table:::merge.data.table(x = data.table::data.table(gwas_data),
+  gwas.qtl <- data.table::merge.data.table(x = data.table::data.table(gwas_data),
                                             y = data.table::data.table(qtl.subset),
                                             # all.x = T,
                                             by.x = c("SNP"), # effect_allele
@@ -284,7 +293,7 @@ merge_gwas_qtl <- function(gwas_data,
 #' @examples 
 #' sumstats_paths <- example_sumstats_paths()
 #' qtl_id  <- eQTL_Catalogue.list_datasets()$unique_id[1]
-#' GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=sumstats_paths, qtl_id=qtl_id, force_new_subset=T, multithread_loci=T, nThread=4, split_files=F, progress_bar=T)
+#' GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=sumstats_paths, qtl_id=qtl_id, force_new_subset=T, multithread_loci=T, nThread=1, split_files=F, progress_bar=F)
 eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,  
                                          output_dir="./catalogueR_queries",
                                          qtl_id,
@@ -319,7 +328,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                                                              .verbose=verbose){  
     # Import GWAS data
     # Have to do it this way in order to get names of sumstats_paths
-    loc_path <- sumstats_paths[i]
+    loc_path <- .sumstats_paths[i]
     gwas_data <- data.table::fread(loc_path, nThread = 1)
     gwas_data$CHR <- gsub("chr","",gwas_data$CHR)   # get rid of "chr" just in case
     
@@ -500,7 +509,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
 #' \dontrun{
 #' sumstats_paths_Nalls <- list.files("Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
 #' names(sumstats_paths_Nalls) <- basename(dirname(dirname(sumstats_paths_Nalls)))
-#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=4, force_new_subset=T)
+#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=1, force_new_subset=T)
 #' }
 eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  output_dir="./catalogueR_queries",
@@ -518,11 +527,11 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  genome_build="hg19", 
                                  progress_bar=T,
                                  verbose=T){
-  # sumstats_paths <- list.files("./Data/GWAS/Nalls23andMe_2019",  pattern = "*Multi-finemap_results.txt|*Multi-finemap.tsv.gz",  recursive = T, full.names = T) 
+  # sumstats_paths <-  example_sumstats_paths()
   # merge_with_gwas=F; nThread=4; loci_names = basename(dirname(dirname(sumstats_paths))); qtl.id=qtl_datasets; multithread_qtl=T;  multithread_loci=F; quant_method="ge";   split_files=T;
   # qtl_search =c("ROSMAP","Alasoo_2018","Fairfax_2014", "Nedelec_2016","BLUEPRINT","HipSci.iPSC", "Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018", "blood","brain")
-  # output_dir = "/Volumes/Scizor/eQTL_Catalogue/Nalls23andMe_2019"; qtl.id="Alasoo_2018.macrophage_naive"; force_new_subset=F;
-  
+  # output_dir = "/Volumes/Scizor/eQTL_Catalogue/Nalls23andMe_2019"; qtl.id="Alasoo_2018.macrophage_naive"; force_new_subset=F; progress_bar=F; verbose=T; genome_build="hg19";
+
   # Aargs hidden from user in favor of automatic optimizer
   # @param multithread_qtl Multi-thread across QTL datasets (good when you're querying lots of QTL datasets).
   # @param multithread_loci Multi-thread across loci (good when you have lots of gwas loci).

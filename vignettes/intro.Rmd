@@ -82,6 +82,7 @@ gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths,
                                        split_files = T,  
                                        merge_with_gwas = T,
                                        force_new_subset = T,
+                                       progress_bar = F,
                                        nThread=1)
 ```
 

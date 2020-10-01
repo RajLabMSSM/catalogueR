@@ -86,7 +86,7 @@ to determine which regions to query from \emph{eQTL Catalogue}.
 \examples{
 sumstats_paths <- example_sumstats_paths()
 qtl_id  <- eQTL_Catalogue.list_datasets()$unique_id[1]
-GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=sumstats_paths, qtl_id=qtl_id, force_new_subset=T, multithread_loci=T, nThread=4, split_files=F, progress_bar=T)
+GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=sumstats_paths, qtl_id=qtl_id, force_new_subset=T, multithread_loci=T, nThread=1, split_files=F, progress_bar=F)
 }
 \seealso{
 Other eQTL Catalogue: 
