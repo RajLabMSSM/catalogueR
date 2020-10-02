@@ -82,27 +82,34 @@ eQTL_Catalogue.search_metadata <- function(qtl_search=NULL,
 #' @keywords metadata 
 #' @examples 
 #' dat <- eQTL_Catalogue.annotate_tissues(dat)
-eQTL_Catalogue.annotate_tissues <- function(dat){
-  meta <- eQTL_Catalogue.list_datasets()
-  meta$tissue_label <- gsub('CD16+ monocyte','monocyte',meta$tissue_label)
-  tissueDict <- setNames(meta$tissue_label, meta$unique_id) 
-  tissue_groupDict <- setNames(meta$Tissue_group, meta$unique_id)
-  sysDict <- setNames(meta$System, meta$unique_id)
+eQTL_Catalogue.annotate_tissues <- function(dat,
+                                            add_tissue_counts=F){ 
+  meta <- eQTL_Catalogue.list_datasets() %>% 
+    dplyr::select(unique_id, 
+                  Study=study, 
+                  Tissue=tissue_label, 
+                  Tissue_group,
+                  System) %>%
+    dplyr::mutate(Tissue=gsub('CD16+ monocyte','monocyte', Tissue)) %>% 
+    dplyr::mutate(Tissue=factor(Tissue, levels = unique(Tissue), ordered = T) ) %>%
+    unique() 
   
-  # dat <- tidyr::separate(dat, col=qtl_ID,into=c("Study","Tissue_label"), sep="[.]", remove = F) %>%
-  #   dplyr::mutate(Tissue = tissueDict[Tissue_label])
-  dat$Tissue <- tissueDict[dat$qtl_ID]
-  dat$Tissue_group <- tissue_groupDict[dat$qtl_ID]
-  dat$System <- sysDict[dat$qtl_ID]
+  dat <- data.table::merge.data.table(dat %>% dplyr::rename(Study_id=Study), 
+                                      meta, 
+                                      by.x="qtl_id",
+                                      by.y="unique_id" ) 
   # Add the number of datasets per Tissue as a col
-  dat_count <- dat %>% 
-    dplyr::group_by(Tissue) %>% 
-    dplyr::summarise(dataset_count=n_distinct(qtl_ID, na.rm = T)) %>% 
-    data.table::data.table() 
-  countDict <-  setNames(dat_count$dataset_count, dat_count$Tissue)
-  dat$dataset_count <- countDict[dat$Tissue]   #data.table::merge.data.table(x=dat, y=dat_count, by="Tissue")
-  dat$Tissue_count <- paste0(dat$Tissue," (n=",dat$dataset_count,")")
-  dat$Tissue_count <- factor(dat$Tissue_count, levels = unique(dat$Tissue_count), ordered = T)
-  dat$Tissue <- factor(dat$Tissue, levels = unique(dat$Tissue), ordered = T)
+  if(add_tissue_counts){
+    dat_count <- dat %>% 
+      dplyr::group_by(Tissue) %>% 
+      dplyr::summarise(dataset_count=n_distinct(qtl_id, na.rm = T)) %>% 
+      data.table::data.table() 
+    countDict <-  setNames(dat_count$dataset_count, dat_count$Tissue)
+    dat$dataset_count <- countDict[dat$Tissue]   #data.table::merge.data.table(x=dat, y=dat_count, by="Tissue")
+    dat$Tissue_count <- paste0(dat$Tissue," (n=",dat$dataset_count,")")
+    dat$Tissue_count <- factor(dat$Tissue_count, 
+                               levels = unique(dat$Tissue_count), ordered = T) 
+  } 
   return(dat)
 }
+

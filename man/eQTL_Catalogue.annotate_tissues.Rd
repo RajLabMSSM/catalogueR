@@ -4,7 +4,7 @@
 \alias{eQTL_Catalogue.annotate_tissues}
 \title{Annotate QTL datasets with metadata}
 \usage{
-eQTL_Catalogue.annotate_tissues(dat)
+eQTL_Catalogue.annotate_tissues(dat, add_tissue_counts = F)
 }
 \description{
 Annotate QTL datasets with metadata
