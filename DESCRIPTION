@@ -29,10 +29,11 @@ Imports:
   wiggleplotr,
   GenomicRanges,
   AnnotationDbi,
-  EnsDb.Hsapiens.v75,
-  XGR,
+  EnsDb.Hsapiens.v75, 
   supraHex,
   dnet
+Remotes: 
+	url::https://cran.r-project.org/src/contrib/Archive/XGR/XGR_1.1.7.tar.gz 
 Suggests:
   pbmcapply,
   devtools
