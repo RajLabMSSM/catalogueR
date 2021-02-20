@@ -546,7 +546,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  nThread=4, 
                                  # multithread_qtl=T,
                                  # multithread_loci=F,
-                                 # multithread_tabix=F,
+                                 multithread_tabix=F,
                                  quant_method="ge",
                                  infer_region=T, 
                                  split_files=T,
@@ -576,10 +576,16 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
   
   # Determine multi-threading level
   # multithread_opts <- multithread_handler(multithread_qtl=multithread_qtl, multithread_loci=multithread_loci, multithread_tabix=multithread_tabix)
-  multithread_opts <- multithread_optimizer(qtl_datasets=qtl_datasets, 
-                                            sumstats_paths=sumstats_paths)
-  multithread_qtl<-multithread_opts$qtl; multithread_loci<-multithread_opts$loci; multithread_tabix<-multithread_opts$tabix; 
-  
+ 
+  if(multithread_tabix){
+    printer("++ Multi-threading within tabix.", v=verbose)
+    multithread_qtl<-multithread_loci<-F 
+  }else {
+    multithread_opts <- multithread_optimizer(qtl_datasets=qtl_datasets, 
+                                              sumstats_paths=sumstats_paths)
+    multithread_qtl<-multithread_opts$qtl; multithread_loci<-multithread_opts$loci; multithread_tabix<-multithread_opts$tabix; 
+  }
+
  
   # QUERY eQTL Catalogue
   printer("eQTL_Catalogue:: Querying",length(qtl_datasets),"QTL datasets x",length(sumstats_paths),"GWAS loci",

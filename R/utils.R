@@ -136,7 +136,7 @@ rbind.file.list <- function(file.list,
                             nCores=4){
   merged.dat <- parallel::mclapply(file.list, function(x){
     printer(x, v = verbose)
-    dat <- data.table::fread(x)
+    dat <- data.table::fread(x, nThread = 1)
     return(dat)
   }, mc.cores = nCores) %>% data.table::rbindlist(fill=T)
   return(merged.dat)
