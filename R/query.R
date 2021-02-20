@@ -9,8 +9,8 @@ tabix_header <- function(tabix_path= "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQT
     # Read in header data
     header <-  colnames(data.table::fread(cmd = paste("curl -s",tabix_path,"| zcat | head -n 1"), nThread = 1))
     # Save header data 
-    dir.create(dirname(header_path), showWarnings = F, recursive = T)
-    data.table::fwrite(list(header), file=header_path, nThread = 1)
+    # dir.create(dirname(header_path), showWarnings = F, recursive = T)
+    # data.table::fwrite(list(header), file=header_path, nThread = 1)
   }
   return(header)
 }
@@ -26,7 +26,7 @@ tabix_header <- function(tabix_path= "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQT
 #' @family eQTL Catalogue 
 #' @examples 
 #' data("meta"); data("BST1");
-#' qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_dat=BST1)
+#' qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_data=BST1)
 fetch_tabix <- function(unique_id,
                         quant_method="ge",
                         infer_region=T,
@@ -36,8 +36,9 @@ fetch_tabix <- function(unique_id,
                         bp_upper=NULL,
                         is_gwas=F,
                         nThread=4,
+                        conda_env="echoR",
                         verbose=T){
-  # quant_method="ge"; infer_region=T;is_gwas=F; remove_tmp=F;  add_chr=T 
+  # quant_method="ge"; infer_region=T;is_gwas=F; remove_tmp=F;  add_chr=T; bp_lower=bp_upper=NULL; verbose=T; conda_env="echoR"; nThread=10;
   check_coord_input(gwas_data=gwas_data, 
                     chrom=chrom, 
                     bp_lower=bp_lower, bp_upper=bp_upper)
@@ -55,8 +56,10 @@ fetch_tabix <- function(unique_id,
   meta.sub <- choose_quant_method(ui=unique_id, 
                                   qm=quant_method, 
                                   verbose=verbose) 
+  # You have to get the tabix header separately 
+  ## since tabix has issues getting it from eQTL Catalogue.
   header <- tryCatch(expr = {
-    tabix_header(tabix_path = meta.sub$ftp_path, 
+    tabix_header(tabix_path = meta.sub$ftp_path,
                  force_new_header = F)
   },error= function(e){
     tabix_header(tabix_path = meta.sub$ftp_path,
@@ -65,18 +68,21 @@ fetch_tabix <- function(unique_id,
   
   # Run tabix
   # Read directly into R rather than saving tabix subset
-  qtl.subset <- data.table::fread(cmd=paste("tabix",
-                                            # "--print-header",
+  tabix <- CONDA.find_package(package="tabix", conda_env=conda_env)
+  qtl.subset <- data.table::fread(cmd=paste(tabix,
+                                            # "--print-header",  
                                             meta.sub$ftp_path,
                                             region),
                                   nThread = nThread)
   if(length(header) != ncol(qtl.subset)){
-    header <- tabix_header(tabix_path = meta.sub$ftp_path, 
+    header <- tabix_header(tabix_path = meta.sub$ftp_path,
                            force_new_header = T)
   }
+  
   colnames(qtl.subset) <- paste0(header,".QTL")
   tabix.end = Sys.time() 
-  printer("eQTL_Catalogue::",nrow(qtl.subset),"SNPs returned in", round(as.numeric(tabix.end-tabix.start),1),"seconds.", v=verbose)  
+  printer("eQTL_Catalogue::",nrow(qtl.subset),"SNPs returned in", 
+          round(as.numeric(tabix.end-tabix.start),1),"seconds.", v=verbose)  
   return(qtl.subset)
 }
 
@@ -214,6 +220,7 @@ eQTL_Catalogue.fetch <- function(unique_id,
                                  multithread_tabix=F,
                                  add_qtl_id=T,
                                  convert_genes=T,
+                                 conda_env="echoR",
                                  verbose=T){
   if(use_tabix){
     # Tabix is about ~17x faster than the REST API.
@@ -226,6 +233,7 @@ eQTL_Catalogue.fetch <- function(unique_id,
                             bp_upper=bp_upper,
                             is_gwas=F,
                             nThread=if(multithread_tabix) nThread else 1, 
+                            conda_env=conda_env,
                             verbose=verbose)
   } else {
     gwas.qtl <- fetch_restAPI(unique_id=unique_id,
@@ -305,6 +313,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                                          quant_method="ge",
                                          infer_region=T, 
                                          use_tabix=T,
+                                         conda_env="echoR",
                                          multithread_loci=T,
                                          multithread_tabix=F,
                                          nThread=4,
@@ -384,6 +393,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                              nThread=.nThread,
                              multithread_tabix=.multithread_tabix,
                              use_tabix=.use_tabix,
+                             conda_env=conda_env,
                              chrom=NULL,
                              bp_upper=NULL,
                              bp_lower=NULL,
@@ -532,6 +542,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  output_dir="./catalogueR_queries",
                                  qtl_search=NULL,
                                  use_tabix=T,
+                                 conda_env="echoR",
                                  nThread=4, 
                                  # multithread_qtl=T,
                                  # multithread_loci=F,
@@ -580,6 +591,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                                      .quant_method=quant_method,
                                                      .infer_region=infer_region,
                                                      .use_tabix=use_tabix,
+                                                     .conda_env=conda_env,
                                                      .nThread=nThread,
                                                      .split_files=split_files,
                                                      .merge_with_gwas=merge_with_gwas,
@@ -597,6 +609,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                                quant_method=.quant_method,
                                                infer_region=.infer_region, 
                                                use_tabix=.use_tabix, 
+                                               conda_env=.conda_env,
                                                nThread=.nThread, 
                                                split_files=.split_files,
                                                merge_with_gwas=.merge_with_gwas, 

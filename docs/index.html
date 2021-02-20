@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -54,7 +54,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/intro.html">catalogueR: intro</a>
+      <a href="articles/colocalize.html">catalogueR: colocalize</a>
+    </li>
+    <li>
+      <a href="articles/intro.html">catalogueR: query</a>
     </li>
   </ul>
 </li>
@@ -62,7 +65,7 @@
 <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/RajLabMSSM/catalogueR/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -81,43 +84,44 @@
 <div id="cataloguer" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#cataloguer" class="anchor"></a>catalogueR</h1></div>
-<p>Rapid querying, colocalization, and plotting of summary stats from the eQTL Catalogue.</p>
+<p>Rapid querying, colocalization, and plotting of summary stats from the <em>eQTL Catalogue</em>.</p>
+<p><em>eQTL Catalogue</em> currently contains 110 QTL datasets (full, genome-wide, standardized summary statistics and metadata) from 20 different studies (including GTEx V8), across many tissues/cell types/conditions (<em>updated: 7/5/20</em>).</p>
 <div id="intro" class="section level2">
 <h2 class="hasAnchor">
 <a href="#intro" class="anchor"></a>Intro</h2>
-<p>The functions in <strong>catalogueR</strong> are partly derived from the following <a href="http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html">eQTL Catalogue tutorial</a>.<br>
-Additional eQTL Catalogue Resources:</p>
+<p>The functions in <strong>catalogueR</strong> are partly derived from the <a href="http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html"><em>eQTL Catalogue</em> tutorial</a>.<br>
+Additional <em>eQTL Catalogue</em> resources:</p>
 <ul>
 <li>
-<a href="https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources">GitHub</a><br>
+<a href="https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources">GitHub repository</a><br>
 </li>
 <li>
 <a href="https://www.ebi.ac.uk/eqtl/api-docs/">In-depth API documentation</a><br>
 </li>
-<li><a href="ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv">FTP server</a></li>
+<li>
+<a href="https://www.biorxiv.org/content/10.1101/2020.01.29.924266v1">Preprint</a><br>
+</li>
+<li>FTP server: <a href="ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv" class="uri">ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv</a>
+</li>
 </ul>
 <p><em>NOTE</em>: <a href="https://www.ebi.ac.uk/eqtl/Data_access/">The ALT allele is always the effect allele in eQTL Catalogue</a>.</p>
-<p>Notes on parallelization: There’s multiple levels to parallelize on. You can only chooose one level at a time:</p>
-<ul>
-<li>
-<code>multithread_qtl=T</code>: Across QTL datasets<br>
-</li>
-<li>
-<code>multithread_loci=T</code>: Across loci<br>
-</li>
-<li>
-<code>multithread_tabix=T</code>: Within tabix files</li>
-</ul>
-<p>You can also get a speedup by using tabix instead of the rest API Test: For 3 loci, and X QTL datasets:</p>
-<ul>
-<li>
-<strong>RESTful API</strong>: 7.5 minutes<br>
-</li>
-<li>
-<strong>Tabix</strong>: 27 seconds (*clear winner! ~17x speedup)<br>
-That said, if you’re only querying a small number of specific SNPs (rather than a large range), the RESTful API can sometimes be faster.</li>
-</ul>
 <hr>
+<p><br></p>
+</div>
+<div id="documentation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#documentation" class="anchor"></a>Documentation</h2>
+</div>
+<div id="website" class="section level2">
+<h2 class="hasAnchor">
+<a href="#website" class="anchor"></a><a href="https://rajlabmssm.github.io/catalogueR/">Website</a>
+</h2>
+</div>
+<div id="pdf" class="section level2">
+<h2 class="hasAnchor">
+<a href="#pdf" class="anchor"></a><a href="https://rajlabmssm.github.io/catalogueR/catalogueR_0.1.0.pdf">PDF</a>
+</h2>
+<p><br></p>
 </div>
 <div id="getting-started" class="section level2">
 <h2 class="hasAnchor">
@@ -125,73 +129,62 @@ That said, if you’re only querying a small number of specific SNPs (rather tha
 <div id="installation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h3>
-<div class="sourceCode" id="cb1"><pre class="r"><span class="kw">if</span>(!<span class="st">"devtools"</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"devtools"</span>)}
-<span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"RajLabMSSM/catalogueR"</span>)</pre></div>
 </div>
-<div id="command-line-dependencies" class="section level3">
+<div id="1-optional-step-conda" class="section level3">
 <h3 class="hasAnchor">
-<a href="#command-line-dependencies" class="anchor"></a>Command line dependencies</h3>
+<a href="#1-optional-step-conda" class="anchor"></a>[1] <em>Optional step: conda</em>
+</h3>
+<p>To ensure all dependendencies are installed and don’t conflict with each other, you can create a <em>conda</em> environment by downloading <a href="https://github.com/RajLabMSSM/catalogueR/blob/master/inst/conda/catalogueR.yml">this <em>yaml</em>` file</a> and entering the following in command line:</p>
+<pre><code>conda env create -n &lt;path_to_yml&gt;/catalogueR.yml</code></pre>
+</div>
+<div id="2-install-cataloguer-in-r" class="section level3">
+<h3 class="hasAnchor">
+<a href="#2-install-cataloguer-in-r" class="anchor"></a>[2] Install <strong>catalogueR</strong> in R</h3>
+<p>If you don’t use the <em>conda</em> env, you will also need to make sure tabix is installed.</p>
 <ul>
 <li>
 <a href="http://www.htslib.org/doc/tabix.html">tabix</a> (Install via <a href="https://anaconda.org/bioconda/tabix">conda</a> or from <a href="http://www.htslib.org/download/">source</a>)</li>
 </ul>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="st">"devtools"</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"RajLabMSSM/catalogueR"</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="intro-example" class="section level3">
 <h3 class="hasAnchor">
 <a href="#intro-example" class="anchor"></a>Intro example</h3>
-<div class="sourceCode" id="cb2"><pre class="r"><span class="co"># Returns both the gwas_data you supplied and the queried QTL summary stats, </span>
-<span class="co">## all merged into one data.table.  </span>
+<p>Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range. The files can be any of these formats, either <em>gzip</em>-compressed (<code>.gz</code>) or uncompressed: <code>.csv</code>, <code>.tsv</code>, <code>space-separated</code></p>
+<p><br></p>
+<p>The summary stats files must have the following column names (order doesn’t matter):</p>
+<ul>
+<li>
+<code>SNP</code> (rsid for each SNP)</li>
+<li>
+<code>CHR</code> (chromosome; with or without the “chr” prefix is fine)</li>
+<li>
+<code>POS</code> (basepair position)</li>
+<li>… (optional extra columns)</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">sumstats_paths</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/example_sumstats_paths.html">example_sumstats_paths</a></span><span class="op">(</span><span class="op">)</span>
 
-<span class="no">sumstats_paths</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/example_sumstats_paths.html">example_sumstats_paths</a></span>()
-
-<span class="no">gwas.qtl</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/eQTL_Catalogue.query.html">eQTL_Catalogue.query</a></span>(<span class="co"># Any number of summary stats files</span>
-                           <span class="kw">sumstats_paths</span> <span class="kw">=</span> <span class="no">sumstats_paths</span>,
-
-                           <span class="co"># Name of each locus (a vector of the same length as the sumstats_paths)  </span>
-                           <span class="co"># If none are supplied (NULL), names will be assigned based on the chromosomal coordinates.</span>
-                           <span class="kw">loci_names</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"BST1"</span>,<span class="st">"LRRK2"</span>,<span class="st">"MEX3C"</span>),
-
-                           <span class="co"># The file you want the merged gwas/qtl results to be saved in.</span>
-                           <span class="co">## The file will be tab-delimited, but you can choose to leave it uncompressed by removing the '.gz' at the end of the path here.</span>
-                           <span class="kw">output_path</span><span class="kw">=</span><span class="st">"./example_data/Nalls23andMe_2019/eQTL_Catalogue.tsv.gz"</span>,
-
-                           <span class="co"># This function will automatically search for any datasets that match your criterion.</span>
-                           <span class="co">## For example, if you search "Alasoo_2018", it will query the datasets</span>
-                           <span class="co">##"Alasoo_2018.macrophage_naive","Alasoo_2018.macrophage_IFNg",Alasoo_2018.macrophage_Salmonella", </span>
-                           <span class="co">## and "Alasoo_2018.macrophage_IFNg+Salmonella").</span>
-                           <span class="co">## You can be more specific about which datasets you want to include, for example by searching: "Alasoo_2018.macrophage_IFNg".</span>
-                           <span class="co">## You can even search by tissue or condition type (e.g.c("blood","brain")) </span>
-                           <span class="co">##and any QTL datasets containing those terms will be quried too.</span>
-                           <span class="kw">qtl_search</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"ROSMAP"</span>,<span class="st">"Alasoo_2018"</span>),
-
-                           <span class="co"># Tabix is about ~17x faster (default; =T) than the REST API (=F).</span>
-                           <span class="kw">use_tabix</span><span class="kw">=</span><span class="no">T</span>,
-
-                           <span class="co"># Use multiple CPU cores to speed up your queries</span>
-                           <span class="kw">nThread</span><span class="kw">=</span><span class="fl">4</span>,
-
-                           <span class="co"># Multi-thread across QTL datasets (good when you're querying lots of QTL datasets.)</span>
-                           <span class="kw">multithread_qtl</span><span class="kw">=</span><span class="no">T</span>,
-
-                           <span class="co"># Multi-thread across loci (good when you have lots of gwas loci)</span>
-                           <span class="kw">multithread_loci</span><span class="kw">=</span><span class="no">F</span>,
-
-                           <span class="co"># Save the results as one file per QTL dataset (with all loci within each file).</span>
-                           <span class="co">## If this is set to `=T`, then this function will return the list of paths where these files were saved.</span>
-                           <span class="co">### A helper function is provided to import and merge them back together in R.</span>
-                           <span class="co">## If this is set to `=F`, then this function will instead return one big merged data.table</span>
-                           <span class="co">### containing results from all QTL datasets and all loci. </span>
-                           <span class="co">### `=F` is not recommended when you have many large loci and/or many QTL datasets, </span>
-                           <span class="co">### because you can only fit so much data into memory.</span>
-                           <span class="kw">split_files</span><span class="kw">=</span><span class="no">T</span>)</pre></div>
+<span class="va">gwas.qtl_paths</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/eQTL_Catalogue.query.html">eQTL_Catalogue.query</a></span><span class="op">(</span>sumstats_paths <span class="op">=</span> <span class="va">sumstats_paths</span>,  
+                                       qtl_search <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"myeloid"</span>,<span class="st">"Alasoo_2018"</span><span class="op">)</span>,
+                                       output_dir <span class="op">=</span> <span class="st">"./catalogueR_queries"</span>, 
+                                       split_files <span class="op">=</span> <span class="cn">T</span>,  
+                                       merge_with_gwas <span class="op">=</span> <span class="cn">T</span>,
+                                       force_new_subset <span class="op">=</span> <span class="cn">T</span>,
+                                       nThread<span class="op">=</span><span class="fl">4</span><span class="op">)</span>
+<span class="va">GWAS.QTL</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gather_files.html">gather_files</a></span><span class="op">(</span>file_paths <span class="op">=</span> <span class="va">gwas.qtl_paths</span><span class="op">)</span>
+<span class="co"># Interactive datatable of results </span>
+<span class="co">## WARNING: Don't use this function on large datatables, might cause freezing.</span>
+<span class="fu">createDT</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">GWAS.QTL</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <hr>
 </div>
 </div>
 <div id="author" class="section level2">
 <h2 class="hasAnchor">
 <a href="#author" class="anchor"></a>Author</h2>
-<p>Brian M. Schilder<br>
-Raj Lab<br>
+<p>Brian M. Schilder<br><a href="http://rajlab.org">Raj Lab</a><br>
 Icahn School of Medicine at Mount Sinai<br>
 New York, New York, USA</p>
 </div>
@@ -233,7 +226,7 @@ New York, New York, USA</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

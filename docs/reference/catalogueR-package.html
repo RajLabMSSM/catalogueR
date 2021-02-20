@@ -87,7 +87,7 @@ FTP server
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -102,7 +102,10 @@ FTP server
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/intro.html">catalogueR: intro</a>
+      <a href="../articles/colocalize.html">catalogueR: colocalize</a>
+    </li>
+    <li>
+      <a href="../articles/intro.html">catalogueR: query</a>
     </li>
   </ul>
 </li>
@@ -110,7 +113,7 @@ FTP server
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/RajLabMSSM/catalogueR/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -149,7 +152,7 @@ Additional eQTL Catalogue Resources:</p><ul>
 
     <p><strong>Notes on parallelization</strong>: 
 There's multiple levels to parallelize on.
-You can only chooose one level at a time:</p><dl'>
+You can only chooose one level at a time:</p><dl>
 <dt><code>multithread_qtl=T</code></dt><dd><p>Across QTL datasets</p></dd>  
 <dt><code>multithread_loci=T</code></dt><dd><p>Across loci</p></dd>
 <dt><code>multithread_tabix=T</code></dt><dd><p>Within tabix files</p></dd>  
@@ -157,7 +160,7 @@ You can only chooose one level at a time:</p><dl'>
 </dl>
  
 <p>You can also get a speedup by using tabix instead of the rest API
-Test: For 3 loci, and X QTL datasets:</p><dl'>
+Test: For 3 loci, and X QTL datasets:</p><dl>
 <dt><strong>RESTful API:</strong></dt><dd><p>7.5 minutes</p></dd>  
 <dt><strong>Tabix:</strong></dt><dd><p>27 seconds (*clear winner! ~17x speedup)</p></dd>
 That said, if you're only query a small number of specific SNPs 
@@ -173,6 +176,14 @@ That said, if you're only query a small number of specific SNPs
 </ul>
 
 </div>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p><strong>Maintainer</strong>: Brian Schilder <a href='mailto:brian_schilder@alumni.brown.edu'>brian_schilder@alumni.brown.edu</a></p>
+<p>Other contributors:</p><ul>
+<li><p>Jack Humphrey [contributor]</p></li>
+</ul>
+
+
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -189,7 +200,7 @@ That said, if you're only query a small number of specific SNPs
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

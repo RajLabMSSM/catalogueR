@@ -80,7 +80,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -95,7 +95,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/intro.html">catalogueR: intro</a>
+      <a href="../articles/colocalize.html">catalogueR: colocalize</a>
+    </li>
+    <li>
+      <a href="../articles/intro.html">catalogueR: query</a>
     </li>
   </ul>
 </li>
@@ -103,7 +106,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/RajLabMSSM/catalogueR/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -129,21 +132,43 @@
     <p>Run coloc on GWAS-QTL object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_colocs</span>(
-  <span class='no'>qtl.egene</span>,
-  <span class='no'>gwas.region</span>,
-  <span class='kw'>merge_by_rsid</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>PP_threshold</span> <span class='kw'>=</span> <span class='fl'>0.8</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>T</span>
-)</pre>
+    <pre class="usage"><span class='fu'>get_colocs</span><span class='op'>(</span>
+  <span class='va'>qtl.egene</span>,
+  <span class='va'>gwas.region</span>,
+  merge_by_rsid <span class='op'>=</span> <span class='cn'>T</span>,
+  PP_threshold <span class='op'>=</span> <span class='fl'>0.8</span>,
+  method <span class='op'>=</span> <span class='st'>"abf"</span>,
+  verbose <span class='op'>=</span> <span class='cn'>T</span>
+<span class='op'>)</span></pre>
 
 
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Other coloc: 
 <code><a href='COLOC.report_summary.html'>COLOC.report_summary</a>()</code>,
+<code><a href='coloc_QTLs_full.html'>coloc_QTLs_full</a></code>,
+<code><a href='coloc_QTLs.html'>coloc_QTLs</a></code>,
+<code><a href='gather_colocalized_data.html'>gather_colocalized_data</a>()</code>,
+<code><a href='plot_coloc_summary.html'>plot_coloc_summary</a>()</code>,
+<code><a href='retrieve_sumstats_info.html'>retrieve_sumstats_info</a>()</code>,
 <code><a href='run_coloc.html'>run_coloc</a>()</code></p></div>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"BST1__Alasoo_2018.macrophage_IFNg"</span><span class='op'>)</span>
+
+<span class='va'>qtl.egene</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span><span class='op'>(</span><span class='va'>BST1__Alasoo_2018.macrophage_IFNg</span><span class='op'>)</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/grep.html'>grep</a></span><span class='op'>(</span><span class='st'>"*.QTL$|qtl_id|SNP"</span>,<span class='fu'><a href='https://rdrr.io/r/base/colnames.html'>colnames</a></span><span class='op'>(</span><span class='va'>BST1__Alasoo_2018.macrophage_IFNg</span><span class='op'>)</span>, value <span class='op'>=</span> <span class='cn'>T</span><span class='op'>)</span><span class='op'>]</span>
+<span class='va'>sorted_egenes</span> <span class='op'>&lt;-</span> <span class='va'>qtl.egene</span> <span class='op'>%&gt;%</span> <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span><span class='op'>(</span><span class='va'>gene.QTL</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/summarise.html'>summarise</a></span><span class='op'>(</span>mean.P<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/mean.html'>mean</a></span><span class='op'>(</span><span class='va'>pvalue.QTL</span><span class='op'>)</span>, min.P<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>min</a></span><span class='op'>(</span><span class='va'>pvalue.QTL</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span><span class='op'>(</span><span class='va'>min.P</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in qtl.egene %&gt;% dplyr::group_by(gene.QTL) %&gt;% dplyr::summarise(mean.P = mean(pvalue.QTL),     min.P = min(pvalue.QTL)) %&gt;% dplyr::arrange(min.P): could not find function "%&gt;%"</span></div><div class='input'><span class='va'>qtl.egene</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/subset.html'>subset</a></span><span class='op'>(</span><span class='va'>qtl.egene</span>, <span class='va'>gene.QTL</span><span class='op'>==</span><span class='va'>sorted_egenes</span><span class='op'>$</span><span class='va'>gene.QTL</span><span class='op'>[</span><span class='fl'>1</span><span class='op'>]</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='error'>Error in eval(e, x, parent.frame()): object 'sorted_egenes' not found</span></div><div class='input'>
+<span class='va'>gwas.region</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span><span class='op'>(</span><span class='va'>BST1__Alasoo_2018.macrophage_IFNg</span><span class='op'>)</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/grep.html'>grep</a></span><span class='op'>(</span><span class='st'>"*.QTL$|qtl_id"</span>,<span class='fu'><a href='https://rdrr.io/r/base/colnames.html'>colnames</a></span><span class='op'>(</span><span class='va'>BST1__Alasoo_2018.macrophage_IFNg</span><span class='op'>)</span>, value <span class='op'>=</span> <span class='cn'>T</span>, invert <span class='op'>=</span> <span class='cn'>T</span><span class='op'>)</span><span class='op'>]</span>
+<span class='va'>coloc_res</span> <span class='op'>&lt;-</span> <span class='fu'>get_colocs</span><span class='op'>(</span>qtl.egene<span class='op'>=</span><span class='va'>qtl.egene</span>, gwas.region<span class='op'>=</span><span class='va'>gwas.region</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Inferring `N` (effective sample size) from `N_cases` and `N_controls`</span></div><div class='output co'>#&gt; [1] "+ Preparing sample_size (N) column"
+#&gt; [1] "++ Computing effective sample size."
+#&gt; PP.H0.abf PP.H1.abf PP.H2.abf PP.H3.abf PP.H4.abf 
+#&gt;  2.71e-22  1.41e-22  6.10e-01  3.16e-01  7.40e-02 
+#&gt; [1] "PP abf for shared variant: 7.4%"
+#&gt; [1] "Hypothesis Results @ PP_threshold = 0.8 :"
+#&gt; [1] "+ COLOC:: Datasets NOT colocalized at: PP.H3 + PP.H4 &gt;= 0.8  and PP.H3 / PP.H4 &gt;= 2."</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -159,7 +184,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

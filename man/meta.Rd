@@ -5,7 +5,7 @@
 \alias{meta}
 \title{eQTL Catalogue dataset metadata}
 \format{
-An object of class \code{data.table} (inherits from \code{data.frame}) with 242 rows and 11 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 397 rows and 12 columns.
 }
 \usage{
 meta
@@ -17,7 +17,8 @@ and their associated systems/tissues/cell types.
 \examples{
 \dontrun{
 meta <- eQTL_Catalogue.list_datasets(force_new=T)
-meta <- meta \%>\% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte","Fairfax_2014",ftp_path)) 
+# Some paths in the metadata were originally wrong. Has since been corrected by authors.
+### meta <- meta \%>\% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte","Fairfax_2014",ftp_path)) 
 usethis::use_data(meta, overwrite=T)
 }
 }

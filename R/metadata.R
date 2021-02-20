@@ -18,12 +18,13 @@ eQTL_Catalogue.list_datasets <- function(save_dir=F,
     # Main datasets
     URL <- "https://raw.githubusercontent.com/eQTL-Catalogue/eQTL-Catalogue-resources/master/tabix/tabix_ftp_paths.tsv"
     meta <- data.table::fread(URL, nThread = 4)
-    # GTEx v8 datasets (standardized by not reprossed from raw data)
-    URL_gtex <- "https://raw.githubusercontent.com/eQTL-Catalogue/eQTL-Catalogue-resources/master/tabix/tabix_ftp_paths_imported.tsv"
-    meta_gtex <- data.table::fread(URL_gtex, nThread = 4)
+    # # GTEx v8 datasets (metadata was previously in a separate file)
+    # URL_gtex <- "https://raw.githubusercontent.com/eQTL-Catalogue/eQTL-Catalogue-resources/master/tabix/tabix_ftp_paths_imported.tsv"
+    # meta_gtex <- data.table::fread(URL_gtex, nThread = 4)
     # Merged datasets
-    meta <- rbind(meta, meta_gtex, fill=T)
-    meta <- meta %>% dplyr::transmute(unique_id=paste0(study,".",qtl_group), !!!.) 
+    # meta <- rbind(meta, meta_gtex, fill=T)
+    # meta <- meta %>% dplyr::transmute(unique_id=paste0(study,".",qtl_group), !!!.) 
+    meta <- meta %>% dplyr::mutate(unique_id=paste0(study,".",qtl_group))
     # meta <- meta %>% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte","Fairfax_2014",ftp_path)) 
     if(save_dir!=F){
       meta_path <- file.path(save_dir,"eQTLcatalogue_tabix_ftp_paths.tsv")
@@ -83,7 +84,7 @@ eQTL_Catalogue.search_metadata <- function(qtl_search=NULL,
 #' @examples 
 #' dat <- eQTL_Catalogue.annotate_tissues(dat)
 eQTL_Catalogue.annotate_tissues <- function(dat,
-                                            add_tissue_counts=F){ 
+                                            add_tissue_counts=F){  
   meta <- eQTL_Catalogue.list_datasets() %>% 
     dplyr::select(unique_id, 
                   Study=study, 
@@ -94,6 +95,12 @@ eQTL_Catalogue.annotate_tissues <- function(dat,
     dplyr::mutate(Tissue=factor(Tissue, levels = unique(Tissue), ordered = T) ) %>%
     unique() 
   
+  if(!"study" %in% colnames(dat)){
+    dat$Study <- "GWAS"
+  }
+  if(!"qtl_id" %in% colnames(dat)){
+    dat$qtl_id <- dat$qtl_ID
+  }
   dat <- data.table::merge.data.table(dat %>% dplyr::rename(Study_id=Study), 
                                       meta, 
                                       by.x="qtl_id",

@@ -11,6 +11,7 @@ eQTL_Catalogue.iterate_fetch(
   quant_method = "ge",
   infer_region = T,
   use_tabix = T,
+  conda_env = "echoR",
   multithread_loci = T,
   multithread_tabix = F,
   nThread = 4,

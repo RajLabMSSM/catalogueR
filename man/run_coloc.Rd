@@ -9,7 +9,9 @@ run_coloc(
   save_path = "./coloc_results.tsv.gz",
   nThread = 4,
   top_snp_only = T,
-  split_by_group = F
+  split_by_group = F,
+  method = "abf",
+  PP_threshold = 0.8
 )
 }
 \value{

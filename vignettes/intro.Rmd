@@ -115,3 +115,12 @@ createDT(head(GWAS.QTL_manual))
 ```
 
 
+# Session info 
+
+<details> 
+
+```{r Session info}
+utils::sessionInfo()
+```
+
+</details>

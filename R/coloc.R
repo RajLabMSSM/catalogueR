@@ -71,13 +71,26 @@ get_colocs <- function(qtl.egene,
                        gwas.region,
                        merge_by_rsid=T,
                        PP_threshold=.8,
+                       method="abf",
                        verbose=T){
   # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
   # Subset to overlapping SNPs only
+  
+  # Check for duplicated SNPs
+  qtl.egene <- qtl.egene[!duplicated(qtl.egene$SNP),]
+  gwas.region <- gwas.region[!duplicated(gwas.region$SNP),]
+  if(all(c("N_cases","N_controls") %in% colnames(gwas.region))){
+    message("Inferring `N` (effective sample size) from `N_cases` and `N_controls`")
+    gwas.region$N <- get_sample_size(gwas.region, effective_ss=T)$N
+  }
+  if(!"N" %in% colnames(gwas.region)){
+    stop("`N` column (effective sample size) was not detected in gwas.region. Required for coloc analysis.")
+  }
+  
   if(merge_by_rsid){
     shared = intersect(qtl.egene$SNP, gwas.region$SNP)
     eqtl_shared = dplyr::filter(qtl.egene, SNP %in% shared) %>% 
-      dplyr::mutate(variant_id = SNP) %>% unique()
+      dplyr::mutate(variant_id = SNP) %>% unique()  
     gwas_shared = dplyr::filter(gwas.region, SNP %in% shared) %>% 
       dplyr::mutate(variant_id = SNP) %>% unique()
   } else {
@@ -109,24 +122,42 @@ get_colocs <- function(qtl.egene,
   } else { 
     # RUN COLOC
     # QTL data
-    eQTL_dataset = list(pvalues = eqtl_shared$pvalue.QTL, 
-                        N = (eqtl_shared$an.QTL)[1]/2, #The sample size of the eQTL dataset was 84
-                        MAF = eqtl_shared$maf.QTL, 
-                        type = "quant", 
+    eQTL_dataset = list(snp = eqtl_shared$variant_id,
+                        pvalues = eqtl_shared$pvalue.QTL,
+                        #If log_OR column is full of NAs then use beta column instead
                         beta = eqtl_shared$beta.QTL,
-                        snp = eqtl_shared$variant_id)
+                        N = (eqtl_shared$an.QTL)[1],#/2,  
+                        MAF = eqtl_shared$maf.QTL, 
+                        type = "quant"
+                        )
     # GWAS data
-    gwas_dataset = list(beta = gwas_shared$Effect, #If log_OR column is full of NAs then use beta column instead
+    gwas_dataset = list(snp = gwas_shared$variant_id,
+                        pvalues = gwas_shared$P,
+                        #If log_OR column is full of NAs then use beta column instead
+                        beta = gwas_shared$Effect, 
+                        N = (gwas_shared$N)[1],#/2,  
                         varbeta = gwas_shared$StdErr^2, 
-                        type = "cc", 
-                        snp = gwas_shared$variant_id,
-                        s = 0.5, #This is actually not used, because we already specified varbeta above.
-                        MAF = gwas_shared$MAF)
+                        MAF = gwas_shared$MAF,
+                        type = "cc",  
+                        s = 0.5  #This is actually not used, because we already specified varbeta above.
+                        )
     
     # wrap <- ifelse(verbose, function(x)x, suppressMessages)
-    coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, 
-                                 dataset2 = gwas_dataset,
-                                 p1 = 1e-4, p2 = 1e-4, p12 = 1e-5) # defaults
+     
+    # coloc::coloc.signals()
+    if(method %in% c("single","cond","mask")){
+      # The updated coloc requires varbeta in both datasets 
+      color_res <- coloc::coloc.signals(dataset1 = eQTL_dataset, 
+                                        dataset2 = gwas_dataset,
+                                        method = "mask",
+                                        p12 = 1e-5)
+    }
+    if(tolower(method)=="abf"){
+      coloc_res = coloc::coloc.abf(dataset1 = eQTL_dataset, 
+                                   dataset2 = gwas_dataset,
+                                   p12 = 1e-5) # defaults
+    }
+    
     coloc_res$Locus <- gwas_shared$Locus[1]
     if(verbose){
       report <- COLOC.report_summary(coloc.res = coloc_res, 
@@ -174,7 +205,9 @@ run_coloc <- function(gwas.qtl_paths,
                       save_path="./coloc_results.tsv.gz",
                       nThread=4,
                       top_snp_only=T,
-                      split_by_group=F){ 
+                      split_by_group=F,
+                      method="abf",
+                      PP_threshold=.8){ 
   # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_Catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("../eQTL_Catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
   # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_Catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
@@ -217,6 +250,8 @@ run_coloc <- function(gwas.qtl_paths,
           coloc_res <- get_colocs(qtl.egene = qtl.egene, 
                                   gwas.region = gwas.region, 
                                   merge_by_rsid = T,
+                                  PP_threshold = PP_threshold,
+                                  method = method,
                                   verbose = F)
           coloc_summary <- as.list(coloc_res$summary)
           coloc_results <- coloc_res$results
@@ -316,9 +351,13 @@ plot_coloc_summary <- function(coloc_QTLs,
     # only plot colocalized loci-egene combinations (otherwise, plot will be massive)
     subset((!is.na(PP.Hyp4) & !is.na(PP.H4.thresh)), .drop=F) %>%  
     data.table::data.table()
-   
-  if(label_snp_groups){
-    needed_cols <- c("leadSNP","Consensus_SNP","Support")
+  if(nrow(coloc_dat)==0){
+    stop("\n\n** No coloc tests reached the PPH4 threshold (",PP_thresh,").",
+         "Try lowering `PP_thresh`. **")
+  }
+  
+  needed_cols <- c("leadSNP","Consensus_SNP","Support")
+  if(label_snp_groups){ 
     if(all(needed_cols %in% colnames(coloc_dat))){
       coloc_dat <- coloc_dat %>% 
         dplyr::group_by(Locus.GWAS,eGene,qtl_ID) %>% 
@@ -390,7 +429,7 @@ plot_coloc_summary <- function(coloc_QTLs,
            plot=gg_coloc, height=width, width=height, dpi=400)
   }
   # Return merged data
-  return(coloc_plot)
+  return(gg_coloc)
 }
 
 

@@ -9,6 +9,7 @@ get_colocs(
   gwas.region,
   merge_by_rsid = T,
   PP_threshold = 0.8,
+  method = "abf",
   verbose = T
 )
 }

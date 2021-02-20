@@ -14,6 +14,7 @@ fetch_tabix(
   bp_upper = NULL,
   is_gwas = F,
   nThread = 4,
+  conda_env = "echoR",
   verbose = T
 )
 }
@@ -37,7 +38,7 @@ Faster alternative to REST API.
 }
 \examples{
 data("meta"); data("BST1");
-qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_dat=BST1)
+qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_data=BST1)
 }
 \seealso{
 Other eQTL Catalogue: 

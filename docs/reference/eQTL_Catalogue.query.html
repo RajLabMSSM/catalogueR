@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Iterate queries to <em>eQTL Catalogue</em> — eQTL_Catalogue.query • catalogueR</title>
+<title>Iterate queries to eQTL Catalogue — eQTL_Catalogue.query • catalogueR</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Iterate queries to <em>eQTL Catalogue</em> — eQTL_Catalogue.query" />
-<meta property="og:description" content="Deetermines which datasets to query using qtl_search.
+<meta property="og:title" content="Iterate queries to eQTL Catalogue — eQTL_Catalogue.query" />
+<meta property="og:description" content="Determines which datasets to query using qtl_search.
 Uses coordinates from stored summary stats files (e.g. GWAS) 
 to determine which regions to query from eQTL Catalogue. 
 Each locus file can be stored separately, 
@@ -84,7 +84,7 @@ or merged together to form one large file with all query results." />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -99,7 +99,10 @@ or merged together to form one large file with all query results." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/intro.html">catalogueR: intro</a>
+      <a href="../articles/colocalize.html">catalogueR: colocalize</a>
+    </li>
+    <li>
+      <a href="../articles/intro.html">catalogueR: query</a>
     </li>
   </ul>
 </li>
@@ -107,7 +110,7 @@ or merged together to form one large file with all query results." />
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/RajLabMSSM/catalogueR/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -130,28 +133,28 @@ or merged together to form one large file with all query results." />
     </div>
 
     <div class="ref-description">
-    <p>Deetermines which datasets to query using <code>qtl_search</code>.
+    <p>Determines which datasets to query using <code>qtl_search</code>.
 Uses coordinates from stored summary stats files (e.g. GWAS) 
 to determine which regions to query from <em>eQTL Catalogue</em>. 
 Each locus file can be stored separately, 
 or merged together to form one large file with all query results.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>eQTL_Catalogue.query</span>(
-  <span class='kw'>sumstats_paths</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>output_dir</span> <span class='kw'>=</span> <span class='st'>"./catalogueR_queries"</span>,
-  <span class='kw'>qtl_search</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>use_tabix</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>nThread</span> <span class='kw'>=</span> <span class='fl'>4</span>,
-  <span class='kw'>quant_method</span> <span class='kw'>=</span> <span class='st'>"ge"</span>,
-  <span class='kw'>infer_region</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>split_files</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>merge_with_gwas</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>force_new_subset</span> <span class='kw'>=</span> <span class='no'>F</span>,
-  <span class='kw'>genome_build</span> <span class='kw'>=</span> <span class='st'>"hg19"</span>,
-  <span class='kw'>progress_bar</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>T</span>
-)</pre>
+    <pre class="usage"><span class='fu'>eQTL_Catalogue.query</span><span class='op'>(</span>
+  sumstats_paths <span class='op'>=</span> <span class='cn'>NULL</span>,
+  output_dir <span class='op'>=</span> <span class='st'>"./catalogueR_queries"</span>,
+  qtl_search <span class='op'>=</span> <span class='cn'>NULL</span>,
+  use_tabix <span class='op'>=</span> <span class='cn'>T</span>,
+  nThread <span class='op'>=</span> <span class='fl'>4</span>,
+  quant_method <span class='op'>=</span> <span class='st'>"ge"</span>,
+  infer_region <span class='op'>=</span> <span class='cn'>T</span>,
+  split_files <span class='op'>=</span> <span class='cn'>T</span>,
+  merge_with_gwas <span class='op'>=</span> <span class='cn'>T</span>,
+  force_new_subset <span class='op'>=</span> <span class='cn'>F</span>,
+  genome_build <span class='op'>=</span> <span class='st'>"hg19"</span>,
+  progress_bar <span class='op'>=</span> <span class='cn'>T</span>,
+  verbose <span class='op'>=</span> <span class='cn'>T</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -163,7 +166,7 @@ whose coordinates you want to use to make queries to eQTL Catalogue.
 If you wish to add custom names to the loci, simply add these as the names of the path list
  (e.g. <code><a href='https://rdrr.io/r/base/c.html'>c(BST1="&lt;path&gt;/&lt;to&gt;/&lt;BST1_file&gt;", LRRK2="&lt;path&gt;/&lt;to&gt;/&lt;LRRK2_file&gt;")</a></code>). 
  Otherwise, loci will automatically named based on their min/max genomic coordinates.</p> 
-<p>The minimum columns in these files required to make queries include:</p><dl'>
+<p>The minimum columns in these files required to make queries include:</p><dl>
 <dt>SNP</dt><dd><p>RSID of each SNP.</p></dd> 
 <dt>CHR</dt><dd><p>Chromosome (can be in "chr12" or "12" format).</p></dd>  
 <dt>POS</dt><dd><p>Genomic position of each SNP.</p></dd>  
@@ -187,7 +190,7 @@ For example, if you search "Alasoo_2018", it will query the datasets:</p><ul>
 <li><p>Alasoo_2018.macrophage_IFNg+Salmonella</p></li>
 </ul><p>You can be more specific about which datasets you want to include, 
 for example by searching: "Alasoo_2018.macrophage_IFNg".
-You can even search by tissue or condition type (e.g.c("blood","brain")) 
+You can even search by tissue or condition type (e.g. <code><a href='https://rdrr.io/r/base/c.html'>c("blood","brain")</a></code>) 
 and any QTL datasets containing those substrings (case-insensitive) in their name or metadata will be queried too.</p></td>
     </tr>
     <tr>
@@ -201,7 +204,7 @@ and any QTL datasets containing those substrings (case-insensitive) in their nam
     <tr>
       <th>quant_method</th>
       <td><p>eQTL Catalogue actually contains more than just eQTL data.
-For each dataset, the following kinds of QTLs can be queried:</p><dl'>
+For each dataset, the following kinds of QTLs can be queried:</p><dl>
 <dt>gene expression QTL</dt><dd><p><code>quant_method="ge"</code> (<em>default</em>) or <code>quant_method="microarray"</code>, depending on the dataset. <strong>catalogueR</strong> will automatically select whichever option is available.</p></dd>  
 <dt>exon expression QTL</dt><dd><p><em>*under construction*</em>  <code>quant_method="ex"</code></p></dd>
 <dt>transcript usage QTL</dt><dd><p><em>*under construction*</em>  <code>quant_method="tx"</code></p></dd>
@@ -249,7 +252,11 @@ Requires R package <code>pbmcapply</code>.</p></td>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Other eQTL Catalogue: 
+<code><a href='BST1__Alasoo_2018.macrophage_IFNg.html'>BST1__Alasoo_2018.macrophage_IFNg</a></code>,
+<code><a href='LRRK2__Alasoo_2018.macrophage_IFNg.html'>LRRK2__Alasoo_2018.macrophage_IFNg</a></code>,
+<code><a href='MEX3C__Alasoo_2018.macrophage_IFNg.html'>MEX3C__Alasoo_2018.macrophage_IFNg</a></code>,
 <code><a href='eQTL_Catalogue.fetch.html'>eQTL_Catalogue.fetch</a>()</code>,
+<code><a href='eQTL_Catalogue.header.html'>eQTL_Catalogue.header</a></code>,
 <code><a href='eQTL_Catalogue.iterate_fetch.html'>eQTL_Catalogue.iterate_fetch</a>()</code>,
 <code><a href='eQTL_Catalogue.search_metadata.html'>eQTL_Catalogue.search_metadata</a>()</code>,
 <code><a href='fetch_restAPI.html'>fetch_restAPI</a>()</code>,
@@ -258,180 +265,34 @@ Requires R package <code>pbmcapply</code>.</p></td>
 <code><a href='meta.html'>meta</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>sumstats_paths</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='example_sumstats_paths.html'>example_sumstats_paths</a></span>()
+    <pre class="examples"><div class='input'><span class='va'>sumstats_paths</span> <span class='op'>&lt;-</span> <span class='fu'><a href='example_sumstats_paths.html'>example_sumstats_paths</a></span><span class='op'>(</span><span class='op'>)</span>
 
 <span class='co'># Merged results</span>
-<span class='no'>GWAS.QTL</span> <span class='kw'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span>(<span class='kw'>sumstats_paths</span><span class='kw'>=</span><span class='no'>sumstats_paths</span>, <span class='kw'>qtl_search</span><span class='kw'>=</span><span class='st'>"Alasoo_2018"</span>, <span class='kw'>nThread</span><span class='kw'>=</span><span class='fl'>1</span>, <span class='kw'>force_new_subset</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>merge_with_gwas</span><span class='kw'>=</span><span class='no'>F</span>, <span class='kw'>progress_bar</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>split_files</span><span class='kw'>=</span><span class='no'>F</span>)</div><div class='output co'>#&gt; [1] "+ Optimizing multi-threading..."
+<span class='co'># GWAS.QTL &lt;- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset=T, merge_with_gwas=F, progress_bar=T, split_files=F)</span>
+<span class='co'># Merged results (parallel)</span>
+<span class='va'>GWAS.QTL</span> <span class='op'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span><span class='op'>(</span>sumstats_paths<span class='op'>=</span><span class='va'>sumstats_paths</span>, qtl_search<span class='op'>=</span><span class='st'>"Alasoo_2018"</span>, nThread<span class='op'>=</span><span class='fl'>4</span>, force_new_subset<span class='op'>=</span><span class='cn'>T</span>, merge_with_gwas<span class='op'>=</span><span class='cn'>F</span>, progress_bar<span class='op'>=</span><span class='cn'>T</span>, split_files<span class='op'>=</span><span class='cn'>F</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "+ Optimizing multi-threading..."
 #&gt; [1] "++ Multi-threading across QTL datasets."
-#&gt; [1] "eQTL_Catalogue:: Querying 4 QTL datasets x 3 GWAS loci (12 total)"</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_naive</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:25:44</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:25:48</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 78481 SNPs returned in 18.9 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:26:07</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:26:13</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 6 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 2795 SNPs returned in 5.8 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:26:19</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:26:24</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 50088 SNPs returned in 9.4 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "+ Returning merged data.table of query results."</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_IFNg</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:26:33</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:26:37</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 57036 SNPs returned in 11.2 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:26:48</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:26:53</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 3354 SNPs returned in 6.2 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:26:59</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:27:02</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 3 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 51536 SNPs returned in 9.7 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "+ Returning merged data.table of query results."</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_Salmonella</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:27:12</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:27:17</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 68136 SNPs returned in 21.7 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:27:38</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:27:42</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 2795 SNPs returned in 5.4 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:27:48</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:27:53</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 51536 SNPs returned in 9.2 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "+ Returning merged data.table of query results."</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_IFNg+Salmonella</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:28:02</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:28:08</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 6 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 43983 SNPs returned in 14.8 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:28:23</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:28:28</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 3354 SNPs returned in 5.6 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:28:33</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:28:37</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 45995 SNPs returned in 7.4 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "+ Returning merged data.table of query results."
-#&gt; [1] "++ Post-processing merged results."
-#&gt; [1] "+ Checking results for missing queries..."
-#&gt; [1] "+ Saving merged query results ==&gt; ./catalogueR_queries/eQTL_Catalogue.tsv.gz"
-#&gt; Time difference of 3.1 mins</div><div class='input'><span class='co'># Merged results (parallel)</span>
-<span class='no'>GWAS.QTL</span> <span class='kw'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span>(<span class='kw'>sumstats_paths</span><span class='kw'>=</span><span class='no'>sumstats_paths</span>, <span class='kw'>qtl_search</span><span class='kw'>=</span><span class='st'>"Alasoo_2018"</span>, <span class='kw'>nThread</span><span class='kw'>=</span><span class='fl'>4</span>, <span class='kw'>force_new_subset</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>merge_with_gwas</span><span class='kw'>=</span><span class='no'>F</span>, <span class='kw'>progress_bar</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>split_files</span><span class='kw'>=</span><span class='no'>F</span>)</div><div class='output co'>#&gt; [1] "+ Optimizing multi-threading..."
-#&gt; [1] "++ Multi-threading across QTL datasets."
-#&gt; [1] "eQTL_Catalogue:: Querying 4 QTL datasets x 3 GWAS loci (12 total)"
-#&gt; [1] "++ Post-processing merged results."
-#&gt; [1] "+ Checking results for missing queries..."
-#&gt; [1] "+ QTL datasets with no hits/failed to pull data:"
-#&gt; [1] "  + BST1__Alasoo_2018.macrophage_naive"
-#&gt; [1] "  + LRRK2__Alasoo_2018.macrophage_naive"
-#&gt; [1] "  + MEX3C__Alasoo_2018.macrophage_naive"
-#&gt; [1] "  + BST1__Alasoo_2018.macrophage_IFNg"
-#&gt; [1] "  + LRRK2__Alasoo_2018.macrophage_IFNg"
-#&gt; [1] "  + MEX3C__Alasoo_2018.macrophage_IFNg"
-#&gt; [1] "  + BST1__Alasoo_2018.macrophage_Salmonella"
-#&gt; [1] "  + LRRK2__Alasoo_2018.macrophage_Salmonella"
-#&gt; [1] "  + MEX3C__Alasoo_2018.macrophage_Salmonella"
-#&gt; [1] "+ Saving merged query results ==&gt; ./catalogueR_queries/eQTL_Catalogue.tsv.gz"
-#&gt; Time difference of 57.5 secs</div><div class='input'>
+#&gt; [1] "eQTL_Catalogue:: Querying 4 QTL datasets x 3 GWAS loci (12 total)"</div><div class='output co'>#&gt; <span class='warning'>Warning: scheduled cores 1, 2, 4 encountered errors in user code, all values of the jobs will be affected</span></div><div class='output co'>#&gt; [1] "++ Post-processing merged results."</div><div class='output co'>#&gt; <span class='error'>Error in data.table::rbindlist(GWAS.QTL_all, fill = T): Item 1 of input is not a data.frame, data.table or list</span></div><div class='input'>
 <span class='co'># Split results</span>
-<span class='no'>gwas.qtl</span> <span class='kw'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span>(<span class='kw'>sumstats_paths</span><span class='kw'>=</span><span class='no'>sumstats_paths</span>, <span class='kw'>qtl_search</span><span class='kw'>=</span><span class='st'>"Alasoo_2018"</span>, <span class='kw'>nThread</span><span class='kw'>=</span><span class='fl'>1</span>, <span class='kw'>force_new_subset</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>merge_with_gwas</span><span class='kw'>=</span><span class='no'>F</span>, <span class='kw'>progress_bar</span><span class='kw'>=</span><span class='no'>T</span>)</div><div class='output co'>#&gt; [1] "+ Optimizing multi-threading..."
+<span class='co'># gwas.qtl_paths &lt;- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset=T, merge_with_gwas=F, progress_bar=T) </span>
+<span class='co'># Split results (parallel)</span>
+<span class='va'>gwas.qtl_paths</span> <span class='op'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span><span class='op'>(</span>sumstats_paths<span class='op'>=</span><span class='va'>sumstats_paths</span>, qtl_search<span class='op'>=</span><span class='st'>"Alasoo_2018"</span>, nThread<span class='op'>=</span><span class='fl'>4</span>, force_new_subset<span class='op'>=</span><span class='cn'>T</span>, merge_with_gwas<span class='op'>=</span><span class='cn'>F</span>, progress_bar<span class='op'>=</span><span class='cn'>T</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "+ Optimizing multi-threading..."
 #&gt; [1] "++ Multi-threading across QTL datasets."
-#&gt; [1] "eQTL_Catalogue:: Querying 4 QTL datasets x 3 GWAS loci (12 total)"</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_naive</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:29:45</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:29:48</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 3 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 78481 SNPs returned in 18.3 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_naive/BST1__Alasoo_2018.macrophage_naive.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:30:06</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:30:11</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 2795 SNPs returned in 5.8 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_naive/LRRK2__Alasoo_2018.macrophage_naive.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:30:17</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:30:20</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 3 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 50088 SNPs returned in 8.8 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_naive/MEX3C__Alasoo_2018.macrophage_naive.tsv.gz"
-#&gt; [1] "+ Returning list of split query results files."</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_IFNg</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:30:29</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:30:34</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 57036 SNPs returned in 16.1 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_IFNg/BST1__Alasoo_2018.macrophage_IFNg.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:30:50</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:30:54</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 3354 SNPs returned in 5.8 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_IFNg/LRRK2__Alasoo_2018.macrophage_IFNg.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:31:00</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:31:03</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 3 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 51536 SNPs returned in 12.1 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_IFNg/MEX3C__Alasoo_2018.macrophage_IFNg.tsv.gz"
-#&gt; [1] "+ Returning list of split query results files."</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_Salmonella</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:31:16</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:31:18</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 2 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 68136 SNPs returned in 14.9 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_Salmonella/BST1__Alasoo_2018.macrophage_Salmonella.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:31:34</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:31:38</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 2795 SNPs returned in 6.1 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_Salmonella/LRRK2__Alasoo_2018.macrophage_Salmonella.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:31:44</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:31:48</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 51536 SNPs returned in 6.9 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_Salmonella/MEX3C__Alasoo_2018.macrophage_Salmonella.tsv.gz"
-#&gt; [1] "+ Returning list of split query results files."</div><div class='output co'>#&gt; <span class='message'>Alasoo_2018.macrophage_IFNg+Salmonella</span></div><div class='output co'>#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: BST1 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:31:55</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:32:00</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 5 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 43983 SNPs returned in 16.3 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_IFNg+Salmonella/BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: LRRK2 ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:32:16</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:32:20</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 4 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 3354 SNPs returned in 5.8 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_IFNg+Salmonella/LRRK2__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz"
-#&gt; [1] "++ Extracting locus name from `sumstats_paths` names."</div><div class='output co'>#&gt; <span class='message'>_+_+_+_+_+_+_+_+_--- Locus: MEX3C ---_+_+_+_+_+_+_+_+_</span></div><div class='output co'>#&gt; <span class='message'>Start at 2020-07-05 17:32:26</span></div><div class='output co'>#&gt; </div><div class='output co'>#&gt; <span class='message'></span>
-#&gt; <span class='message'>End at 2020-07-05 17:32:29</span></div><div class='output co'>#&gt; <span class='message'>Runtime in total is: 3 secs</span></div><div class='output co'>#&gt; [1] "++ Inferring coordinates from gwas_data"
-#&gt; [1] "eQTL_Catalogue:: 45995 SNPs returned in 7.4 seconds."
-#&gt; [1] "++ Converting: Ensembl IDs ==&gt; HGNC gene symbols"
-#&gt; [1] "++ Adding `Locus.GWAS` column."
-#&gt; [1] "++ Saving split file ==&gt; ./catalogueR_queries/Alasoo_2018.macrophage_IFNg+Salmonella/MEX3C__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz"
-#&gt; [1] "+ Returning list of split query results files."
-#&gt; [1] "++ Returning list of split files paths."
-#&gt; Time difference of 2.9 mins</div><div class='input'><span class='no'>GWAS.QTL</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='gather_files.html'>gather_files</a></span>(<span class='kw'>file_paths</span> <span class='kw'>=</span> <span class='no'>gwas.qtl</span>)</div><div class='output co'>#&gt; [1] "+ Merging 12 files."
+#&gt; [1] "eQTL_Catalogue:: Querying 4 QTL datasets x 3 GWAS loci (12 total)"</div><div class='output co'>#&gt; <span class='warning'>Warning: scheduled cores 4, 3 encountered errors in user code, all values of the jobs will be affected</span></div><div class='output co'>#&gt; [1] "++ Returning list of split files paths."
+#&gt; [1] "Data dimensions:  x "
+#&gt; Time difference of 10.9 secs</div><div class='input'><span class='va'>GWAS.QTL</span> <span class='op'>&lt;-</span> <span class='fu'><a href='gather_files.html'>gather_files</a></span><span class='op'>(</span>file_paths <span class='op'>=</span> <span class='va'>gwas.qtl_paths</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "+ Merging 8 files."
 #&gt; [1] "+ Using 4 cores."
-#&gt; [1] "+ Merged data.table: 459089 rows x 21 columns."</div><div class='input'><span class='co'># Split results (parallel)</span>
-<span class='no'>gwas.qtl</span> <span class='kw'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span>(<span class='kw'>sumstats_paths</span><span class='kw'>=</span><span class='no'>sumstats_paths</span>, <span class='kw'>qtl_search</span><span class='kw'>=</span><span class='st'>"Alasoo_2018"</span>, <span class='kw'>nThread</span><span class='kw'>=</span><span class='fl'>4</span>, <span class='kw'>force_new_subset</span><span class='kw'>=</span><span class='no'>T</span>, <span class='kw'>merge_with_gwas</span><span class='kw'>=</span><span class='no'>F</span>, <span class='kw'>progress_bar</span><span class='kw'>=</span><span class='no'>T</span>)</div><div class='output co'>#&gt; [1] "+ Optimizing multi-threading..."
-#&gt; [1] "++ Multi-threading across QTL datasets."
-#&gt; [1] "eQTL_Catalogue:: Querying 4 QTL datasets x 3 GWAS loci (12 total)"
-#&gt; [1] "++ Returning list of split files paths."
-#&gt; Time difference of 51.3 secs</div><div class='input'><span class='no'>GWAS.QTL</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='gather_files.html'>gather_files</a></span>(<span class='kw'>file_paths</span> <span class='kw'>=</span> <span class='no'>gwas.qtl</span>)</div><div class='output co'>#&gt; [1] "+ Merging 3 files."
-#&gt; [1] "+ Using 4 cores."
-#&gt; [1] "+ Merged data.table: 131364 rows x 21 columns."</div></pre>
+#&gt; [1] "+ Merged data.table: 2 rows x 10 columns."</div><div class='input'>
+<span class='co'># Nalls et al example</span>
+<span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='va'>sumstats_paths_Nalls</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.files.html'>list.files</a></span><span class='op'>(</span><span class='st'>"Fine_Mapping/Data/GWAS/Nalls23andMe_2019"</span>,<span class='st'>"Multi-finemap_results.txt"</span>, recursive <span class='op'>=</span> <span class='cn'>T</span>, full.names <span class='op'>=</span> <span class='cn'>T</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/r/base/names.html'>names</a></span><span class='op'>(</span><span class='va'>sumstats_paths_Nalls</span><span class='op'>)</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/basename.html'>basename</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/basename.html'>dirname</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/basename.html'>dirname</a></span><span class='op'>(</span><span class='va'>sumstats_paths_Nalls</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span>
+<span class='va'>gwas.qtl_paths</span> <span class='op'>&lt;-</span> <span class='fu'>eQTL_Catalogue.query</span><span class='op'>(</span>sumstats_paths<span class='op'>=</span><span class='va'>sumstats_paths_Nalls</span>, output_dir<span class='op'>=</span><span class='st'>"catalogueR_queries/Nalls23andMe_2019"</span>, merge_with_gwas<span class='op'>=</span><span class='cn'>T</span>, nThread<span class='op'>=</span><span class='fl'>1</span>, force_new_subset<span class='op'>=</span><span class='cn'>T</span><span class='op'>)</span>
+<span class='op'>}</span>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -447,7 +308,7 @@ Requires R package <code>pbmcapply</code>.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

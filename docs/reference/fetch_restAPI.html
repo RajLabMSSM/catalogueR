@@ -81,7 +81,7 @@ Slower than tabix (unless you're only querying several specific SNPs)." />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -96,7 +96,10 @@ Slower than tabix (unless you're only querying several specific SNPs)." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/intro.html">catalogueR: intro</a>
+      <a href="../articles/colocalize.html">catalogueR: colocalize</a>
+    </li>
+    <li>
+      <a href="../articles/intro.html">catalogueR: query</a>
     </li>
   </ul>
 </li>
@@ -104,7 +107,7 @@ Slower than tabix (unless you're only querying several specific SNPs)." />
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/RajLabMSSM/catalogueR/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -131,18 +134,18 @@ Slower than tabix (unless you're only querying several specific SNPs)." />
 Slower than tabix (unless you're only querying several specific SNPs).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>fetch_restAPI</span>(
-  <span class='no'>unique_id</span>,
-  <span class='kw'>quant_method</span> <span class='kw'>=</span> <span class='st'>"ge"</span>,
-  <span class='kw'>infer_region</span> <span class='kw'>=</span> <span class='no'>T</span>,
-  <span class='kw'>gwas_data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>chrom</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>bp_lower</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>bp_upper</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>is_gwas</span> <span class='kw'>=</span> <span class='no'>F</span>,
-  <span class='kw'>size</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='no'>T</span>
-)</pre>
+    <pre class="usage"><span class='fu'>fetch_restAPI</span><span class='op'>(</span>
+  <span class='va'>unique_id</span>,
+  quant_method <span class='op'>=</span> <span class='st'>"ge"</span>,
+  infer_region <span class='op'>=</span> <span class='cn'>T</span>,
+  gwas_data <span class='op'>=</span> <span class='cn'>NULL</span>,
+  chrom <span class='op'>=</span> <span class='cn'>NULL</span>,
+  bp_lower <span class='op'>=</span> <span class='cn'>NULL</span>,
+  bp_upper <span class='op'>=</span> <span class='cn'>NULL</span>,
+  is_gwas <span class='op'>=</span> <span class='cn'>F</span>,
+  size <span class='op'>=</span> <span class='cn'>NULL</span>,
+  verbose <span class='op'>=</span> <span class='cn'>T</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -150,7 +153,7 @@ Slower than tabix (unless you're only querying several specific SNPs).</p>
     <tr>
       <th>quant_method</th>
       <td><p>eQTL Catalogue actually contains more than just eQTL data.
-For each dataset, the following kinds of QTLs can be queried:</p><dl'>
+For each dataset, the following kinds of QTLs can be queried:</p><dl>
 <dt>gene expression QTL</dt><dd><p><code>quant_method="ge"</code> (<em>default</em>) or <code>quant_method="microarray"</code>, depending on the dataset. <strong>catalogueR</strong> will automatically select whichever option is available.</p></dd>  
 <dt>exon expression QTL</dt><dd><p><em>*under construction*</em>  <code>quant_method="ex"</code></p></dd>
 <dt>transcript usage QTL</dt><dd><p><em>*under construction*</em>  <code>quant_method="tx"</code></p></dd>
@@ -167,7 +170,11 @@ For each dataset, the following kinds of QTLs can be queried:</p><dl'>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Other eQTL Catalogue: 
+<code><a href='BST1__Alasoo_2018.macrophage_IFNg.html'>BST1__Alasoo_2018.macrophage_IFNg</a></code>,
+<code><a href='LRRK2__Alasoo_2018.macrophage_IFNg.html'>LRRK2__Alasoo_2018.macrophage_IFNg</a></code>,
+<code><a href='MEX3C__Alasoo_2018.macrophage_IFNg.html'>MEX3C__Alasoo_2018.macrophage_IFNg</a></code>,
 <code><a href='eQTL_Catalogue.fetch.html'>eQTL_Catalogue.fetch</a>()</code>,
+<code><a href='eQTL_Catalogue.header.html'>eQTL_Catalogue.header</a></code>,
 <code><a href='eQTL_Catalogue.iterate_fetch.html'>eQTL_Catalogue.iterate_fetch</a>()</code>,
 <code><a href='eQTL_Catalogue.query.html'>eQTL_Catalogue.query</a>()</code>,
 <code><a href='eQTL_Catalogue.search_metadata.html'>eQTL_Catalogue.search_metadata</a>()</code>,
@@ -176,8 +183,9 @@ For each dataset, the following kinds of QTLs can be queried:</p><dl'>
 <code><a href='meta.html'>meta</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='st'>"meta"</span>); <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='st'>"BST1"</span>);
-<span class='no'>qtl.subset</span> <span class='kw'>&lt;-</span> <span class='fu'>fetch_restAPI</span>(<span class='kw'>unique_id</span><span class='kw'>=</span><span class='no'>meta</span>$<span class='no'>unique_id</span>[<span class='fl'>1</span>], <span class='kw'>gwas_data</span><span class='kw'>=</span><span class='no'>BST1</span>)</div><div class='output co'>#&gt; [1] "+ Inferring coordinates from gwas_data"</div><div class='output co'>#&gt; <span class='message'>+ eQTL_Catalogue:: Fetching: </span></div><div class='output co'>#&gt; <span class='message'>http://www.ebi.ac.uk/eqtl/api/chromosomes/4/associations?paginate=False&amp;study=Alasoo_2018&amp;qtl_group=macrophage_naive&amp;quant_method=ge&amp;bp_lower=14737349&amp;bp_upper=16737284</span></div><div class='output co'>#&gt; [1] "+ eQTL_Catalogue:: 78472 SNPs returned in 50.3 seconds."</div></pre>
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"meta"</span><span class='op'>)</span>; <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"BST1"</span><span class='op'>)</span>;
+<span class='va'>qtl.subset</span> <span class='op'>&lt;-</span> <span class='fu'>fetch_restAPI</span><span class='op'>(</span>unique_id<span class='op'>=</span><span class='va'>meta</span><span class='op'>$</span><span class='va'>unique_id</span><span class='op'>[</span><span class='fl'>1</span><span class='op'>]</span>, gwas_data<span class='op'>=</span><span class='va'>BST1</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] "+ Inferring coordinates from gwas_data"</div><div class='output co'>#&gt; <span class='message'>+ eQTL_Catalogue:: Fetching: </span></div><div class='output co'>#&gt; <span class='message'>http://www.ebi.ac.uk/eqtl/api/chromosomes/4/associations?paginate=False&amp;study=Alasoo_2018&amp;qtl_group=macrophage_naive&amp;quant_method=ge&amp;bp_lower=14737349&amp;bp_upper=16737284</span></div><div class='output co'>#&gt; [1] "+ eQTL_Catalogue:: 77672 SNPs returned in 47.3 seconds."</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -193,7 +201,7 @@ For each dataset, the following kinds of QTLs can be queried:</p><dl'>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

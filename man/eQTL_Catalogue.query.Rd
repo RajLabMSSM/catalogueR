@@ -9,6 +9,7 @@ eQTL_Catalogue.query(
   output_dir = "./catalogueR_queries",
   qtl_search = NULL,
   use_tabix = T,
+  conda_env = "echoR",
   nThread = 4,
   quant_method = "ge",
   infer_region = T,

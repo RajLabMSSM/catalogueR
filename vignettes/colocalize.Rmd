@@ -1,0 +1,111 @@
+---
+title: "catalogueR: colocalize" 
+author: "Brian M. Schilder"
+date: "Most recent update:<br> `r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{colocalize}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE, error = TRUE} 
+root.dir <- "~/Desktop"
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  root.dir = root.dir,
+  fig.height = 12,
+  fig.width = 10
+)  
+knitr::opts_knit$set(root.dir = root.dir)
+# knitr::opts_chunk$get("root.dir")
+```
+
+
+# Tutorial: Colocalize
+
+
+```{r setup, root.dir="~/Desktop"}
+library(catalogueR) 
+library(dplyr)
+```
+
+## Introduction  
+
+- Here, we aim to more robustly test whether the genetic signals underlying two dataset (e.g. GWAS vs. eQTL in the same locus)are indeed the same, using a methodology called colocalization. 
+
+- Specifically, we will use [`coloc`](https://github.com/chr1swallace/coloc), which infers the probability that each SNP is causal in a given locus in each of the datasets. It then tests the hypothesis that those signals show substantially similar association distributions. 
+
+
+## List datasets 
+
+- We have previously queried *eQTL Catalogue* using several Parkinson's disease GWAS loci (with `eQTL_Catalogue.query()`). 
+
+- Let's first gather those files and save them to disk as csv files.  
+
+```{r Import datasets }
+query_res <- list("BST1"=catalogueR::BST1__Alasoo_2018.macrophage_IFNg,
+                  "LRRK2"=catalogueR::LRRK2__Alasoo_2018.macrophage_IFNg,
+                   "MEX3C"=catalogueR::MEX3C__Alasoo_2018.macrophage_IFNg
+)
+
+# select where you want to store them 
+storage_dir <- "catalogueR_queries/Nalls23andMe_2019"
+
+gwas.qtl_paths <- lapply(names(query_res), function(x){
+  storage_path <- file.path(storage_dir,
+                            "Alasoo_2018.macrophage_IFNg",
+                            paste0(x,"__Alasoo_2018.macrophage_IFNg.tsv.gz"))
+  dir.create(dirname(storage_path), showWarnings = F, recursive = T)
+  data.table::fwrite(query_res[[x]], storage_path)
+  return(storage_path)
+}) %>%unlist() %>% `names<-`(names(query_res))
+```
+
+
+# Run coloc
+
+- Since its original release, [`coloc`](https://github.com/chr1swallace/coloc) has been updated so that it can now model multiple causal variants within a given dataset (see the [paper](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1008720)), whereas previously it could assume one causal variants. Thus, it may be able to better estimate the colocalization probability between two datasets. 
+
+```{r Run coloc}
+coloc_QTLs <- run_coloc(gwas.qtl_paths,
+                        save_path="./coloc_results.tsv.gz",
+                        nThread=4,
+                        top_snp_only=T,
+                        split_by_group=F,
+                        method = "abf")
+```
+
+## Plot results 
+
+First, let's plot only the results with >80% colocalization probability. 
+This is a colocalization threshold commonly used in the field. 
+
+```{r Plot results, error=T}
+coloc_plot <- plot_coloc_summary(coloc_QTLs = coloc_QTLs,
+                                 PP_thresh = .8)
+```
+- Uh oh! Looks like there were no colocalizations at 80% probability. 
+Let's explore the data a bit and lower the threshold.
+
+- Indeed, two loci show mild colocalization at 50% probability. 
+As a general rule, the more tests you do to higher your probability threshold should be, since Bayesian methods don't calculate P-values (and this cannot used multiple-testing correction methods like FDR). 
+
+- For example, if you ran many thousands of coloc test across many GWAS-eQTL pairs, it's advisable to raise your PP threshold to .90 or even .99. This also has the benefit of narrowing down your (sometimes many!) results so that you may focus on only the strongest colocalizations. 
+
+```{r Plot results 2}
+coloc_plot <- plot_coloc_summary(coloc_QTLs = coloc_QTLs,
+                                 PP_thresh = .5)
+```
+
+# Session info 
+
+<details> 
+
+```{r Session info}
+utils::sessionInfo()
+```
+
+</details>
+

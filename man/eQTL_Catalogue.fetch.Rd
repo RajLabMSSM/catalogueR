@@ -18,6 +18,7 @@ eQTL_Catalogue.fetch(
   multithread_tabix = F,
   add_qtl_id = T,
   convert_genes = T,
+  conda_env = "echoR",
   verbose = T
 )
 }
