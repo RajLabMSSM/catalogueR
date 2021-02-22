@@ -17,7 +17,8 @@ tabix_header <- function(tabix_path= "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQT
 
 
 
- 
+
+
 #' 2. Query eQTL Catalogue datasets by region
 #' 
 #' 2.1 Method 1: Tabix
@@ -26,7 +27,7 @@ tabix_header <- function(tabix_path= "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQT
 #' @family eQTL Catalogue 
 #' @examples 
 #' data("meta"); data("BST1");
-#' qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_data=BST1)
+#' qtl.subset <- fetch_tabix(unique_id=meta$unique_id[2], gwas_data=BST1, conda_env=NULL)
 fetch_tabix <- function(unique_id,
                         quant_method="ge",
                         infer_region=T,
@@ -36,9 +37,9 @@ fetch_tabix <- function(unique_id,
                         bp_upper=NULL,
                         is_gwas=F,
                         nThread=4,
-                        conda_env="echoR",
+                        conda_env=NULL,
                         verbose=T){
-  # quant_method="ge"; infer_region=T;is_gwas=F; remove_tmp=F;  add_chr=T; bp_lower=bp_upper=NULL; verbose=T; conda_env="echoR"; nThread=10;
+  # quant_method="ge"; infer_region=T;is_gwas=F; chrom=NULL; remove_tmp=F;  add_chr=T; bp_lower=bp_upper=NULL; verbose=T; conda_env="echoR"; nThread=10; unique_id=meta$unique_id[2]; gwas_data=BST1;
   check_coord_input(gwas_data=gwas_data, 
                     chrom=chrom, 
                     bp_lower=bp_lower, bp_upper=bp_upper)
@@ -46,10 +47,10 @@ fetch_tabix <- function(unique_id,
   # Get region
   if(infer_region & !is.null(gwas_data)){
     print("++ Inferring coordinates from gwas_data", v=verbose)
-    chrom <- unique(gwas_data$CHR)
+    chrom <- gsub("chr","",unique(gwas_data$CHR))
     if(length(chrom)>1){stop("More than one chromosome detected.")}
-    bp_lower <- min(gwas_data$POS)
-    bp_upper <- max(gwas_data$POS)
+    bp_lower <- min(gwas_data$POS, na.rm = T)
+    bp_upper <- max(gwas_data$POS, na.rm = T)
   }
   region <- paste0(chrom,":",bp_lower,"-",bp_upper)
   # printer("+ TABIX:: Querying region:", region) 
@@ -64,16 +65,15 @@ fetch_tabix <- function(unique_id,
   },error= function(e){
     tabix_header(tabix_path = meta.sub$ftp_path,
                  force_new_header = F)
- })
+  })
   
   # Run tabix
-  # Read directly into R rather than saving tabix subset
-  tabix <- CONDA.find_package(package="tabix", conda_env=conda_env)
-  qtl.subset <- data.table::fread(cmd=paste(tabix,
-                                            # "--print-header",  
-                                            meta.sub$ftp_path,
-                                            region),
-                                  nThread = nThread)
+  qtl.subset <- tabix_reader(tabix_path=meta.sub$ftp_path,
+                             region=region,
+                             conda_env=conda_env,
+                             nThread=nThread,
+                             verbose=verbose)
+  
   if(length(header) != ncol(qtl.subset)){
     header <- tabix_header(tabix_path = meta.sub$ftp_path,
                            force_new_header = T)
@@ -87,7 +87,69 @@ fetch_tabix <- function(unique_id,
 }
 
 
- 
+tabix_reader <- function(tabix_path,
+                         region, 
+                         conda_env="echoR",
+                         nThread=1,
+                         verbose=T){ 
+  #### Direct fread ####
+  # IMPORTANT!!: A number of changes
+  ## were introduced in data.table v1.14 that cause problems (https://github.com/Rdatatable/data.table/issues/3872).
+  ## They don't provide the necessary dependences to run their
+  ## package, so you have to do it yourself.
+  ## Thus, data.table v1.13 is safer for now.
+  
+  # pkg-config did not detect zlib is installed. Try installing:
+  #   * deb: zlib1g-dev (Debian, Ubuntu, ...)
+  # * rpm: zlib-devel (Fedora, EPEL, ...)
+  # * brew: zlib (OSX)
+  
+  
+  ## IMPORTANT!! Selecting the appropriate 
+  ## download.file method now matters for fread.
+  ## See details: https://stackoverflow.com/questions/49357652/why-does-it-take-more-time-for-data-tablefread-to-read-a-file-when-filename-is/49357808
+
+  # get_os()=="osx"
+  options(download.file.method = "curl")
+  tabix <- CONDA.find_package(package="tabix", 
+                              conda_env=conda_env)
+  tabix_cmd <- paste(tabix,
+                     # "--print-header",  
+                     tabix_path,
+                     region)
+  printer(tabix_cmd, v=verbose)
+  
+  # Read directly into R rather than saving tabix subset
+  # printer("Reading into R directly.",v=verbose)
+  qtl.subset <- data.table::fread(cmd=tabix_cmd,
+                                  nThread = nThread, 
+                                  header = F)
+  return(qtl.subset)
+
+  #### Download to tmp then import ####
+  # printer("data.table<1.14 detected. Saving tmp file and then reading into R.",v=verbose)
+  # token <- generate_token(len=10)
+  # tmp_file <- file.path("/tmp/eQTL_Catalogue_queries",paste0(token,".tsv"))
+  # dir.create(dirname(tmp_file), recursive = T, showWarnings = F)
+  # system(paste(tabix_cmd,">",tmp_file))
+  # qtl.subset <- data.table::fread(tmp_file,
+  #                                 nThread = nThread, 
+  #                                 header=F) 
+  # 
+  
+  #### Rsamtools ####
+  ## Rsamtools doesn't know how to parse files properly.
+  ## Also tends to freeze R entirely.
+  # tbx_con <- Rsamtools::TabixFile(tabix_path)
+  # gr.gwas <- GenomicRanges::GRanges(seqnames = chrom, 
+  #                        ranges =  IRanges::IRanges(bp_lower, bp_upper)  )
+  # Rsamtools::scanTabix(tbx_con, gr.gwas)
+  
+  
+}
+
+
+
 
 # Sub-function of fetch_restAPI
 fetch_from_eqtl_cat_API <- function(link,
@@ -288,12 +350,12 @@ merge_gwas_qtl <- function(gwas_data,
     }  
     return(gwas.qtl)
   }, error=function(e){return(qtl.subset)})
- return(gwas.qtl)
+  return(gwas.qtl)
 }
 
 
 
- 
+
 #' Iterate queries to \emph{eQTL Catalogue}
 #' 
 #' Uses coordinates from stored summary stats files (e.g. GWAS) 
@@ -382,7 +444,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
           dplyr::select(-c("seqnames","start","end","width","strand")) %>%
           data.table::as.data.table()
       }
-       
+      
       qtl.subset <- data.table::data.table()
       qtl.subset <- tryCatch(expr = {
         eQTL_Catalogue.fetch(unique_id=.qtl_id,
@@ -400,8 +462,8 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
                              add_qtl_id=T,
                              convert_genes=T,
                              verbose = .verbose)
-        },
-        error=function(x){data.table::data.table()})
+      },
+      error=function(x){data.table::data.table()})
       check_dim(df = qtl.subset)
       
       # Merge results
@@ -416,6 +478,10 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
         gwas.qtl <- qtl.subset
       }  
       check_dim(df = gwas.qtl)
+      if(dim(gwas.qtl)[1]==0){
+        warning("Data dimensions are 0 x 0. Returning NULL")
+        return(NULL)
+      }
       gwas.qtl <- tryCatch({
         # Add locus name
         printer("++ Adding `Locus.GWAS` column.", v=.verbose)
@@ -430,7 +496,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
         }
         return(gwas.qtl)
       }, error=function(e){return(data.table::data.table())})
-        # Return
+      # Return
       if(.split_files){return(split_path)} else {return(gwas.qtl)}  
     }  
     
@@ -441,7 +507,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
   if(split_files){
     printer("+ Returning list of split query results files.", v=verbose)
     return(unlist(GWAS.QTL))
-    } else {
+  } else {
     printer("+ Returning merged data.table of query results.", v=verbose)
     printer(nrow(GWAS.QTL),"x",ncol(GWAS.QTL), v=verbose)
     GWAS.QTL <- data.table::rbindlist(GWAS.QTL, fill = T)  
@@ -491,6 +557,7 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
 #' You can even search by tissue or condition type (e.g. \code{c("blood","brain")}) 
 #' and any QTL datasets containing those substrings (case-insensitive) in their name or metadata will be queried too.  
 #' @param use_tabix Tabix is about ~17x faster (\emph{default:} =T) than the REST API (\emph{=F}).  
+#' @param multithread_tabix Multi-thread across within a single tabix file query (good when you have one-several large loci).
 #' @param nThread The number of CPU cores you want to use to speed up your queries through parallelization.     
 #' @param split_files Save the results as one file per QTL dataset (with all loci within each file).  
 #' If this is set to \code{=T}, then this function will return the list of paths where these files were saved.
@@ -534,9 +601,8 @@ eQTL_Catalogue.iterate_fetch <- function(sumstats_paths,
 #' 
 #' # Nalls et al example
 #' \dontrun{
-#' sumstats_paths_Nalls <- list.files("Fine_Mapping/Data/GWAS/Nalls23andMe_2019","Multi-finemap_results.txt", recursive = T, full.names = T)
-#' names(sumstats_paths_Nalls) <- basename(dirname(dirname(sumstats_paths_Nalls)))
-#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=1, force_new_subset=T)
+#' sumstats_paths_Nalls <- catalogueR::example_sumstats_paths()
+#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths_Nalls, qtl_search="Fairfax_2014", output_dir="catalogueR_queries/Nalls23andMe_2019", merge_with_gwas=T, nThread=1, force_new_subset=T, progress_bar=F)
 #' }
 eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  output_dir="./catalogueR_queries",
@@ -556,14 +622,17 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                  progress_bar=T,
                                  verbose=T){
   # sumstats_paths <-  example_sumstats_paths()
-  # merge_with_gwas=F; nThread=4; loci_names = basename(dirname(dirname(sumstats_paths))); qtl.id=qtl_datasets; multithread_qtl=T;  multithread_loci=F; quant_method="ge";   split_files=T;
-  # qtl_search =c("ROSMAP","Alasoo_2018","Fairfax_2014", "Nedelec_2016","BLUEPRINT","HipSci.iPSC", "Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018", "blood","brain")
-  # output_dir = "/Volumes/Scizor/eQTL_Catalogue/Nalls23andMe_2019"; qtl.id="Alasoo_2018.macrophage_naive"; force_new_subset=F; progress_bar=F; verbose=T; genome_build="hg19";
-
+  # merge_with_gwas=F; nThread=4; loci_names = basename(dirname(dirname(sumstats_paths))); qtl.id=qtl_datasets; multithread_qtl=T;  multithread_loci=F; quant_method="ge";   split_files=T; multithread_tabix=F; split_files=T;
+  # qtl_search= c("Fairfax_2014") #c("ROSMAP","Alasoo_2018","Fairfax_2014", "Nedelec_2016","BLUEPRINT","HipSci.iPSC", "Lepik_2017","BrainSeq","TwinsUK","Schmiedel_2018", "blood","brain")
+  # output_dir = "eQTL_Catalogue/Nalls23andMe_2019"; qtl.id="Alasoo_2018.macrophage_naive"; force_new_subset=F; progress_bar=F; verbose=T; genome_build="hg19";
+  
   # Aargs hidden from user in favor of automatic optimizer
   # @param multithread_qtl Multi-thread across QTL datasets (good when you're querying lots of QTL datasets).
-  # @param multithread_loci Multi-thread across loci (good when you have lots of gwas loci).
-  # @param multithread_tabix Multi-thread across within a single tabix file query (good when you have one-several large loci).
+  # @param multithread_loci Multi-thread across loci (good when you have lots of gwas loci). 
+  
+  ## Be doubly sure to close all connections first (can clog up tabix queries?)
+  base::closeAllConnections()
+  base::closeAllConnections()
   
   query.start <- Sys.time()
   # Setup 
@@ -576,7 +645,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
   
   # Determine multi-threading level
   # multithread_opts <- multithread_handler(multithread_qtl=multithread_qtl, multithread_loci=multithread_loci, multithread_tabix=multithread_tabix)
- 
+  
   if(multithread_tabix){
     printer("++ Multi-threading within tabix.", v=verbose)
     multithread_qtl<-multithread_loci<-F 
@@ -585,8 +654,8 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
                                               sumstats_paths=sumstats_paths)
     multithread_qtl<-multithread_opts$qtl; multithread_loci<-multithread_opts$loci; multithread_tabix<-multithread_opts$tabix; 
   }
-
- 
+  
+  
   # QUERY eQTL Catalogue
   printer("eQTL_Catalogue:: Querying",length(qtl_datasets),"QTL datasets x",length(sumstats_paths),"GWAS loci",
           paste0("(",length(qtl_datasets)*length(sumstats_paths)," total)"), v=verbose)   
@@ -609,27 +678,27 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
     message(qtl_id)
     GWAS.QTL <- data.table::data.table()
     # try({
-      GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
-                                               output_dir=.output_dir,
-                                               qtl_id=qtl_id,
-                                               quant_method=.quant_method,
-                                               infer_region=.infer_region, 
-                                               use_tabix=.use_tabix, 
-                                               conda_env=.conda_env,
-                                               nThread=.nThread, 
-                                               split_files=.split_files,
-                                               merge_with_gwas=.merge_with_gwas, 
-                                               force_new_subset=.force_new_subset, 
-                                               genome_build=.genome_build,
-                                               multithread_loci=.multithread_loci,
-                                               multithread_tabix=.multithread_tabix,
-                                               progress_bar = F,
-                                               verbose=.verbose) 
+    GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths=.sumstats_paths, 
+                                             output_dir=.output_dir,
+                                             qtl_id=qtl_id,
+                                             quant_method=.quant_method,
+                                             infer_region=.infer_region, 
+                                             use_tabix=.use_tabix, 
+                                             conda_env=.conda_env,
+                                             nThread=.nThread, 
+                                             split_files=.split_files,
+                                             merge_with_gwas=.merge_with_gwas, 
+                                             force_new_subset=.force_new_subset, 
+                                             genome_build=.genome_build,
+                                             multithread_loci=.multithread_loci,
+                                             multithread_tabix=.multithread_tabix,
+                                             progress_bar = F,
+                                             verbose=.verbose) 
     # })
-   
+    
     return(GWAS.QTL)
   }, mc.cores = if(multithread_qtl) nThread else 1) # END ITERATION OVER QTL_IDS
- 
+  
   
   # Gather paths/results
   if(split_files){
@@ -644,7 +713,7 @@ eQTL_Catalogue.query <- function(sumstats_paths=NULL,
     if("beta.QTL" %in% colnames(GWAS.QTL_all)){
       GWAS.QTL_all <- subset(GWAS.QTL_all, !is.na(beta.QTL))
     }
-   
+    
     # Check for completeness
     if(!is.null(names(sumstats_paths))){
       missing_queries <- check_missing_queries(qtl_datasets = qtl_datasets, 

@@ -106,7 +106,7 @@ CONDA.find_package <- function(package,
                                conda_env="echoR",
                                verbose=T){
   python <- CONDA.find_python_path(conda_env = conda_env,
-                                   verbose = verbose)
+                                   verbose = F)
   packages <- list.files(dirname(python), full.names = T)
   if(package %in% basename(packages)){
     printer("+ CONDA:: Identified",package,"executable in",conda_env,"env.",v=verbose)

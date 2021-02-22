@@ -46,7 +46,7 @@ conda env create -n <path_to_yml>/catalogueR.yml
 
 If you don't use the *conda* env, you will also need to make sure tabix is installed.
 
-- [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  
+- [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  or from [brew](https://formulae.brew.sh/formula/htslib) (for Mac users).
 
 ```R
 if(!"devtools" %in% installed.packages()){install.packages("devtools")}

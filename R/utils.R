@@ -559,3 +559,28 @@ get_sample_size <- function(subset_DT,
   } else {printer("+ `N` column already present in data.",v=verbose)}
   return(subset_DT)
 }
+
+
+
+
+generate_token <- function(n = 1, len=5) {
+  a <- do.call(paste0, replicate(len, sample(LETTERS, n, TRUE), FALSE))
+  paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
+}
+
+
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
+}

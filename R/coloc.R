@@ -101,6 +101,12 @@ get_colocs <- function(qtl.egene,
       dplyr::mutate(variant_id = as.character(POS))
   }
   
+  #### Check MAF ####
+  if(!"MAF" %in% colnames(gwas_shared)){
+    warning("`MAF` column not provided in GWAS data. Borrowing MAF from QTL data instead.")
+    gwas_shared$MAF <- eqtl_shared$maf.QTL
+  }
+  
   if(length(shared)==0){
     if(verbose){  message("catalogueR:COLOC:: No SNPs shared between GWAS and QTL subsets.")  }
     
@@ -207,11 +213,9 @@ run_coloc <- function(gwas.qtl_paths,
                       top_snp_only=T,
                       split_by_group=F,
                       method="abf",
-                      PP_threshold=.8){ 
-  # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_Catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
-  # gwas.qtl_paths <- list.files("../eQTL_Catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
-  # gwas.qtl_paths <- list.files("/Volumes/Steelix/eQTL_Catalogue/Nalls23andMe_2019", recursive = T, full.names = T)
-  # gwas.qtl_paths <- file.path("/Volumes/Steelix/eQTL_Catalogue/Nalls23andMe_2019",top_files)
+                      PP_threshold=.8,
+                      gwas_sample_size=NULL){ 
+  # gwas.qtl_paths <- list.files("~/Desktop/Mount_Sinai/COVID19_PheWAS/GWAS_queries", recursive = T, full.names = T) 
   # qtl.ID=unique(qtl.dat$qtl.id)[1]; eGene=unique(qtl.dataset$gene.QTL)[1];
   # qtl.ID = "Fairfax_2014.monocyte_naive"; eGene = "TSC22D2"; qtl.path=gwas.qtl_paths[1]
   # qtl.path="/Volumes/Scizor/eQTL_Catalogue/Nalls23andMe_2019/Alasoo_2018.macrophage_IFNg/MCCC1_locus__&__Alasoo_2018.macrophage_IFNg.tsv.gz"
@@ -223,26 +227,37 @@ run_coloc <- function(gwas.qtl_paths,
     gwas.qtl_paths_select <- gwas.qtl_paths[basename(dirname(gwas.qtl_paths))==group]
     
     # ---- Iterate over QTL datasets 
-    coloc_qtls <- parallel::mclapply(gwas.qtl_paths_select, function(qtl.path){
+    coloc_qtls <- parallel::mclapply(gwas.qtl_paths_select, function(qtl.path,
+                                                                     .gwas_sample_size=gwas_sample_size){
       qtl_ID <- parse_gwas.qtl_path(gwas.qtl_path = qtl.path, get_locus = F, get_qtl_id = T)
       gwas.locus <- parse_gwas.qtl_path(gwas.qtl_path = qtl.path, get_locus = T, get_qtl_id = F)
       coloc_eGenes <- data.table::data.table()
       try({
-        qtl.dat <- data.table::fread(qtl.path)
+        qtl.dat <- data.table::fread(qtl.path) 
         message("++ GWAS = ",gwas.locus," x ",length(unique(qtl.dat$gene.QTL))," eGenes")
+        #### Check column names ####
+        
+        ## Check sample size 
+        if(!"N" %in% colnames(gwas.locus)){
+          if(is.null(gwas_sample_size)){
+            stop("`N` column (sample size) not detected. Please provide `sample_size=` argument instead.")
+          }else{
+            qtl.dat$N <- .gwas_sample_size
+          } 
+        } 
         if(!"qtl_id" %in% colnames(qtl.dat)) {qtl.dat <- cbind(qtl.dat, qtl_id=qtl_ID) }
         qtl.dataset <- subset(qtl.dat, qtl_id==qtl_ID & !is.na(gene.QTL) & gene.QTL!="")
         remove(qtl.dat) 
         
         # ---- Iterate over QTL eGenes
-        coloc_eGenes <- parallel::mclapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
+        coloc_eGenes <- lapply(unique(qtl.dataset$gene.QTL), function(eGene){ 
           printer("+++ QTL eGene =",eGene)
           # Extract QTL cols
           qtl.egene <- subset(qtl.dataset, gene.QTL==eGene)  
           # Extract the GWAS cols
           if("Effect" %in% colnames(qtl.egene)){
             gwas_cols <- c("Locus","Locus.GWAS", "SNP", "CHR","POS", "P", "Effect", "StdErr", "Freq",
-                           "MAF", "N_cases", "N_controls", "proportion_cases", "A1", "A2")
+                           "MAF","N","N_cases", "N_controls", "proportion_cases", "A1", "A2")
             gwas_cols <- gwas_cols[gwas_cols %in% colnames(qtl.egene)]
             gwas.region <- subset(qtl.egene, select=gwas_cols)
           }  
