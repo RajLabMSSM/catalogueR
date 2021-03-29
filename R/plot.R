@@ -142,6 +142,170 @@ gather_colocalized_data <- function(gwas.qtl_paths,
 
 
 
+
+
+
+prepare_plot_data <- function(coloc_QTLs,
+                              locus_name,
+                              QTL_gene=NULL,
+                              GWAS.QTL=NULL,
+                              LD_reference="1KGphase3",
+                              LD_results_dir="data/COVID19_GWAS",
+                              force_new_LD=F){ 
+  locus_dat <- subset(coloc_QTLs,  
+                      Locus.GWAS==locus_name) %>%
+    dplyr::rename(Locus=Locus.GWAS) %>%
+    dplyr::mutate(Mb=POS/1000000,
+                  Effect=1) 
+  if(!is.null(QTL_gene))locus_dat <- subset(locus_dat, gene.QTL==QTL_gene)
+  
+  #### Annotate SNPs by RSIDs  ####
+  ## (not provided in original GWAS file)
+  library(SNPlocs.Hsapiens.dbSNP144.GRCh38)
+  locus.gr <- GenomicRanges::makeGRangesFromDataFrame(locus_dat,
+                                                      keep.extra.columns = T,
+                                                      seqnames.field = "CHR",
+                                                      start.field = "POS",end.field = "POS")
+  rsids <- BSgenome::snpsByOverlaps(SNPlocs.Hsapiens.dbSNP144.GRCh38, locus.gr) 
+  locus_dat <- merge(locus_dat,
+                     data.frame(rsids) %>% 
+                       dplyr::rename(SNP=RefSNP_id) %>%
+                       dplyr::mutate(seqnames=as.integer(seqnames)),
+                     by.x=c("CHR","POS"), by.y=c("seqnames","pos"), all.x=T)
+  
+  #### Liftover ####
+  locus_lift <- catalogueR::liftover(gwas_data = locus_dat,
+                                     build.conversion = "hg38.to.hg19") %>%
+    data.frame() %>% 
+    dplyr::rename(POS=start) 
+  if(!"leadSNP" %in% colnames(locus_lift)) locus_lift <- echolocatoR::assign_lead_SNP(locus_lift)
+    
+  
+  LD_out <- echolocatoR::LD.load_or_create(locus_dir  = file.path(LD_results_dir,locus_lift$Locus[1]),
+                                           force_new_LD = force_new_LD,
+                                           subset_DT = locus_lift,
+                                           LD_reference = LD_reference)
+  LD_matrix <- LD_out$LD
+  # locus_lift <- LD_out$DT
+  plot_dat <- echolocatoR::LD.get_lead_r2(finemap_dat = locus_lift,
+                             LD_matrix = as.matrix(LD_matrix),
+                             LD_format = "matrix") %>%
+    catalogueR::eQTL_Catalogue.annotate_tissues() %>%
+    tidyr::separate(col = "qtl_id", sep="[.]", remove = F, 
+                    into = c("qtl","tissue_condition"), extra = "drop")
+  if(!is.null(GWAS.QTL)){
+    # Merge QTL FDR into coloc results
+    sig_qtls <- GWAS.QTL %>%
+      subset(qtl_id %in% unique(plot_dat$qtl_id) &
+               gene.QTL %in% unique(plot_dat$gene.QTL) & 
+               FDR.QTL<.05) %>%
+      tidyr::separate(col = "qtl_id", sep="[.]", remove = F, 
+                      into = c("qtl","tissue_condition"), extra = "drop") %>%
+      dplyr::mutate(Mb=POS/1000000,
+                    sig_QTL=T)
+    plot_dat <- merge(plot_dat,
+                      sig_qtls[,c("SNP","qtl_id","gene.QTL","FDR.QTL","sig_QTL")], 
+                      all.x=T,
+                      by=c("SNP","qtl_id","gene.QTL"))
+  } 
+  return(plot_dat) 
+}
+
+#' Locus plot
+#' 
+#' Plot colocalized GWAS and QTL results.
+#' @export
+locus_plot <- function(coloc_QTLs,
+                       locus_name,
+                       LD_reference="1KGphase3",
+                       LD_results_dir="data/COVID19_GWAS",
+                       plot_results_dir="plots",
+                       force_new_LD=F,
+                       plot_zoom="1x",
+                       plot_title="eQTL Catalogue",
+                       top_title="GWAS", 
+                       top_x_lab=NULL,
+                       show_plot=T,
+                       save_plot=T,
+                       dpi=350,
+                       height=12,
+                       width=7){  
+  #### Prepare plot data ####
+  plot_dat <- prepare_plot_data(coloc_QTLs=coloc_QTLs,
+                                locus_name=locus_name,
+                                LD_reference=LD_reference,
+                                LD_results_dir=LD_results_dir,
+                                force_new_LD=force_new_LD) 
+  lead_qtls <- plot_dat %>% 
+    dplyr::group_by(Study,tissue_condition, gene.QTL) %>% 
+    dplyr::slice_min(order_by = pvalue.QTL, n = 1, with_ties = F)
+  
+  library(ggplot2) 
+  #### Gene transcripts plot ####
+  gg_genes <- echolocatoR::PLOT.transcript_model_track(finemap_dat = plot_dat) +
+    theme(plot.margin = margin(rep(0,4)))
+  
+  #### GWAS plot ####
+  gg_gwas <- ggplot(plot_dat, aes(x=Mb, y=-log10(P), color=r2)) + 
+    geom_point(alpha=.7) +
+    scale_color_gradient(low = "blue", high = "red", limits=c(0,1), breaks=c(0,.5,1)) +
+    geom_point(data = subset(plot_dat, leadSNP), shape=9,size=3,
+               aes(x=Mb, y=-log10(P))) +
+    ggrepel::geom_label_repel(data = subset(plot_dat, leadSNP)[1,], 
+                              fill=alpha("white",.5), seed = 2019,
+                              aes(x=Mb, y=-log10(P), label=SNP)) +
+    geom_hline(yintercept = -log10(5e-8), alpha=.5, linetype="dashed") + 
+    labs(title=top_title,x=top_x_lab) +
+    theme_bw() +
+    theme(plot.margin = margin(rep(0,4)), 
+          axis.text.x = element_blank())
+  
+  #### QTL plots ####
+  gg_qtl <- ggplot(subset(plot_dat, PP.H4>.8), aes(x=Mb, y=-log10(pvalue.QTL), color=r2)) + 
+    geom_point(alpha=.7, show.legend = F) + 
+    scale_color_gradient(low = "blue", high = "red", limits=c(0,1), breaks=c(0,.5,1)) +
+    ### Highlight sig QTLs
+    # geom_point(data = subset(plot_dat, sig_QTL),
+    #            aes(x = Mb, y=-log10(pvalue.QTL)), size=4, color="cyan", shape=1) +
+    ### Label lead QTLs
+    geom_point(data = lead_qtls, shape=9,size=3,
+               aes(x=Mb, y=-log10(pvalue.QTL))) + 
+    ggrepel::geom_label_repel(data = lead_qtls, 
+                              fill=alpha("white",.5), seed = 2019,
+                              aes(x=Mb, y=-log10(pvalue.QTL), label=SNP)) +
+    ### Facet
+    facet_grid(facets = Study + tissue_condition + gene.QTL ~.) +
+    theme_bw() + 
+    theme(strip.background.y = element_rect(fill = "white"),
+          strip.text.x = element_text(color="black")) +
+    labs(title=plot_title) +
+    theme(plot.margin = margin(rep(0.1,4)))
+  
+  
+  #### Merge plots ####
+  library(patchwork)
+  plot_list <- list("genes"=gg_genes, "GWAS"=gg_gwas, "QTL"=gg_qtl)
+  plot_list <- echolocatoR::PLOT.set_window_limits(TRKS = plot_list, 
+                                                   finemap_dat = plot_dat,
+                                                   plot.zoom = plot_zoom)
+  gg_merged <- patchwork::wrap_plots(plot_list) + 
+    patchwork::plot_layout(ncol = 1, heights = c(1/2, 1/4, 1)) +
+    patchwork::plot_annotation(title = paste("Locus:",plot_dat$Locus[1]), 
+                               tag_levels = letters)
+  if(show_plot)print(gg_merged)
+  
+  if(save_plot){
+    ggsave(filename = file.path(plot_results_dir,
+                                paste("coloc.locus_plots",plot_dat$Locus[1],plot_zoom,"pdf",sep=".")),
+           gg_merged, dpi = dpi, height = height, width=width)
+  }
+  return(gg_merged)
+}
+
+
+
+
+
 # merged_plot <- function(GWAS.QTL){
 #   # Group and melt
 #   GWAS.QTL <- find_consensus_SNPs(GWAS.QTL)

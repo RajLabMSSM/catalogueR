@@ -248,11 +248,11 @@ liftover <- function(gwas_data,
                                                      seqnames.field = "chrom", 
                                                      start.field = "POS", 
                                                      end.field = "POS") 
-  gr.lifted <- XGR::xLiftOver(data.file = gr.gwas, #dplyr::select(gwas_data, CHR, POS), 
-                              format.file = "GRanges",
-                              build.conversion = build.conversion, 
-                              verbose = verbose , 
-                              merged = F)  # merge must =F in order to work
+  gr.lifted <-  xLiftOver(data.file = gr.gwas, #dplyr::select(gwas_data, CHR, POS), 
+                          format.file = "GRanges",
+                          build.conversion = build.conversion, 
+                          verbose = verbose , 
+                          merged = F)  # merge must =F in order to work
   return(gr.lifted)
 }
 

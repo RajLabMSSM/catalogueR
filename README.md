@@ -44,13 +44,25 @@ conda env create -n <path_to_yml>/catalogueR.yml
 
 ### [2] Install **catalogueR** in R  
 
-If you don't use the *conda* env, you will also need to make sure tabix is installed.
+#### Tabix 
 
-- [tabix](http://www.htslib.org/doc/tabix.html) (Install via [conda](https://anaconda.org/bioconda/tabix) or from [source](http://www.htslib.org/download/))  or from [brew](https://formulae.brew.sh/formula/htslib) (for Mac users).
+If you don't use the *conda* env, you will also need to make sure [tabix](http://www.htslib.org/doc/tabix.html) is installed.
+
+**NOTE**: Different distributions of tabix may work with varying degrees of consistency. I recommend you try them in the following order of preference:
+
+1. [brew](https://formulae.brew.sh/formula/htslib) (for Mac users).
+2. [source](http://www.htslib.org/download/) 
+3. [bioconda](https://anaconda.org/bioconda/tabix) 
+  - As of Feb 2021, I noticed that the bioconda distribution of tabix will randomly fail at queries. It appears this hasn't been updated in over 2 years, so I do NOT recommend you use it.
+  
+#### data.table 
+
+[*data.table*](https://github.com/Rdatatable/data.table) is a great R package for reading/writing/transforming tables far faster than base R methods. Unfortunately, in *data.table 1.14* they made some changes that cause errors reading/writing with compressed files (*.gz*) without additional setup steps on your computer. Therefore, I recommend you use versions 1.13 (the current CRAN binary distribution, NOT the source distribution, as of Feb 2021).  
+
 
 ```R
-if(!"devtools" %in% installed.packages()){install.packages("devtools")}
-devtools::install_github("RajLabMSSM/catalogueR")
+if(!"remotes" %in% installed.packages()){install.packages("remotes")}
+remotes::install_github("RajLabMSSM/catalogueR")
 ```
 
 

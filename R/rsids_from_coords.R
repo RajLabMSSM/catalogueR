@@ -23,10 +23,14 @@ rsids_from_coords <- function(dat,
   if(tolower(genome_build) %in% c("hg38","grch38")){
     db <- SNPlocs.Hsapiens.dbSNP144.GRCh38::SNPlocs.Hsapiens.dbSNP144.GRCh38
   }
-  gr.snp <- GenomicRanges::makeGRangesFromDataFrame(dat ,keep.extra.columns = T, 
-                                                    seqnames.field = "CHR", 
-                                                    start.field = "POS", 
-                                                    end.field = "POS")
+  if(class(dat)[1]=="GRanges"){
+    gr.snp <- dat
+  }else { 
+    gr.snp <- GenomicRanges::makeGRangesFromDataFrame(dat ,keep.extra.columns = T, 
+                                                      seqnames.field = "CHR", 
+                                                      start.field = "POS", 
+                                                      end.field = "POS")
+  }
   gr.rsids <- BSgenome::snpsByOverlaps(db, ranges = gr.snp, )
   rsids <- data.table::data.table(data.frame(gr.rsids))
   rsids$seqnames <- tolower(as.character(rsids$seqnames))

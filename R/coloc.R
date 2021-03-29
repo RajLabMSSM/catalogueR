@@ -59,6 +59,7 @@ COLOC.report_summary <- function(coloc.res,
 #' 
 #' @family coloc
 #' @examples 
+#' library(dplyr)
 #' data("BST1__Alasoo_2018.macrophage_IFNg")
 #' 
 #' qtl.egene <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[,grep("*.QTL$|qtl_id|SNP",colnames(BST1__Alasoo_2018.macrophage_IFNg), value = T)]
@@ -131,22 +132,27 @@ get_colocs <- function(qtl.egene,
     eQTL_dataset = list(snp = eqtl_shared$variant_id,
                         pvalues = eqtl_shared$pvalue.QTL,
                         #If log_OR column is full of NAs then use beta column instead
-                        beta = eqtl_shared$beta.QTL,
+                        beta = eqtl_shared$beta.QTL, 
                         N = (eqtl_shared$an.QTL)[1],#/2,  
                         MAF = eqtl_shared$maf.QTL, 
                         type = "quant"
                         )
+    if("se.QTL" %in% colnames(eqtl_shared)){
+      eQTL_dataset$varbeta <- eqtl_shared$se.QTL^2 
+    }
     # GWAS data
     gwas_dataset = list(snp = gwas_shared$variant_id,
                         pvalues = gwas_shared$P,
                         #If log_OR column is full of NAs then use beta column instead
-                        beta = gwas_shared$Effect, 
-                        N = (gwas_shared$N)[1],#/2,  
-                        varbeta = gwas_shared$StdErr^2, 
+                        beta = gwas_shared$Effect,  
+                        N = (gwas_shared$N)[1],#/2,   
                         MAF = gwas_shared$MAF,
                         type = "cc",  
                         s = 0.5  #This is actually not used, because we already specified varbeta above.
                         )
+    if("StdErr" %in% colnames(gwas_shared)){
+      gwas_dataset$varbeta <-gwas_shared$StdErr^2 
+    }  
     
     # wrap <- ifelse(verbose, function(x)x, suppressMessages)
      
