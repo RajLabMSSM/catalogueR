@@ -16,7 +16,7 @@ Depends: R (>= 3.6.0)
 biocViews:
 Imports:   
   tidyverse,
-  data.table (< 1.14.0),
+  data.table,
   parallel,
   ggplot2, 
   readr,
