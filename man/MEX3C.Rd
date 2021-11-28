@@ -28,20 +28,21 @@ Data originally comes from the Parkinson's disease GWAS
 by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv)}.
 }
 \examples{
-\dontrun{ 
+\dontrun{
 root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
 locus_dir <- "MEX3C/Multi-finemap/Multi-finemap_results.txt"
-MEX3C <- data.table::fread(file.path(root_dir,locus_dir))
-MEX3C <- update_CS_cols(finemap_dat=MEX3C) 
-MEX3C <- find_consensus_SNPs(finemap_dat=MEX3C)
-data.table::fwrite(MEX3C,"inst/extdata/Nalls23andMe_2019/MEX3C_Nalls23andMe_2019_subset.tsv.gz", sep="\t")
-usethis::use_data(MEX3C, overwrite = T)
+MEX3C <- data.table::fread(file.path(root_dir, locus_dir))
+MEX3C <- update_CS_cols(finemap_dat = MEX3C)
+MEX3C <- find_consensus_SNPs(finemap_dat = MEX3C)
+data.table::fwrite(MEX3C, "inst/extdata/Nalls23andMe_2019/MEX3C_Nalls23andMe_2019_subset.tsv.gz", sep = "\t")
+usethis::use_data(MEX3C, overwrite = TRUE)
 }
 }
 \seealso{
 Other Nalls23andMe_2019: 
 \code{\link{BST1}},
-\code{\link{LRRK2}}
+\code{\link{LRRK2}},
+\code{\link{example_sumstats_paths}()}
 }
 \concept{Nalls23andMe_2019}
 \keyword{datasets}

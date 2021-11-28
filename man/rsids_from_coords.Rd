@@ -7,16 +7,17 @@
 rsids_from_coords(
   dat,
   genome_build = "hg19",
-  drop_unannotated = T,
-  drop_duplicates = T,
-  verbose = T
+  drop_unannotated = TRUE,
+  drop_duplicates = TRUE,
+  verbose = TRUE
 )
 }
 \arguments{
-\item{dat}{Data.table of SNP positions, 
+\item{dat}{Data.table of SNP positions,
 with the columns \code{CHR} and \code{POS}. Extra columns allowed.}
 
-\item{genome_build}{Which genome build \code{dat} is in (e.g. "hg19" or "hg38")}
+\item{genome_build}{Which genome build \code{dat} is in
+(e.g. "hg19" or "hg38").}
 
 \item{drop_unannotated}{Drop SNPs that RSIDs couldn't be found for.}
 
@@ -27,5 +28,5 @@ Get RSIDS from SNP coordinates
 }
 \examples{
 dat <- catalogueR::BST1
-dat.annot <- rsids_from_coords(dat,  genome_build="hg19")
+dat.annot <- rsids_from_coords(dat, genome_build = "hg19")
 }

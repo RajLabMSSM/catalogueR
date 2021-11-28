@@ -20,8 +20,8 @@ library(dplyr)
 root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
 sub_dir <- "_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz"
 coloc_QTLs_full <- data.table::fread(file.path(root_dir, sub_dir))
-coloc_QTLs_full <- coloc_QTLs_full \%>\% dplyr::rename(gene.QTL=eGene, qtl_id=qtl.id)
-usethis::use_data(coloc_QTLs_full, overwrite=T)
+coloc_QTLs_full <- coloc_QTLs_full \%>\% dplyr::rename(gene.QTL = eGene, qtl_id = qtl.id)
+usethis::use_data(coloc_QTLs_full, overwrite = TRUE)
 }
 }
 \seealso{

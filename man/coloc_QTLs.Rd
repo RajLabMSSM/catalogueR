@@ -15,10 +15,10 @@ Example colocalization results from running \code{\link{catalogueR::run_coloc}}
 on GWAS summary stats from all loci in \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
 }
 \examples{
-\dontrun{ 
-gwas.qtl_paths <- example_eQTL_Catalogue_query_paths() 
-coloc_QTLs <- run_coloc(gwas.qtl_paths=gwas.qtl_paths, nThread=4, top_snp_only=T, save_path="~/Desktop/coloc_results.tsv.gz")
-usethis::use_data(coloc_QTLs, overwrite=T)
+\dontrun{
+gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
+coloc_QTLs <- run_coloc(gwas.qtl_paths = gwas.qtl_paths, nThread = 4, top_snp_only = TRUE, save_path = "~/Desktop/coloc_results.tsv.gz")
+usethis::use_data(coloc_QTLs, overwrite = TRUE)
 }
 }
 \seealso{

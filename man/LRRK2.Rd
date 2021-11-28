@@ -31,17 +31,18 @@ by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv
 \dontrun{
 root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
 locus_dir <- "LRRK2/Multi-finemap/Multi-finemap_results.txt"
-LRRK2 <- data.table::fread(file.path(root_dir,locus_dir))
-LRRK2 <- update_CS_cols(finemap_dat=LRRK2) 
-LRRK2 <- find_consensus_SNPs(finemap_dat=LRRK2)
-data.table::fwrite(LRRK2,"inst/extdata/Nalls23andMe_2019/LRRK2_Nalls23andMe_2019_subset.tsv.gz", sep="\t")
-usethis::use_data(LRRK2, overwrite = T)
+LRRK2 <- data.table::fread(file.path(root_dir, locus_dir))
+LRRK2 <- update_CS_cols(finemap_dat = LRRK2)
+LRRK2 <- find_consensus_SNPs(finemap_dat = LRRK2)
+data.table::fwrite(LRRK2, "inst/extdata/Nalls23andMe_2019/LRRK2_Nalls23andMe_2019_subset.tsv.gz", sep = "\t")
+usethis::use_data(LRRK2, overwrite = TRUE)
 }
 }
 \seealso{
 Other Nalls23andMe_2019: 
 \code{\link{BST1}},
-\code{\link{MEX3C}}
+\code{\link{MEX3C}},
+\code{\link{example_sumstats_paths}()}
 }
 \concept{Nalls23andMe_2019}
 \keyword{datasets}

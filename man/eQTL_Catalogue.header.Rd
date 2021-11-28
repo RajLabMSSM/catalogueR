@@ -15,8 +15,8 @@ eQTL Catalogue tabix header
 }
 \examples{
 \dontrun{
-eQTL_Catalogue.header <- tabix_header(force_new_header = T)
-usethis::use_data(eQTL_Catalogue.header, overwrite=T)
+eQTL_Catalogue.header <- tabix_header(force_new_header = TRUE)
+usethis::use_data(eQTL_Catalogue.header, overwrite = TRUE)
 }
 }
 \seealso{

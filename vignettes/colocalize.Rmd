@@ -47,7 +47,7 @@ library(dplyr)
 ```{r Import datasets }
 query_res <- list("BST1"=catalogueR::BST1__Alasoo_2018.macrophage_IFNg,
                   "LRRK2"=catalogueR::LRRK2__Alasoo_2018.macrophage_IFNg,
-                   "MEX3C"=catalogueR::MEX3C__Alasoo_2018.macrophage_IFNg
+                  "MEX3C"=catalogueR::MEX3C__Alasoo_2018.macrophage_IFNg
 )
 
 # select where you want to store them 
@@ -57,7 +57,7 @@ gwas.qtl_paths <- lapply(names(query_res), function(x){
   storage_path <- file.path(storage_dir,
                             "Alasoo_2018.macrophage_IFNg",
                             paste0(x,"__Alasoo_2018.macrophage_IFNg.tsv.gz"))
-  dir.create(dirname(storage_path), showWarnings = F, recursive = T)
+  dir.create(dirname(storage_path), showWarnings  = FALSE, recursive  = TRUE)
   data.table::fwrite(query_res[[x]], storage_path)
   return(storage_path)
 }) %>%unlist() %>% `names<-`(names(query_res))
@@ -72,7 +72,7 @@ gwas.qtl_paths <- lapply(names(query_res), function(x){
 coloc_QTLs <- run_coloc(gwas.qtl_paths,
                         save_path="./coloc_results.tsv.gz",
                         nThread=4,
-                        top_snp_only=T,
+                        top_snp_only = TRUE,
                         split_by_group=F,
                         method = "abf")
 ```

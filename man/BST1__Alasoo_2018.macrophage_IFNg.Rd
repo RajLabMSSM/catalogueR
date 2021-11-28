@@ -11,7 +11,7 @@ An object of class \code{data.table} (inherits from \code{data.frame}) with 4151
 BST1__Alasoo_2018.macrophage_IFNg
 }
 \description{
-Query: BST1 GWAS locus, Alasoo_2018.macrophage_IFNg QTL dataset. 
+Query: BST1 GWAS locus, Alasoo_2018.macrophage_IFNg QTL dataset.
 Split output file from \code{eQTL_Catalogue.query()}.
 }
 \examples{
@@ -19,7 +19,7 @@ Split output file from \code{eQTL_Catalogue.query()}.
 root_dir <- "~/Desktop/catalogueR_queries/Alasoo_2018.macrophage_IFNg"
 file_name <- "BST1__Alasoo_2018.macrophage_IFNg.tsv.gz"
 BST1__Alasoo_2018.macrophage_IFNg <- data.table::fread(file.path(root_dir, file_name))
-usethis::use_data(BST1__Alasoo_2018.macrophage_IFNg, overwrite=T)
+usethis::use_data(BST1__Alasoo_2018.macrophage_IFNg, overwrite = TRUE)
 }
 }
 \seealso{
