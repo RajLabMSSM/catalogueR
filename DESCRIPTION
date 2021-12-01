@@ -18,30 +18,32 @@ Imports:
   tidyverse,
   data.table,
   parallel,
-  ggplot2, 
-  readr,
+  ggplot2,
   stringr,
   httr,
   rlang,
   jsonlite, 
   coloc,
-  biomaRt,
-  wiggleplotr,
   GenomicRanges,
   AnnotationDbi,
   EnsDb.Hsapiens.v75, 
-  supraHex,
-  dnet, 
   echotabix,
   echoconda,
+  echodata,
   orthogene
 Suggests:
+  markdown,
+  rmarkdown,
   pbmcapply,
   devtools,
+  badger,
   BSgenome,
+  supraHex,
+  dnet,
   SNPlocs.Hsapiens.dbSNP144.GRCh37,
-  SNPlocs.Hsapiens.dbSNP144.GRCh38 
+  SNPlocs.Hsapiens.dbSNP144.GRCh38
 Remotes:
   github::RajLabMSSM/echotabix,
-  github::RajLabMSSM/echoconda
+  github::RajLabMSSM/echoconda,
+  github::RajLabMSSM/echodata
 RoxygenNote: 7.1.2

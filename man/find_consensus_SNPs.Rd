@@ -17,7 +17,7 @@ find_consensus_SNPs(
 Find Consensus SNPs in \emph{echolocatoR} output
 }
 \examples{
-data("BST1")
-BST1 <- find_consensus_SNPs(finemap_dat = BST1)
+finemap_dat <- echodata::BST1 
+BST1 <- find_consensus_SNPs(finemap_dat = finemap_dat)
 }
 \concept{echolocatoR}

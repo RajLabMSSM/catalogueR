@@ -4,10 +4,11 @@
 \alias{fetch_tabix}
 \title{2. Query eQTL Catalogue datasets by region}
 \source{
-{
-data("meta"); data("BST1");
+\code{
+data("meta"); 
+gwas_data <- echodata::BST1 
 qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
-                                       gwas_data=BST1,
+                                       gwas_data=gwas_data,
                                        conda_env=NULL)
 }
 }
@@ -27,18 +28,25 @@ fetch_tabix(
 )
 }
 \arguments{
-\item{quant_method}{eQTL Catalogue actually contains more than just eQTL data.
+\item{quant_method}{eQTL Catalogue actually contains more than just
+ eQTL data.
 For each dataset, the following kinds of QTLs can be queried:
 \describe{
-\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) or \code{quant_method="microarray"}, depending on the dataset. \strong{catalogueR} will automatically select whichever option is available.}
-\item{exon expression QTL}{\emph{*under construction*}  \code{quant_method="ex"}}
-\item{transcript usage QTL}{\emph{*under construction*}  \code{quant_method="tx"}}
-\item{promoter, splice junction and 3' end usage QTL}{\emph{*under construction*}  \code{quant_method="txrev"}}
+\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) 
+or \code{quant_method="microarray"}, depending on the dataset. 
+\strong{catalogueR} will automatically select whichever option is available.}
+\item{exon expression QTL}{\emph{*under construction*}  
+\code{quant_method="ex"}}
+\item{transcript usage QTL}{\emph{*under construction*}  
+\code{quant_method="tx"}}
+\item{promoter, splice junction and 3' end usage QTL}{
+\emph{*under construction*}  \code{quant_method="txrev"}}
 }}
 
-\item{nThread}{The number of CPU cores you want to use to speed up your queries through parallelization.}
+\item{nThread}{The number of CPU cores you want to use to speed up your 
+queries through parallelization.}
 
-\item{verbose}{Show more (\code{=T}) or fewer (\code{=F}) messages.}
+\item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
 \description{
 2.1 Method 1: Tabix

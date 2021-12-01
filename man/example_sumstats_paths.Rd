@@ -31,10 +31,4 @@ by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv
 \examples{
 sumstats_paths <- example_sumstats_paths()
 }
-\seealso{
-Other Nalls23andMe_2019: 
-\code{\link{BST1}},
-\code{\link{LRRK2}},
-\code{\link{MEX3C}}
-}
 \concept{Nalls23andMe_2019}

@@ -82,10 +82,11 @@ gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths["BST1"],
                                        merge_with_gwas  = TRUE,
                                        force_new_subset  = TRUE,
                                        progress_bar  = FALSE,
+                                       use_tabix = FALSE,
                                        nThread = 1)
 ```
 
-- Because you selected the argument `split_files=T` the query results have been distributed across multiple files and saved to disk (useful when you don't want to load one massive data.table every time you want to look at specific results subsets).  
+- Because you selected the argument `split_files=TRUE` the query results have been distributed across multiple files and saved to disk (useful when you don't want to load one massive data.table every time you want to look at specific results subsets).  
 - In this scenario, `eQTL_Catalogue.query()` returns a list of those file paths (instead of the data.table itself).  
 - To merge these files back together and import them into R, use the following function:  
 
@@ -105,7 +106,6 @@ as well as the `unique_id` of the QTL dataset (see `data("meta")` for IDs).
  
 ```{r [Approach 2] Query with coordinates  } 
 GWAS.QTL_manual <- eQTL_Catalogue.fetch(unique_id="Alasoo_2018.macrophage_IFNg",  
-                                        nThread = 4,  
                                         chrom = 8, 
                                         bp_lower=21527069,
                                         bp_upper=23525543)

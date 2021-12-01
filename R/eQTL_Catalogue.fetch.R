@@ -6,21 +6,24 @@
 #' @param bp_lower Minimum basepair position of the query window.
 #' @param bp_upper Maxmimum basepair position of the query window.
 #' @family eQTL Catalogue
+#' @export
+#' @importFrom data.table data.table
 #' @examples
 #' data("meta")
-#' data("BST1")
-#' gwas.qtl <- eQTL_Catalogue.fetch(unique_id = meta$unique_id[1], gwas_data = BST1)
+#' gwas_data <- echodata::BST1 
+#' gwas.qtl <- eQTL_Catalogue.fetch(unique_id = meta$unique_id[1],
+#'                                  gwas_data = gwas_data)
 eQTL_Catalogue.fetch <- function(unique_id,
                                  quant_method = "ge",
                                  infer_region = TRUE,
                                  gwas_data = NULL,
-                                 is_gwas = F,
+                                 is_gwas = FALSE,
                                  nThread = 1,
                                  use_tabix = TRUE,
                                  chrom = NULL,
                                  bp_lower = NULL,
                                  bp_upper = NULL,
-                                 multithread_tabix = F,
+                                 multithread_tabix = FALSE,
                                  add_qtl_id = TRUE,
                                  convert_genes = TRUE,
                                  conda_env = "echoR",
@@ -35,7 +38,7 @@ eQTL_Catalogue.fetch <- function(unique_id,
             chrom = chrom,
             bp_lower = bp_lower,
             bp_upper = bp_upper,
-            is_gwas = F,
+            is_gwas = FALSE,
             nThread = if (multithread_tabix) nThread else 1,
             conda_env = conda_env,
             verbose = verbose
@@ -49,7 +52,7 @@ eQTL_Catalogue.fetch <- function(unique_id,
             chrom = chrom,
             bp_lower = bp_lower,
             bp_upper = bp_upper,
-            is_gwas = F,
+            is_gwas = FALSE,
             verbose = verbose
         )
     }

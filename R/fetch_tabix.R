@@ -2,17 +2,19 @@
 #'
 #' 2.1 Method 1: Tabix
 #' Faster alternative to REST API.
+#' @source
+#' \code{
+#' data("meta"); 
+#' gwas_data <- echodata::BST1 
+#' qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
+#'                                        gwas_data=gwas_data,
+#'                                        conda_env=NULL)
+#' }
 #' @inheritParams eQTL_Catalogue.query
 #' @family eQTL Catalogue
 #'
 #' @keywords internal
-#' @importFrom echotabix query_tabular
-#' @source{
-#' data("meta"); data("BST1");
-#' qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
-#'                                        gwas_data=BST1,
-#'                                        conda_env=NULL)
-#' }
+#' @importFrom echotabix query_tabular 
 fetch_tabix <- function(unique_id,
                         quant_method = "ge",
                         infer_region = TRUE,
@@ -74,9 +76,7 @@ fetch_tabix <- function(unique_id,
         nThread = nThread,
         verbose = verbose
     )
-    #### Method 2 ####
-    # meta.sub <- list()
-    # meta.sub$ftp_path <- "ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv/Alasoo_2018/ge/Alasoo_2018_ge_macrophage_naive.all.tsv.gz"
+    #### Method 2 #### 
     # chrom <- 12; bp_lower=40189191; bp_upper=40334626
     # qtl.subset <- echotabix::query_tabular(fullSS_tabix = meta.sub$ftp_path,
     #                                        chrom = chrom,

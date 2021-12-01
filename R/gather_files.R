@@ -6,10 +6,12 @@
 #' sumstats_paths <- example_sumstats_paths()
 #' merged_dat <- gather_files(file_paths = sumstats_paths)
 gather_files <- function(file_paths,
-                         nThread = 4,
+                         nThread = 1,
                          verbose = TRUE) {
     messager("+ Merging", length(file_paths), "files.", v = verbose)
-    messager("+ Using", nThread, paste0(ifelse(nThread > 1, "cores.", "core.")), v = verbose)
+    messager("+ Using", nThread, 
+             paste0(ifelse(nThread > 1, "cores.", "core.")),
+             v = verbose)
     DAT <- parallel::mclapply(file_paths, function(x) {
         dat <- data.table::data.table()
         try({

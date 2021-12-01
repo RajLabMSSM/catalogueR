@@ -7,13 +7,15 @@
 eQTL_Catalogue.search_metadata(qtl_search = NULL, verbose = TRUE)
 }
 \description{
-Searches through multiple relevant metadata columns to find eQTL Catalogue datasets
+Searches through multiple relevant metadata columns to find 
+eQTL Catalogue datasets
 that match at least one of your substrings in a list.
 All searches are case-insensitive.
 If \code{qtl_search=NULL}, will return all available datasets.
 }
 \examples{
-qtl_datasets <- eQTL_Catalogue.search_metadata(qtl_search = c("Alasoo_2018", "monocyte"))
+qtl_datasets <- eQTL_Catalogue.search_metadata(qtl_search = c("Alasoo_2018",
+                                                              "monocyte"))
 qtl_datasets.brain <- eQTL_Catalogue.search_metadata(qtl_search = "brain")
 }
 \seealso{

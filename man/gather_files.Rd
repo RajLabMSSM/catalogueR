@@ -4,7 +4,7 @@
 \alias{gather_files}
 \title{Merge files from a list of paths}
 \usage{
-gather_files(file_paths, nThread = 4, verbose = TRUE)
+gather_files(file_paths, nThread = 1, verbose = TRUE)
 }
 \description{
 Merge a list of files into one by stacking them on top of each other (i.e. rbind).

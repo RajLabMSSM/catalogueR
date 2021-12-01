@@ -7,20 +7,21 @@
 \format{
 An object of class \code{data.table} (inherits from \code{data.frame}) with 2610 rows and 50 columns.
 }
+\source{
+\code{
+root_dir <- "~/Desktop/catalogueR_queries/Alasoo_2018.macrophage_IFNg"
+file_name <- "LRRK2__Alasoo_2018.macrophage_IFNg.tsv.gz"
+LRRK2__Alasoo_2018.macrophage_IFNg <- data.table::fread(file.path(root_dir,
+                                                                  file_name))
+usethis::use_data(LRRK2__Alasoo_2018.macrophage_IFNg, overwrite = TRUE)
+}
+}
 \usage{
 LRRK2__Alasoo_2018.macrophage_IFNg
 }
 \description{
 Query: LRRK2 GWAS locus, Alasoo_2018.macrophage_IFNg QTL dataset.
-Split output file from \code{eQTL_Catalogue.query()}.
-}
-\examples{
-\dontrun{
-root_dir <- "~/Desktop/catalogueR_queries/Alasoo_2018.macrophage_IFNg"
-file_name <- "LRRK2__Alasoo_2018.macrophage_IFNg.tsv.gz"
-LRRK2__Alasoo_2018.macrophage_IFNg <- data.table::fread(file.path(root_dir, file_name))
-usethis::use_data(LRRK2__Alasoo_2018.macrophage_IFNg, overwrite = TRUE)
-}
+Split output file from \link[catalogueR]{eQTL_Catalogue.query}.
 }
 \seealso{
 Other eQTL Catalogue: 

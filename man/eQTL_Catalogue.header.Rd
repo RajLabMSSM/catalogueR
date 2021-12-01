@@ -7,17 +7,18 @@
 \format{
 An object of class \code{character} of length 19.
 }
-\usage{
-eQTL_Catalogue.header
-}
-\description{
-eQTL Catalogue tabix header
-}
-\examples{
-\dontrun{
+\source{
+\code{
 eQTL_Catalogue.header <- tabix_header(force_new_header = TRUE)
 usethis::use_data(eQTL_Catalogue.header, overwrite = TRUE)
 }
+}
+\usage{
+data("eQTL_Catalogue.header")
+}
+\description{
+The eQTL Catalogue tabix header (column names)
+ is not always included in the file.
 }
 \seealso{
 Other eQTL Catalogue: 

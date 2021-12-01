@@ -7,20 +7,22 @@
 \format{
 An object of class \code{data.table} (inherits from \code{data.frame}) with 397 rows and 12 columns.
 }
+\source{
+\code{
+meta <- eQTL_Catalogue.list_datasets(force_new = TRUE)
+# Some paths in the metadata were originally wrong. 
+# Has since been corrected by authors.
+# meta <- meta %>% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte",
+#                                               "Fairfax_2014",ftp_path))
+usethis::use_data(meta, overwrite = TRUE)
+}
+}
 \usage{
 meta
 }
 \description{
 List of all queryable tabix-indexed eQTL Catalogue datasets
 and their associated systems/tissues/cell types.
-}
-\examples{
-\dontrun{
-meta <- eQTL_Catalogue.list_datasets(force_new = TRUE)
-# Some paths in the metadata were originally wrong. Has since been corrected by authors.
-### meta <- meta \%>\% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte","Fairfax_2014",ftp_path))
-usethis::use_data(meta, overwrite = TRUE)
-}
 }
 \seealso{
 Other eQTL Catalogue: 

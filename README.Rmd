@@ -6,6 +6,18 @@ output:
   github_document
 ---
 
+<!-- badges: start -->
+`r badger::badge_bioc_release(color = "black")`
+`r badger::badge_github_version(color = "black")`
+`r badger::badge_github_actions(action = "DockerHub")`
+`r badger::badge_github_actions(action = "R-CMD-check-bioc")`
+`r badger::badge_last_commit()`
+`r badger::badge_codecov()`
+`r badger::badge_bioc_download(by = "total", color = "blue")`
+`r badger::badge_license()`
+`r badger::badge_doi(doi = "https://doi.org/10.1093/bioinformatics/btab665", color="blue")`
+<!-- badges: end -->
+
 Rapid querying, colocalization, and plotting of summary stats from the
 [*eQTL Catalogue*](https://www.ebi.ac.uk/eqtl/). 
 
@@ -44,17 +56,20 @@ Nat Genet 53, 1290–1299 (2021). [https://doi.org/10.1038/s41588-021-00924-w](h
 ## Documentation  
 
 ## [Website](https://rajlabmssm.github.io/catalogueR/)  
-## [PDF](https://rajlabmssm.github.io/catalogueR/catalogueR_0.1.0.pdf)  
+
+## [Getting started vignette](https://rajlabmssm.github.io/catalogueR/)  
+
+## [Colocalization vignette](https://rajlabmssm.github.io/catalogueR/articles/colocalize.html)  
+
+## [PDF manual](https://rajlabmssm.github.io/catalogueR/catalogueR_0.1.0.pdf)  
 
 
-## Getting started  
-
-### Installation 
+## Installation 
 
 ### [1] *Optional step: conda*   
 
 To ensure all dependencies are installed and don't conflict with each other, 
-you can create a *conda* environment by downloading [this *yaml*` file](https://github.com/RajLabMSSM/catalogueR/blob/master/inst/conda/catalogueR.yml) and 
+you can create a *conda* environment by downloading [this *yaml* file](https://github.com/RajLabMSSM/catalogueR/blob/master/inst/conda/catalogueR.yml) and 
 entering the following in command line:  
 ```
 conda env create -n <path_to_yml>/catalogueR.yml
@@ -83,37 +98,6 @@ if(!"remotes" %in% installed.packages()){install.packages("remotes")}
 remotes::install_github("RajLabMSSM/catalogueR")
 ```
 
-### Intro example  
-
-Supply one or more paths to [GWAS] summary stats files (one per locus) 
-and automatically download any eQTL data within that range.
-The files can be any of these formats, either *gzip*-compressed (`.gz`) 
-or uncompressed: `.csv`, `.tsv`, `space-separated`  
-
-<br>
-
-The summary stats files must have the following column names (order doesn't matter):
-  - `SNP` (rsid for each SNP)
-  - `CHR` (chromosome; with or without the "chr" prefix is fine)
-  - `POS` (basepair position)
-  - ... (optional extra columns)
-
-```R 
-sumstats_paths <- example_sumstats_paths()
-
-gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths,  
-                                       qtl_search = c("myeloid","Alasoo_2018"),
-                                       output_dir = "./catalogueR_queries", 
-                                       split_files  = TRUE,  
-                                       merge_with_gwas  = TRUE,
-                                       force_new_subset  = TRUE,
-                                       nThread=4)
-GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
-# Interactive datatable of results 
-## WARNING: Don't use this function on large datatables, might cause freezing.
-createDT(head(GWAS.QTL))
-``` 
-  
 <hr>  
  
 ## Author  

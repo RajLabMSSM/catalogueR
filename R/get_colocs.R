@@ -1,19 +1,31 @@
 #' Run coloc on GWAS-QTL object
-#'
+#' 
+#' Run coloc on GWAS-QTL object. 
 #' @family coloc
+#' @keywords internal
+#' @importFrom dplyr %>% filter
+#' @importFrom coloc coloc.signals coloc.abf
 #' @examples
 #' library(dplyr)
 #' data("BST1__Alasoo_2018.macrophage_IFNg")
 #'
-#' qtl.egene <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[, grep("*.QTL$|qtl_id|SNP", colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE)]
+#' qtl.egene <- data.frame(
+#'     BST1__Alasoo_2018.macrophage_IFNg
+#'     )[, grep("*.QTL$|qtl_id|SNP",
+#'              colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE)]
 #' sorted_egenes <- qtl.egene %>%
 #'     dplyr::group_by(gene.QTL) %>%
 #'     dplyr::summarise(mean.P = mean(pvalue.QTL), min.P = min(pvalue.QTL)) %>%
 #'     dplyr::arrange(min.P)
 #' qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
 #'
-#' gwas.region <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[, grep("*.QTL$|qtl_id", colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE, invert = TRUE)]
-#' coloc_res <- get_colocs(qtl.egene = qtl.egene, gwas.region = gwas.region)
+#' gwas.region <- data.frame(
+#'     BST1__Alasoo_2018.macrophage_IFNg
+#'     )[, grep("*.QTL$|qtl_id",
+#'              colnames(BST1__Alasoo_2018.macrophage_IFNg), 
+#'              value = TRUE, invert = TRUE)]
+#' coloc_res <- catalogueR:::get_colocs(qtl.egene = qtl.egene,
+#'                                      gwas.region = gwas.region)
 get_colocs <- function(qtl.egene,
                        gwas.region,
                        merge_by_rsid = TRUE,
@@ -31,7 +43,10 @@ get_colocs <- function(qtl.egene,
         gwas.region$N <- get_sample_size(gwas.region, effective_ss = TRUE)$N
     }
     if (!"N" %in% colnames(gwas.region)) {
-        stop("`N` column (effective sample size) was not detected in gwas.region. Required for coloc analysis.")
+        stop_msg <- paste(
+            "`N` column (effective sample size) was not detected",
+            "in gwas.region. Required for coloc analysis.")
+        stop(stop_msg)
     }
 
     if (merge_by_rsid) {

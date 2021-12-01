@@ -8,9 +8,12 @@
 #'
 #' @param sumstats_paths A list of paths to any number of summary stats files
 #' whose coordinates you want to use to make queries to eQTL Catalogue.
-#' If you wish to add custom names to the loci, simply add these as the names of the path list
-#'  (e.g. \code{c(BST1="<path>/<to>/<BST1_file>", LRRK2="<path>/<to>/<LRRK2_file>")}).
-#'  Otherwise, loci will automatically named based on their min/max genomic coordinates.
+#' If you wish to add custom names to the loci, simply add these as the 
+#' names of the path list
+#'  (e.g. \code{c(BST1="<path>/<to>/<BST1_file>",
+#'   LRRK2="<path>/<to>/<LRRK2_file>")}).
+#'  Otherwise, loci will automatically named based on their min/max 
+#'  genomic coordinates.
 #'
 #' The minimum columns in these files required to make queries include:
 #' \describe{
@@ -19,11 +22,14 @@
 #' \item{POS}{Genomic position of each SNP.}
 #' \item{...}{Optional extra columns.}
 #' }
-#' @param output_dir The folder you want the merged gwas/qtl results to be saved to
-#' (set \code{output_dir=F} if you don't want to save the results).
-#' If \code{split_files=F}, all query results will be merged into one and saved as \emph{<output_dir>/eQTL_Catalogue.tsv.gz}.
-#' If \code{split_files=T}, all query results will instead be split into smaller files and stored in \emph{<output_dir>/}.
-#' @param qtl_search This function will automatically search for any datasets that match your criterion.
+#' @param output_dir The folder you want the merged gwas/qtl results to be 
+#' saved to (set \code{output_dir=FALSE} if you don't want to save the results).
+#' If \code{split_files=FALSE}, all query results will be merged into one and 
+#' saved as \emph{<output_dir>/eQTL_Catalogue.tsv.gz}.
+#' If \code{split_files=TRUE}, all query results will instead be split into
+#'  smaller files and stored in \emph{<output_dir>/}.
+#' @param qtl_search This function will automatically search for any datasets 
+#' that match your criterion.
 #' For example, if you search "Alasoo_2018", it will query the datasets:
 #' \itemize{
 #' \item{Alasoo_2018.macrophage_naive}
@@ -32,65 +38,86 @@
 #' }
 #' You can be more specific about which datasets you want to include,
 #' for example by searching: "Alasoo_2018.macrophage_IFNg".
-#' You can even search by tissue or condition type (e.g. \code{c("blood","brain")})
-#' and any QTL datasets containing those substrings (case-insensitive) in their name or metadata will be queried too.
-#' @param use_tabix Tabix is about ~17x faster (\emph{default:}  = TRUE) than the REST API (\emph{=F}).
-#' @param multithread_tabix Multi-thread across within a single tabix file query (good when you have one-several large loci).
-#' @param nThread The number of CPU cores you want to use to speed up your queries through parallelization.
-#' @param split_files Save the results as one file per QTL dataset (with all loci within each file).
-#' If this is set to \code{=T}, then this function will return the list of paths where these files were saved.
+#' You can even search by tissue or condition type 
+#' (e.g. \code{c("blood","brain")})
+#' and any QTL datasets containing those substrings (case-insensitive) 
+#' in their name or metadata will be queried too.
+#' @param use_tabix Use Tabix to makes queries (Default: \emph{FALSE}). 
+#' Tabix is about ~17x faster than the REST API, but is currently a far less 
+#' reliable method than the REST API because it tends to get blocked by
+#' eQTL Catalogue's firewall. 
+#' See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here} 
+#' for more details.
+#' @param multithread_tabix Multi-thread across within a single tabix file query
+#'  (good when you have one-several large loci).
+#' @param nThread The number of CPU cores you want to use to speed up your 
+#' queries through parallelization.
+#' @param split_files Save the results as one file per QTL dataset 
+#' (with all loci within each file).
+#' If this is set to \code{=TRUE}, then this function will return the list of 
+#' paths where these files were saved.
 #' A helper function is provided to import and merge them back together in R.
-#' If this is set to  \code{=F}, then this function will instead return one big merged data.table
+#' If this is set to  \code{=FALSE}, then this function will instead return one 
+#' big merged \link[data.table]{data.table}
 #' containing results from all QTL datasets and all loci.
-#' \code{=F} is not recommended when you have many large loci and/or many QTL datasets,
+#' \code{=FALSE} is not recommended when you have many large loci and/or many 
+#' QTL datasets,
 #' because you can only fit so much data into memory.
-#' @param quant_method eQTL Catalogue actually contains more than just eQTL data.
+#' @param quant_method eQTL Catalogue actually contains more than just
+#'  eQTL data.
 #' For each dataset, the following kinds of QTLs can be queried:
 #' \describe{
-#' \item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) or \code{quant_method="microarray"}, depending on the dataset. \strong{catalogueR} will automatically select whichever option is available.}
-#' \item{exon expression QTL}{\emph{*under construction*}  \code{quant_method="ex"}}
-#' \item{transcript usage QTL}{\emph{*under construction*}  \code{quant_method="tx"}}
-#' \item{promoter, splice junction and 3' end usage QTL}{\emph{*under construction*}  \code{quant_method="txrev"}}
+#' \item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) 
+#' or \code{quant_method="microarray"}, depending on the dataset. 
+#' \strong{catalogueR} will automatically select whichever option is available.}
+#' \item{exon expression QTL}{\emph{*under construction*}  
+#' \code{quant_method="ex"}}
+#' \item{transcript usage QTL}{\emph{*under construction*}  
+#' \code{quant_method="tx"}}
+#' \item{promoter, splice junction and 3' end usage QTL}{
+#' \emph{*under construction*}  \code{quant_method="txrev"}}
 #' }
-#' @param merge_with_gwas Whether you want to merge your QTL query results with your GWAS data
+#' @param merge_with_gwas Whether you want to merge your QTL query results 
+#' with your GWAS data
 #' (convenient, but takes up more storage).
-#' @param force_new_subset By default, \strong{catalogueR} will use any pre-existing files that match your query.
+#' @param force_new_subset By default, \strong{catalogueR} will use any 
+#' pre-existing files that match your query.
 #' Set \code{force_new_subset=T} to override this and force a new query.
-#' @param genome_build The genome build of your query coordinates (e.g. \code{gwas_data}).
-#' If your coordinates are in \emph{hg19}, \strong{catalogueR} will automatically lift them over
+#' @param genome_build The genome build of your query coordinates 
+#' (e.g. \code{gwas_data}).
+#' If your coordinates are in \emph{hg19}, \strong{catalogueR} will 
+#' automatically lift them over
 #' to \emph{hg38} (as this is the build that eQTL Catalogue uses).
-#' @param progress_bar \code{progress_bar=T} allows progress to be monitored even when multithreading enabled.
+#' @param progress_bar \code{progress_bar=T} allows progress to be monitored
+#'  even when multithreading enabled.
 #' Requires R package \code{\link{pbmcapply}}.
-#' @param verbose Show more (\code{=T}) or fewer (\code{=F}) messages.
+#' @param verbose Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.
 #' @family eQTL Catalogue
 #'
 #' @export
+#' @importFrom data.table fwrite rbindlist
 #' @examples
-#' sumstats_paths <- example_sumstats_paths()
-#'
+#' sumstats_paths <- catalogueR::example_sumstats_paths()
+#' 
 #' # Merged results
-#' # GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset = TRUE, merge_with_gwas=F, progress_bar = TRUE, split_files = FALSE)
-#' # Merged results (parallel)
-#' GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths, qtl_search = "Alasoo_2018", nThread = 4, force_new_subset = TRUE, merge_with_gwas = F, progress_bar = TRUE, split_files = FALSE)
-#'
+#' GWAS.QTL <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths, 
+#'                                  qtl_search = "Alasoo_2018",  
+#'                                  merge_with_gwas = FALSE, 
+#'                                  split_files = FALSE)
+#' 
 #' # Split results
-#' # gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths=sumstats_paths, qtl_search="Alasoo_2018", nThread=1, force_new_subset = TRUE, merge_with_gwas=F, progress_bar = TRUE)
-#' # Split results (parallel)
-#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths, qtl_search = "Alasoo_2018", nThread = 4, force_new_subset = TRUE, merge_with_gwas = F, progress_bar = TRUE)
+#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths,
+#'                                        qtl_search = "Alasoo_2018",
+#'                                        merge_with_gwas = FALSE,
+#'                                        progress_bar = TRUE)
 #' GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
-#'
-#' # Nalls et al example
-#' \dontrun{
-#' sumstats_paths_Nalls <- catalogueR::example_sumstats_paths()
-#' gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths_Nalls, qtl_search = "Fairfax_2014", output_dir = "catalogueR_queries/Nalls23andMe_2019", merge_with_gwas = TRUE, nThread = 1, force_new_subset = TRUE, progress_bar = FALSE)
-#' }
 eQTL_Catalogue.query <- function(sumstats_paths = NULL,
                                  output_dir = file.path(
                                      tempdir(),
                                      "catalogueR_queries"
                                  ),
                                  qtl_search = NULL,
-                                 use_tabix = TRUE,
+                                 use_tabix = FALSE,
                                  conda_env = "echoR",
                                  nThread = 1,
                                  # multithread_qtl = TRUE,
@@ -187,7 +214,7 @@ eQTL_Catalogue.query <- function(sumstats_paths = NULL,
             genome_build = .genome_build,
             multithread_loci = .multithread_loci,
             multithread_tabix = .multithread_tabix,
-            progress_bar = FALSE,
+            progress_bar = progress_bar,
             verbose = .verbose
         )
         # })
@@ -237,6 +264,6 @@ eQTL_Catalogue.query <- function(sumstats_paths = NULL,
     cleanup_tbi(DIR = dirname(output_dir))
     # Clock it
     query.end <- Sys.time()
-    print(round(query.end - query.start, 1))
+    messager(round(query.end - query.start, 1),v=verbose)
     return(GWAS.QTL_all)
 }

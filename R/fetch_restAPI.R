@@ -2,12 +2,17 @@
 #'
 #' 2.2 Method 2: RESTful API
 #' Slower than tabix (unless you're only querying several specific SNPs).
+#' @source 
+#' \code{
+#' data("meta")
+#' gwas_data <- echodata::BST1 
+#' qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1],
+#'                             gwas_data = gwas_data)
+#' }
 #' @inheritParams eQTL_Catalogue.query
 #' @family eQTL Catalogue
-#' @examples
-#' data("meta")
-#' data("BST1")
-#' qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1], gwas_data = BST1)
+#' @keywords internal
+#' @importFrom data.table data.table 
 fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
                           quant_method = "ge",
                           infer_region = TRUE,
@@ -15,13 +20,13 @@ fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
                           chrom = NULL,
                           bp_lower = NULL,
                           bp_upper = NULL,
-                          is_gwas = F, # refers to the datasets being queried
+                          is_gwas = FALSE, # refers to the datasets being queried
                           size = NULL,
                           verbose = TRUE) {
     restAPI.start <- Sys.time()
     # Get region
     if (infer_region & !is.null(gwas_data)) {
-        print("+ Inferring coordinates from gwas_data", v = verbose)
+        messager("+ Inferring coordinates from gwas_data", v = verbose)
         chrom <- gsub("chr", "", unique(gwas_data$CHR)[1])
         bp_lower <- min(gwas_data$POS)
         bp_upper <- max(gwas_data$POS)
@@ -57,6 +62,10 @@ fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
     qtl.subset <- fetch_from_eqtl_cat_API(link = link, is_gwas = is_gwas)
     colnames(qtl.subset) <- paste0(colnames(qtl.subset), ".QTL")
     restAPI.end <- Sys.time()
-    messager("+ eQTL_Catalogue::", nrow(qtl.subset), "SNPs returned in", round(as.numeric(restAPI.end - restAPI.start), 1), "seconds.", v = verbose)
+    messager("+ eQTL_Catalogue::", nrow(qtl.subset), 
+             "SNPs returned in", 
+             formatC(round(as.numeric(restAPI.end - restAPI.start), 1),
+                     big.mark = ","), 
+             "seconds.", v = verbose)
     return(data.table::data.table(qtl.subset))
 }

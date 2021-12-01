@@ -4,12 +4,26 @@
 \alias{eQTL_Catalogue.list_datasets}
 \title{List available eQTL datasets}
 \usage{
-eQTL_Catalogue.list_datasets(save_dir = F, force_new = F, verbose = FALSE)
+eQTL_Catalogue.list_datasets(
+  save_dir = tempdir(),
+  force_new = FALSE,
+  include_imported = TRUE,
+  verbose = FALSE
+)
+}
+\arguments{
+\item{save_dir}{Where to save the processed metadata.}
+
+\item{force_new}{Re-import the metadata from GitHub instead of using 
+metadata that comes included with \pkg{catalogueR}.}
+
+\item{include_imported}{Include metadata from datasets that have not yet been
+fully re-processed by eQTL Catalogue's standardized pipeline.}
 }
 \description{
 Does some additional preprocessing of metadata to categorize tissue types.
 }
 \examples{
-meta <- eQTL_Catalogue.list_datasets()
+meta <- catalogueR::eQTL_Catalogue.list_datasets()
 }
 \keyword{metadata}

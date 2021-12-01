@@ -9,13 +9,13 @@ eQTL_Catalogue.fetch(
   quant_method = "ge",
   infer_region = TRUE,
   gwas_data = NULL,
-  is_gwas = F,
+  is_gwas = FALSE,
   nThread = 1,
   use_tabix = TRUE,
   chrom = NULL,
   bp_lower = NULL,
   bp_upper = NULL,
-  multithread_tabix = F,
+  multithread_tabix = FALSE,
   add_qtl_id = TRUE,
   convert_genes = TRUE,
   conda_env = "echoR",
@@ -23,26 +23,39 @@ eQTL_Catalogue.fetch(
 )
 }
 \arguments{
-\item{quant_method}{eQTL Catalogue actually contains more than just eQTL data.
+\item{quant_method}{eQTL Catalogue actually contains more than just
+ eQTL data.
 For each dataset, the following kinds of QTLs can be queried:
 \describe{
-\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) or \code{quant_method="microarray"}, depending on the dataset. \strong{catalogueR} will automatically select whichever option is available.}
-\item{exon expression QTL}{\emph{*under construction*}  \code{quant_method="ex"}}
-\item{transcript usage QTL}{\emph{*under construction*}  \code{quant_method="tx"}}
-\item{promoter, splice junction and 3' end usage QTL}{\emph{*under construction*}  \code{quant_method="txrev"}}
+\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) 
+or \code{quant_method="microarray"}, depending on the dataset. 
+\strong{catalogueR} will automatically select whichever option is available.}
+\item{exon expression QTL}{\emph{*under construction*}  
+\code{quant_method="ex"}}
+\item{transcript usage QTL}{\emph{*under construction*}  
+\code{quant_method="tx"}}
+\item{promoter, splice junction and 3' end usage QTL}{
+\emph{*under construction*}  \code{quant_method="txrev"}}
 }}
 
-\item{nThread}{The number of CPU cores you want to use to speed up your queries through parallelization.}
+\item{nThread}{The number of CPU cores you want to use to speed up your 
+queries through parallelization.}
 
-\item{use_tabix}{Tabix is about ~17x faster (\emph{default:}  = TRUE) than the REST API (\emph{=F}).}
+\item{use_tabix}{Use Tabix to makes queries (Default: \emph{FALSE}). 
+Tabix is about ~17x faster than the REST API, but is currently a far less 
+reliable method than the REST API because it tends to get blocked by
+eQTL Catalogue's firewall. 
+See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here} 
+for more details.}
 
 \item{bp_lower}{Minimum basepair position of the query window.}
 
 \item{bp_upper}{Maxmimum basepair position of the query window.}
 
-\item{multithread_tabix}{Multi-thread across within a single tabix file query (good when you have one-several large loci).}
+\item{multithread_tabix}{Multi-thread across within a single tabix file query
+(good when you have one-several large loci).}
 
-\item{verbose}{Show more (\code{=T}) or fewer (\code{=F}) messages.}
+\item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
 \description{
 Choose between tabix (faster for larger queries)
@@ -50,8 +63,9 @@ or RESTful API (faster for small queries).
 }
 \examples{
 data("meta")
-data("BST1")
-gwas.qtl <- eQTL_Catalogue.fetch(unique_id = meta$unique_id[1], gwas_data = BST1)
+gwas_data <- echodata::BST1 
+gwas.qtl <- eQTL_Catalogue.fetch(unique_id = meta$unique_id[1],
+                                 gwas_data = gwas_data)
 }
 \seealso{
 Other eQTL Catalogue: 

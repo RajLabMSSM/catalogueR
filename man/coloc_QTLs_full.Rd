@@ -7,22 +7,24 @@
 \format{
 An object of class \code{data.table} (inherits from \code{data.frame}) with 155577 rows and 21 columns.
 }
-\usage{
-coloc_QTLs_full
-}
-\description{
-Example colocalization results from running \code{\link{catalogueR::run_coloc}}
-on GWAS summary stats from all loci in \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
-}
-\examples{
-\dontrun{
+\source{
+\code{
 library(dplyr)
 root_dir <- "~/Desktop/Fine_Mapping/Data/GWAS/Nalls23andMe_2019"
 sub_dir <- "_genome_wide/COLOC/coloc.eQTL_Catalogue_ALL.csv.gz"
 coloc_QTLs_full <- data.table::fread(file.path(root_dir, sub_dir))
-coloc_QTLs_full <- coloc_QTLs_full \%>\% dplyr::rename(gene.QTL = eGene, qtl_id = qtl.id)
+coloc_QTLs_full <- coloc_QTLs_full %>% 
+  dplyr::rename(gene.QTL = eGene, qtl_id = qtl.id)
 usethis::use_data(coloc_QTLs_full, overwrite = TRUE)
 }
+}
+\usage{
+coloc_QTLs_full
+}
+\description{
+Example colocalization results from running \link[catalogueR]{run_coloc}.
+on GWAS summary stats from all loci in 
+\href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls23andMe_2019}.
 }
 \seealso{
 Other coloc: 

@@ -71,9 +71,9 @@ gwas.qtl_paths <- lapply(names(query_res), function(x){
 ```{r Run coloc}
 coloc_QTLs <- run_coloc(gwas.qtl_paths,
                         save_path="./coloc_results.tsv.gz",
-                        nThread=4,
+                        nThread=1,
                         top_snp_only = TRUE,
-                        split_by_group=F,
+                        split_by_group=FALSE,
                         method = "abf")
 ```
 

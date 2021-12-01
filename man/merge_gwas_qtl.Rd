@@ -7,7 +7,7 @@
 merge_gwas_qtl(gwas_data, qtl.subset, verbose = TRUE)
 }
 \arguments{
-\item{verbose}{Show more (\code{=T}) or fewer (\code{=F}) messages.}
+\item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
 \description{
 Merge GWAS data (query) and QTL data (results)

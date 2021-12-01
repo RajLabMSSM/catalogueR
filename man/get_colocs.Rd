@@ -14,21 +14,29 @@ get_colocs(
 )
 }
 \description{
-Run coloc on GWAS-QTL object
+Run coloc on GWAS-QTL object.
 }
 \examples{
 library(dplyr)
 data("BST1__Alasoo_2018.macrophage_IFNg")
 
-qtl.egene <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[, grep("*.QTL$|qtl_id|SNP", colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE)]
+qtl.egene <- data.frame(
+    BST1__Alasoo_2018.macrophage_IFNg
+    )[, grep("*.QTL$|qtl_id|SNP",
+             colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE)]
 sorted_egenes <- qtl.egene \%>\%
     dplyr::group_by(gene.QTL) \%>\%
     dplyr::summarise(mean.P = mean(pvalue.QTL), min.P = min(pvalue.QTL)) \%>\%
     dplyr::arrange(min.P)
 qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
 
-gwas.region <- data.frame(BST1__Alasoo_2018.macrophage_IFNg)[, grep("*.QTL$|qtl_id", colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE, invert = TRUE)]
-coloc_res <- get_colocs(qtl.egene = qtl.egene, gwas.region = gwas.region)
+gwas.region <- data.frame(
+    BST1__Alasoo_2018.macrophage_IFNg
+    )[, grep("*.QTL$|qtl_id",
+             colnames(BST1__Alasoo_2018.macrophage_IFNg), 
+             value = TRUE, invert = TRUE)]
+coloc_res <- catalogueR:::get_colocs(qtl.egene = qtl.egene,
+                                     gwas.region = gwas.region)
 }
 \seealso{
 Other coloc: 
@@ -41,3 +49,4 @@ Other coloc:
 \code{\link{run_coloc}()}
 }
 \concept{coloc}
+\keyword{internal}

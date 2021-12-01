@@ -3,8 +3,9 @@
 #' @param build_conversion "hg19.to.hg38" (\emph{default}) or "hg38.to.hg19.
 #' @family utils
 #' @examples
-#' data("BST1")
-#' gr.lifted <- liftover(gwas_data = BST1, build.conversion = "hg19.to.hg38")
+#' gwas_data <- echodata::BST1
+#' gr.lifted <- liftover(gwas_data = gwas_data,
+#'                       build.conversion = "hg19.to.hg38")
 liftover <- function(gwas_data,
                      build.conversion = "hg19.to.hg38",
                      verbose = TRUE) {

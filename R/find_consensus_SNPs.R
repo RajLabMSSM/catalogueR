@@ -2,8 +2,8 @@
 #'
 #' @family echolocatoR
 #' @examples
-#' data("BST1")
-#' BST1 <- find_consensus_SNPs(finemap_dat = BST1)
+#' finemap_dat <- echodata::BST1 
+#' BST1 <- find_consensus_SNPs(finemap_dat = finemap_dat)
 find_consensus_SNPs <- function(finemap_dat,
                                 verbose = TRUE,
                                 credset_thresh = .95,

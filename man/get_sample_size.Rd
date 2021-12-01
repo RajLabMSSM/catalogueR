@@ -15,9 +15,8 @@ get_sample_size(
 Infer (effective) sample size from summary stats
 }
 \examples{
-data("BST1")
-BST1 <- finemap_DT
-subset_DT <- get_sample_size(subset_DT = finemap_DT)
+subset_DT <- echodata::BST1 
+subset_DT <- get_sample_size(subset_DT = subset_DT)
 }
 \concept{general}
 \keyword{internal}
