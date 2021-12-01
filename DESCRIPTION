@@ -2,10 +2,23 @@ Package: catalogueR
 Type: Package
 Title: QTL data extraction and colocalization
 Version: 0.1.1
-Authors@R: as.person(c(
-    "Brian Schilder <brian_schilder@alumni.brown.edu> [aut, cre]",
-    "Jack Humphrey [ctb]"
-  ))
+Authors@R: 
+    c(person(given = "Brian",
+           family = "Schilder",
+           role = c("cre"),
+           email = "brian_schilder@alumni.brown.edu",
+           comment = c(ORCID = "0000-0001-5949-2191")),
+    person(given = "Jack",
+           family = "Humphrey",
+           role = c("aut"),
+           email = "Jack.Humphrey@mssm.edu",
+           comment = c(ORCID = "0000-0002-6274-6620")),
+    person(given = "Towfique",
+           family = "Raj",
+           role = c("aut"),
+           email = "towfique.raj@mssm.edu",
+           comment = c(ORCID = "0000-0002-9355-5704"))
+           ) 
 Description: API access to eQTL Catalogue full summary stats and colocalization functions.
 Encoding: UTF-8
 LazyData: true
@@ -15,7 +28,8 @@ BugReports: https://github.com/RajLabMSSM/catalogueR/issues
 Depends: R (>= 3.6.0)
 biocViews:
 Imports: 
-  tidyverse,
+  dplyr,
+  tidyr,
   data.table,
   parallel,
   ggplot2,

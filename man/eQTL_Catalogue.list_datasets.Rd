@@ -19,6 +19,8 @@ metadata that comes included with \pkg{catalogueR}.}
 
 \item{include_imported}{Include metadata from datasets that have not yet been
 fully re-processed by eQTL Catalogue's standardized pipeline.}
+
+\item{verbose}{Print messages.}
 }
 \description{
 Does some additional preprocessing of metadata to categorize tissue types.

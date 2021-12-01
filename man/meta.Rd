@@ -5,7 +5,7 @@
 \alias{meta}
 \title{eQTL Catalogue dataset metadata}
 \format{
-An object of class \code{data.table} (inherits from \code{data.frame}) with 397 rows and 12 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 498 rows and 12 columns.
 }
 \source{
 \code{
