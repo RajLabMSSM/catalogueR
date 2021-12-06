@@ -1,0 +1,130 @@
+---
+title: "hexSticker"
+author: "<h4>Author: <i>Brian M. Schilder</i></h4>" 
+date: "<h4>Updated: <i>`r format( Sys.Date(), '%b-%d-%Y')`</i></h4>"
+output:
+  BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{hexSticker}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=FALSE, include=FALSE}
+pkg <- read.dcf(here::here("DESCRIPTION"), fields = "Package")[1]
+description <- read.dcf(here::here("DESCRIPTION"), fields = "Description")[1]
+```
+
+You can make awesome hex stickers for your R packages using:
+
+- [hexSticker](https://github.com/GuangchuangYu/hexSticker)  
+- [ggimage](https://github.com/GuangchuangYu/ggimage) 
+lets you render images as data points.  
+- [ggpattern](https://coolbutuseless.github.io/package/ggpattern/)
+lets you fill objects with patterns or images.
+- [magick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) 
+modify PNGs.
+
+# `r pkg`
+ 
+```{r setup}
+# If you're using R<4.1.1, need this version of rvcheck
+# devtools::install_version('rvcheck',version='0.1.8') 
+library(hexSticker)
+library(dplyr)
+library(ggplot2)
+library(ggimage)
+# library(ggpattern)# remotes::install_github("coolbutuseless/ggpattern")
+```
+
+## File path
+
+Create file path.
+
+```{r}
+filename <- here::here("inst/hex/hex.png")
+dir.create(dirname(filename), showWarnings = FALSE, recursive = TRUE)
+```
+
+## Bat logo
+
+Download bat logo from the 
+[*echoverseTemplate*](https://github.com/RajLabMSSM/echoverseTemplate/releases/tag/latest)
+GitHub Release.
+
+```{r}
+tmp <- tempfile()
+#### Side view ####
+URL <- "https://github.com/RajLabMSSM/echoverseTemplate/releases/download/latest/bat_silhouette.png"   
+#### Front view ####
+# URL <- "https://github.com/RajLabMSSM/echoverseTemplate/releases/download/latest/bat_silhouette_front.png"   
+download.file(URL, tmp)
+```
+
+## Background 
+
+Create background with `ggplot2`.
+
+```R
+set.seed(1234)
+n_bats <- 20
+d <- data.frame(x = -rexp(n_bats, rate = 3),
+                y = rexp(n_bats, rate = 3)
+                ) %>%
+  dplyr::mutate(image = URL,
+                bsize = abs(x*y^2)) %>%
+  dplyr::arrange(dplyr::desc(x), dplyr::desc(y))
+qplot(d$x, d$y, size=d$bsize)
+```
+
+Import data points for reproducibility.
+
+```{r}
+d <- data.table::fread("https://github.com/RajLabMSSM/echoverseTemplate/releases/download/latest/echoverse_points.csv.gz")
+```
+
+ 
+```{r}
+gg_bats <- ggplot(d, aes(x = x, y = y, color=bsize, image=image)) + 
+  geom_image(aes(size=I(bsize)), alpha=1) +
+  scale_color_gradient(low = "#194f68", high = "#56ffff") +   
+  coord_cartesian(clip = "off") +
+  labs(title = "echoverse") +  
+  theme_void() +
+  theme(plot.title = element_text(color = "#56ffff", size = 25,
+                                  hjust = .5, vjust = 5, family = "Aller_Rg"), 
+        legend.position = "none") 
+ 
+# print(gg_bats)
+```
+
+## hexSticker 
+
+```{r}    
+s_size = 1
+stick <- hexSticker::sticker(
+  subplot = gg_bats, 
+  #### Package name ####
+  package = pkg, p_size=14, p_y = 1.4,
+  #### Subplot #####
+  s_x=1, s_y=.8,  s_height = s_size, s_width = s_size,
+  #### Fill & border ####
+  h_fill = "#25355c", h_color = "#41c6c8", #56ffff
+  #### Spotlight ####
+  spotlight = TRUE, l_alpha = .3, l_width = 10,
+  #### File output ####
+  filename = filename, dpi = 300)
+print(stick)
+```
+
+
+# Session Info 
+
+<details> 
+
+```{r Session Info}
+utils::sessionInfo()
+```
+
+</details>  
+

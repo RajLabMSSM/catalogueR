@@ -1,6 +1,7 @@
 # Print
-messager <- function(..., v = TRUE) {
+printer <- function(..., v = TRUE) {
     if (v) {
-        print(paste(...))
+        msg <- paste(...)
+        print(msg)
     }
 }

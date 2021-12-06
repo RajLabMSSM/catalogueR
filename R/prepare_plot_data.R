@@ -1,10 +1,23 @@
+#' Prepare plot data
+#' 
+#' Prepare plot data.
+#' @keywords internal
+#' @importFrom echotabix liftover 
 prepare_plot_data <- function(coloc_QTLs,
                               locus_name,
                               QTL_gene = NULL,
                               GWAS.QTL = NULL,
                               LD_reference = "1KGphase3",
-                              LD_results_dir = "data/COVID19_GWAS",
-                              force_new_LD = FALSE) {
+                              LD_results_dir = file.path(tempdir(),
+                                                         "plot_data"),
+                              force_new_LD = FALSE,
+                              verbose = TRUE) {
+    requireNamespace("echoLD")
+    requireNamespace("echodata")
+    requireNamespace("dplyr")  
+    
+    Locus.GWAS <- POS <- BP <- gene.QTL <- RefSNP_id <- seqnames <- start <-
+        qtl_id <- FDR.QTL <- NULL;
     locus_dat <- subset(
         coloc_QTLs,
         Locus.GWAS == locus_name
@@ -14,54 +27,47 @@ prepare_plot_data <- function(coloc_QTLs,
             Mb = POS / 1000000,
             Effect = 1
         )
-    if (!is.null(QTL_gene)) locus_dat <- subset(locus_dat, gene.QTL == QTL_gene)
-
-    #### Annotate SNPs by RSIDs  ####
+    if (!is.null(QTL_gene)) {
+        locus_dat <- subset(locus_dat, gene.QTL == QTL_gene)
+    }
+    #### Annotate SNPs with RSIDs  ####
     ## (not provided in original GWAS file)
-    library(SNPlocs.Hsapiens.dbSNP144.GRCh38)
-    locus.gr <- GenomicRanges::makeGRangesFromDataFrame(locus_dat,
-        keep.extra.columns = TRUE,
-        seqnames.field = "CHR",
-        start.field = "POS", end.field = "POS"
-    )
-    rsids <- BSgenome::snpsByOverlaps(SNPlocs.Hsapiens.dbSNP144.GRCh38, locus.gr)
-    locus_dat <- merge(locus_dat,
-        data.frame(rsids) %>%
-            dplyr::rename(SNP = RefSNP_id) %>%
-            dplyr::mutate(seqnames = as.integer(seqnames)),
-        by.x = c("CHR", "POS"), by.y = c("seqnames", "pos"), all.x = TRUE
-    )
-
+    if(!"SNP" %in% colnames(locus_dat)){
+        locus_dat <- echodata::coords_to_rsids(dat = locus_dat,
+                                               genome_build = "HG38",
+                                               snp_colname = "SNP",
+                                               verbose = verbose)
+    }
     #### Liftover ####
-    locus_lift <- catalogueR::liftover(
-        gwas_data = locus_dat,
-        build.conversion = "hg38.to.hg19"
-    ) %>%
-        data.frame() %>%
-        dplyr::rename(POS = start)
-    if (!"leadSNP" %in% colnames(locus_lift)) locus_lift <- echolocatoR::assign_lead_SNP(locus_lift)
+    locus_lift <- echotabix::liftover( 
+        sumstats_dt = locus_dat,
+        ref_genome = "HG38",
+        convert_ref_genome = "HG19",
+        verbose = verbose
+    ) %>%  dplyr::rename(POS = BP)
+    if (!"leadSNP" %in% colnames(locus_lift)) {
+        locus_lift <- echodata::assign_lead_SNP(locus_lift)
+    }
 
-
-    LD_out <- echolocatoR::LD.load_or_create(
+    LD_out <- echoLD::load_or_create(
         locus_dir = file.path(LD_results_dir, locus_lift$Locus[1]),
         force_new_LD = force_new_LD,
-        subset_DT = locus_lift,
+        dat = locus_lift,
         LD_reference = LD_reference
     )
     LD_matrix <- LD_out$LD
-    # locus_lift <- LD_out$DT
-    plot_dat <- echolocatoR::LD.get_lead_r2(
-        finemap_dat = locus_lift,
+    plot_dat <- echoLD:::get_lead_r2(
+        dat = locus_lift,
         LD_matrix = as.matrix(LD_matrix),
         LD_format = "matrix"
     ) %>%
-        catalogueR::eQTL_Catalogue.annotate_tissues() %>%
+        eQTL_Catalogue.annotate_tissues() %>%
         tidyr::separate(
             col = "qtl_id", sep = "[.]", remove = FALSE,
             into = c("qtl", "tissue_condition"), extra = "drop"
         )
     if (!is.null(GWAS.QTL)) {
-        # Merge QTL FDR into coloc results
+        #### Merge QTL FDR into coloc results ####
         sig_qtls <- GWAS.QTL %>%
             subset(qtl_id %in% unique(plot_dat$qtl_id) &
                 gene.QTL %in% unique(plot_dat$gene.QTL) &

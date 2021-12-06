@@ -1,18 +1,16 @@
 #' Run coloc on GWAS-QTL object
-#' 
-#' Run coloc on GWAS-QTL object. 
-#' @family coloc
-#' @keywords internal
-#' @importFrom dplyr %>% filter
-#' @importFrom coloc coloc.signals coloc.abf
-#' @examples
+#'
+#' Run coloc on GWAS-QTL object.
+#' @source
+#' \code{
 #' library(dplyr)
-#' data("BST1__Alasoo_2018.macrophage_IFNg")
+#' paths <- catalogueR::example_eQTL_Catalogue_query_paths()
+#' query <- paths["BST1__Alasoo_2018.macrophage_IFNg"]
 #'
 #' qtl.egene <- data.frame(
-#'     BST1__Alasoo_2018.macrophage_IFNg
+#'     query
 #'     )[, grep("*.QTL$|qtl_id|SNP",
-#'              colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE)]
+#'              colnames(query), value = TRUE)]
 #' sorted_egenes <- qtl.egene %>%
 #'     dplyr::group_by(gene.QTL) %>%
 #'     dplyr::summarise(mean.P = mean(pvalue.QTL), min.P = min(pvalue.QTL)) %>%
@@ -20,35 +18,36 @@
 #' qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
 #'
 #' gwas.region <- data.frame(
-#'     BST1__Alasoo_2018.macrophage_IFNg
+#'     query
 #'     )[, grep("*.QTL$|qtl_id",
-#'              colnames(BST1__Alasoo_2018.macrophage_IFNg), 
+#'              colnames(query),
 #'              value = TRUE, invert = TRUE)]
+#' #### Run ####
 #' coloc_res <- catalogueR:::get_colocs(qtl.egene = qtl.egene,
 #'                                      gwas.region = gwas.region)
+#' }
+#' @family coloc
+#' @keywords internal
+#' @importFrom dplyr %>% filter
+#' @importFrom coloc coloc.signals coloc.abf
 get_colocs <- function(qtl.egene,
                        gwas.region,
                        merge_by_rsid = TRUE,
-                       PP_threshold = .8,
+                       coloc_thresh = .8,
                        method = "abf",
                        verbose = TRUE) {
-    # http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html
-    # Subset to overlapping SNPs only
-
-    # Check for duplicated SNPs
+    SNP <- position.QTL <- POS <- NULL;
+    #### Check for duplicated SNPs ####
     qtl.egene <- qtl.egene[!duplicated(qtl.egene$SNP), ]
     gwas.region <- gwas.region[!duplicated(gwas.region$SNP), ]
-    if (all(c("N_cases", "N_controls") %in% colnames(gwas.region))) {
-        message("Inferring `N` (effective sample size) from `N_cases` and `N_controls`")
-        gwas.region$N <- get_sample_size(gwas.region, effective_ss = TRUE)$N
-    }
     if (!"N" %in% colnames(gwas.region)) {
         stop_msg <- paste(
             "`N` column (effective sample size) was not detected",
-            "in gwas.region. Required for coloc analysis.")
+            "in gwas.region. Required for coloc analysis."
+        )
         stop(stop_msg)
     }
-
+    #### Merge by SNP IDs ####
     if (merge_by_rsid) {
         shared <- intersect(qtl.egene$SNP, gwas.region$SNP)
         eqtl_shared <- dplyr::filter(qtl.egene, SNP %in% shared) %>%
@@ -64,18 +63,16 @@ get_colocs <- function(qtl.egene,
         gwas_shared <- dplyr::filter(gwas.region, POS %in% shared) %>%
             dplyr::mutate(variant_id = as.character(POS))
     }
-
     #### Check MAF ####
-    if (!"MAF" %in% colnames(gwas_shared)) {
-        warning("`MAF` column not provided in GWAS data. Borrowing MAF from QTL data instead.")
-        gwas_shared$MAF <- eqtl_shared$maf.QTL
-    }
+    check_maf_out <- check_maf(
+        gwas_shared = gwas_shared,
+        eqtl_shared = eqtl_shared
+    )
+    gwas_shared <- check_maf_out$gwas_shared
+    eqtl_shared <- check_maf_out$eqtl_shared
 
     if (length(shared) == 0) {
-        if (verbose) {
-            message("catalogueR:COLOC:: No SNPs shared between GWAS and QTL subsets.")
-        }
-
+        messager("No SNPs shared between GWAS and QTL subsets.", v = verbose)
         coloc_res <- list(
             summary = "No SNPs shared between GWAS and QTL subsets.",
             results = data.table::data.table(
@@ -95,7 +92,7 @@ get_colocs <- function(qtl.egene,
             Locus = gwas_shared$Locus[1]
         )
     } else {
-        # RUN COLOC
+        #### Run coloc ####
         # QTL data
         eQTL_dataset <- list(
             snp = eqtl_shared$variant_id,
@@ -103,7 +100,7 @@ get_colocs <- function(qtl.egene,
             # If log_OR column is full of NAs then use beta column instead
             beta = eqtl_shared$beta.QTL,
             N = (eqtl_shared$an.QTL)[1], # /2,
-            MAF = eqtl_shared$maf.QTL,
+            MAF = as.numeric(eqtl_shared$maf.QTL),
             type = "quant"
         )
         if ("se.QTL" %in% colnames(eqtl_shared)) {
@@ -116,9 +113,11 @@ get_colocs <- function(qtl.egene,
             # If log_OR column is full of NAs then use beta column instead
             beta = gwas_shared$Effect,
             N = (gwas_shared$N)[1], # /2,
-            MAF = gwas_shared$MAF,
+            MAF = as.numeric(gwas_shared$MAF),
             type = "cc",
-            s = 0.5 # This is actually not used, because we already specified varbeta above.
+            # `s=` is actually not used, 
+            # because we already specified varbeta above.
+            s = 0.5 
         )
         if ("StdErr" %in% colnames(gwas_shared)) {
             gwas_dataset$varbeta <- gwas_shared$StdErr^2
@@ -133,22 +132,24 @@ get_colocs <- function(qtl.egene,
                 dataset1 = eQTL_dataset,
                 dataset2 = gwas_dataset,
                 method = "mask",
-                p12 = 1e-5
+                MAF = NULL
             )
         }
         if (tolower(method) == "abf") {
-            coloc_res <- coloc::coloc.abf(
-                dataset1 = eQTL_dataset,
-                dataset2 = gwas_dataset,
-                p12 = 1e-5
-            ) # defaults
+            suppressWarnings(
+                coloc_res <- coloc::coloc.abf(
+                    dataset1 = eQTL_dataset,
+                    dataset2 = gwas_dataset,
+                    MAF = NULL
+                )
+            ) 
         }
 
         coloc_res$Locus <- gwas_shared$Locus[1]
         if (verbose) {
             report <- COLOC.report_summary(
                 coloc.res = coloc_res,
-                PP_threshold = PP_threshold
+                coloc_thresh = coloc_thresh
             )
         }
     }

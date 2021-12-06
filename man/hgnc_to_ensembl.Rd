@@ -6,17 +6,24 @@
 \usage{
 hgnc_to_ensembl(gene_symbols, unique_only = TRUE, verbose = TRUE)
 }
+\arguments{
+\item{gene_symbols}{Character vector of HGNC gene IDs.}
+
+\item{unique_only}{Only query unique entries \code{gene_symbols}.}
+
+\item{verbose}{Print messages.}
+}
 \description{
-Convert HGNC gene symbols to ENSEMBL IDs
+Convert HGNC gene symbols to ENSEMBL IDs using the
+\link[EnsDb.Hsapiens.v75]{EnsDb.Hsapiens.v75} Bioconductor package.
 }
 \examples{
 gene_symbols <- c("BDNF", "FOXP2", "BST1")
-ensembl_ids <- hgnc_to_ensembl(gene_symbols)
+ensembl_ids <- catalogueR::hgnc_to_ensembl(gene_symbols)
 }
 \seealso{
 Other utils: 
 \code{\link{ensembl_to_hgnc}()},
-\code{\link{gather_files}()},
-\code{\link{liftover}()}
+\code{\link{merge_files}()}
 }
 \concept{utils}

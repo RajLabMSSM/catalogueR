@@ -1,15 +1,25 @@
 #' Annotate QTL datasets with metadata
 #'
 #' Annotate QTL datasets from \emph{eQTL Catalogue} with metadata.
-#'
+#' @param dat \link[data.table]{data.table} of query results from 
+#' \link[catalogueR]{example_eQTL_Catalogue_query_paths}.
+#' @param add_tissue_counts Add a new column "Tissue_count" summarizing 
+#' the number of datasets per tissue.
+#' 
 #' @keywords metadata
+#' @export
 #' @importFrom dplyr %>% mutate select group_by summarise n_distinct rename
 #' @importFrom data.table merge.data.table
 #' @importFrom stats setNames
 #' @examples
-#' dat <- eQTL_Catalogue.annotate_tissues(dat)
+#' paths <- catalogueR::example_eQTL_Catalogue_query_paths(
+#'     fnames = "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz")
+#' dat <- data.table::fread(paths[1], nThread = 1)
+#' dat_annot <- catalogueR::eQTL_Catalogue.annotate_tissues(dat = dat)
 eQTL_Catalogue.annotate_tissues <- function(dat,
                                             add_tissue_counts = FALSE) {
+    study <- tissue_label <- Tissue_group <- System <- 
+        Tissue <- Study <- qtl_id <- unique_id <- NULL;
     meta <- eQTL_Catalogue.list_datasets() %>%
         dplyr::select(unique_id,
             Study = study,

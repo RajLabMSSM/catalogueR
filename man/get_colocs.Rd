@@ -3,12 +3,38 @@
 \name{get_colocs}
 \alias{get_colocs}
 \title{Run coloc on GWAS-QTL object}
+\source{
+\code{
+library(dplyr)
+paths <- catalogueR::example_eQTL_Catalogue_query_paths()
+query <- paths["BST1__Alasoo_2018.macrophage_IFNg"]
+
+qtl.egene <- data.frame(
+    query
+    )[, grep("*.QTL$|qtl_id|SNP",
+             colnames(query), value = TRUE)]
+sorted_egenes <- qtl.egene %>%
+    dplyr::group_by(gene.QTL) %>%
+    dplyr::summarise(mean.P = mean(pvalue.QTL), min.P = min(pvalue.QTL)) %>%
+    dplyr::arrange(min.P)
+qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
+
+gwas.region <- data.frame(
+    query
+    )[, grep("*.QTL$|qtl_id",
+             colnames(query),
+             value = TRUE, invert = TRUE)]
+#### Run ####
+coloc_res <- catalogueR:::get_colocs(qtl.egene = qtl.egene,
+                                     gwas.region = gwas.region)
+}
+}
 \usage{
 get_colocs(
   qtl.egene,
   gwas.region,
   merge_by_rsid = TRUE,
-  PP_threshold = 0.8,
+  coloc_thresh = 0.8,
   method = "abf",
   verbose = TRUE
 )
@@ -16,34 +42,11 @@ get_colocs(
 \description{
 Run coloc on GWAS-QTL object.
 }
-\examples{
-library(dplyr)
-data("BST1__Alasoo_2018.macrophage_IFNg")
-
-qtl.egene <- data.frame(
-    BST1__Alasoo_2018.macrophage_IFNg
-    )[, grep("*.QTL$|qtl_id|SNP",
-             colnames(BST1__Alasoo_2018.macrophage_IFNg), value = TRUE)]
-sorted_egenes <- qtl.egene \%>\%
-    dplyr::group_by(gene.QTL) \%>\%
-    dplyr::summarise(mean.P = mean(pvalue.QTL), min.P = min(pvalue.QTL)) \%>\%
-    dplyr::arrange(min.P)
-qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
-
-gwas.region <- data.frame(
-    BST1__Alasoo_2018.macrophage_IFNg
-    )[, grep("*.QTL$|qtl_id",
-             colnames(BST1__Alasoo_2018.macrophage_IFNg), 
-             value = TRUE, invert = TRUE)]
-coloc_res <- catalogueR:::get_colocs(qtl.egene = qtl.egene,
-                                     gwas.region = gwas.region)
-}
 \seealso{
 Other coloc: 
 \code{\link{COLOC.report_summary}()},
-\code{\link{coloc_QTLs_full}},
-\code{\link{coloc_QTLs}},
-\code{\link{gather_colocalized_data}()},
+\code{\link{get_coloc_QTLs}()},
+\code{\link{merge_colocalized_data}()},
 \code{\link{plot_coloc_summary}()},
 \code{\link{retrieve_sumstats_info}()},
 \code{\link{run_coloc}()}

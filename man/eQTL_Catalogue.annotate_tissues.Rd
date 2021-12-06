@@ -6,10 +6,20 @@
 \usage{
 eQTL_Catalogue.annotate_tissues(dat, add_tissue_counts = FALSE)
 }
+\arguments{
+\item{dat}{\link[data.table]{data.table} of query results from 
+\link[catalogueR]{example_eQTL_Catalogue_query_paths}.}
+
+\item{add_tissue_counts}{Add a new column "Tissue_count" summarizing 
+the number of datasets per tissue.}
+}
 \description{
 Annotate QTL datasets from \emph{eQTL Catalogue} with metadata.
 }
 \examples{
-dat <- eQTL_Catalogue.annotate_tissues(dat)
+paths <- catalogueR::example_eQTL_Catalogue_query_paths(
+    fnames = "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz")
+dat <- data.table::fread(paths[1], nThread = 1)
+dat_annot <- catalogueR::eQTL_Catalogue.annotate_tissues(dat = dat)
 }
 \keyword{metadata}

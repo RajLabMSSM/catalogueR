@@ -14,7 +14,7 @@ eQTL_Catalogue.list_datasets(
 \arguments{
 \item{save_dir}{Where to save the processed metadata.}
 
-\item{force_new}{Re-import the metadata from GitHub instead of using 
+\item{force_new}{Re-import the metadata from GitHub instead of using
 metadata that comes included with \pkg{catalogueR}.}
 
 \item{include_imported}{Include metadata from datasets that have not yet been

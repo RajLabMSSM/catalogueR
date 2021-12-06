@@ -19,7 +19,7 @@ Authors@R:
            email = "towfique.raj@mssm.edu",
            comment = c(ORCID = "0000-0002-9355-5704"))
            ) 
-Description: API access to eQTL Catalogue full summary stats and colocalization functions.
+Description: Rapid querying, colocalization, and plotting of summary stats from the [*eQTL Catalogue*](https://www.ebi.ac.uk/eqtl/). *eQTL Catalogue* currently contains >100 datasets from 20 different studies (including GTEx), across many tissues/cell types/conditions.  
 Encoding: UTF-8
 LazyData: true
 License: GPL-3
@@ -30,34 +30,40 @@ biocViews:
 Imports: 
   dplyr,
   tidyr,
+  utils,
   data.table,
+  piggyback,
   parallel,
   ggplot2,
+  ggrepel,
+  patchwork,
+  scales,
   stringr,
-  httr,
   rlang,
   jsonlite, 
-  coloc,
-  GenomicRanges,
+  coloc, 
   AnnotationDbi,
   EnsDb.Hsapiens.v75, 
   echotabix,
   echoconda,
-  echodata,
-  orthogene
+  echodata
 Suggests:
   markdown,
   rmarkdown,
+  methods,
   pbmcapply,
   devtools,
-  badger,
-  BSgenome,
-  supraHex,
-  dnet,
-  SNPlocs.Hsapiens.dbSNP144.GRCh37,
-  SNPlocs.Hsapiens.dbSNP144.GRCh38
+  badger, 
+  BiocStyle,
+  testthat (>= 3.0.0), 
+  echoLD,
+  echolocatoR
 Remotes:
   github::RajLabMSSM/echotabix,
   github::RajLabMSSM/echoconda,
-  github::RajLabMSSM/echodata
+  github::RajLabMSSM/echodata,
+  github::RajLabMSSM/echoLD,
+  github::RajLabMSSM/echolocatoR
 RoxygenNote: 7.1.2
+VignetteBuilder: knitr
+Config/testthat/edition: 3

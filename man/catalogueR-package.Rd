@@ -4,7 +4,8 @@
 \name{catalogueR-package}
 \alias{catalogueR}
 \alias{catalogueR-package}
-\title{Rapid querying, colocalization, and plotting of summary stats from the eQTL Catalogue}
+\title{Rapid querying, colocalization, and plotting of summary stats
+from the eQTL Catalogue.}
 \description{
 The functions in \strong{catalogueR} are partly derived from the following
 \href{http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html}{eQTL Catalogue tutorial}.
@@ -18,11 +19,11 @@ Additional eQTL Catalogue Resources:
 \details{
 \strong{Notes on parallelization}:
 There's multiple levels to parallelize on.
-You can only chooose one level at a time:
+You can only choose one level at a time:
 \describe{
-\item{\code{multithread_qtl=T}}{Across QTL datasets}
-\item{\code{multithread_loci=T}}{Across loci}
-\item{\code{multithread_tabix=T}}{Within tabix files}
+\item{\code{multithread_qtl=TRUE}}{Across QTL datasets}
+\item{\code{multithread_loci=TRUE}}{Across loci}
+\item{\code{multithread_tabix=TRUE}}{Within tabix files}
 }
 
 You can also get a speedup by using tabix instead of the rest API

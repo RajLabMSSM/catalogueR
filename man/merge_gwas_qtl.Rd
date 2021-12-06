@@ -2,7 +2,7 @@
 % Please edit documentation in R/merge_gwas_qtl.R
 \name{merge_gwas_qtl}
 \alias{merge_gwas_qtl}
-\title{Merge GWAS data (query) and QTL data (results)}
+\title{Merge GWAS with QTL}
 \usage{
 merge_gwas_qtl(gwas_data, qtl.subset, verbose = TRUE)
 }
@@ -10,13 +10,10 @@ merge_gwas_qtl(gwas_data, qtl.subset, verbose = TRUE)
 \item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
 \description{
-Merge GWAS data (query) and QTL data (results)
+Merge GWAS data (query) and QTL data (results).
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
-\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
-\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},
@@ -27,3 +24,4 @@ Other eQTL Catalogue:
 \code{\link{meta}}
 }
 \concept{eQTL Catalogue}
+\keyword{internal}

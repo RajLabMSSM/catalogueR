@@ -1,10 +1,11 @@
 #' Paths to example summary stats
 #'
 #' Returns the paths to summary stats stored within \emph{catalogueR}.
-#' Each file is the output of a locus that has been fine-mapping
-#' using \emph{echolocatoR}.
+#' Each file is the output of a locus that has been fine-mapped
+#' using \link[echolocatoR]{finemap_loci}.
 #' Data originally comes from the Parkinson's disease GWAS
-#' by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv)}.
+#' by \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{
+#' Nalls et al., 2019 (The Lancet Neurology)}.
 #'
 #' \describe{
 #'   \item{SNP}{SNP RSID}
@@ -12,31 +13,43 @@
 #'   \item{POS}{Genomic positiion (in basepairs)}
 #'   ...
 #' }
-#' @param Rlib_path This function will automatically find your Rlib path,
-#' but you can override this by supplying it manually.
-#' @source \url{https://www.biorxiv.org/content/10.1101/388165v3}
+#' @param save_dir Folder to save example summary statistics in.
+#' @param verbose Print messages. 
+#' 
+#' @source \url{https://doi.org/10.1016/S1474-4422(19)30320-5}
 #' @family Nalls23andMe_2019
 #'
 #' @export
+#' @importFrom dplyr %>%
+#' @importFrom data.table fwrite
 #' @examples
-#' sumstats_paths <- example_sumstats_paths()
-example_sumstats_paths <- function(Rlib_path = NULL) {
-    if (is.null(Rlib_path)) {
-        cat_dir <- system.file("extdata/Nalls23andMe_2019", package = "catalogueR")
-    } else {
-        cat_dir <- file.path(Rlib_path, "catalogueR/extdata/Nalls23andMe_2019")
-    }
-    sumstats_paths <- list.files(cat_dir,
-        pattern = "*_subset.tsv.gz",
-        recursive = TRUE,
-        full.names = TRUE
+#' sumstats_paths <- catalogueR::example_sumstats_paths()
+example_sumstats_paths <- function(save_dir = file.path(
+                                       tempdir(),
+                                       "GWAS/Nalls2019"
+                                   ),
+                                   verbose = FALSE) {
+    ss <- list(
+        "BST1" = echodata::BST1,
+        "LRRK2" = echodata::LRRK2,
+        "MEX3C" = echodata::MEX3C
     )
-    locus_names <- unlist(lapply(
-        strsplit(basename(sumstats_paths), "_"),
-        function(x) {
-            x[1]
-        }
-    ))
-    names(sumstats_paths) <- locus_names
+    messager("Writing example summary statistics.", v = verbose)
+    sumstats_paths <- lapply(names(ss), function(locus,
+                                                 .verbose = verbose) {
+        out_path <- file.path(
+            save_dir, locus,
+            paste0(locus, "_Nalls23andMe_2019_subset.tsv.gz")
+        )
+        dir.create(dirname(out_path), showWarnings = FALSE, recursive = TRUE)
+        messager(locus, "==>", out_path, v = .verbose)
+        data.table::fwrite(
+            x = ss[[locus]],
+            file = out_path
+        )
+        return(out_path)
+    }) %>%
+        `names<-`(names(ss)) %>%
+        unlist()
     return(sumstats_paths)
 }

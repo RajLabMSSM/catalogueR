@@ -1,23 +1,28 @@
 #' Faceted Manhattan plots of QTL datasets
 #'
-#' Use the coloc results (coloc_QTLs) to determine which full summary stats (gwas.qtl_paths) to plot.
+#' Use the coloc results (\code{coloc_QTLs}) to determine which
+#' full summary statistics (\code{gwas.qtl_paths}) to plot.
+#' 
+#' @param plot_dat [Optional] Pre-computed plot data from
+#'  \link[catalogueR]{merge_colocalized_data}.
+#' @param y_facet_angle Angle of the y-axis facet labels.
+#' @param x_facet_angle Angle of the x-axis facet labels.
+#' @param show_plot Whether to print the plot.
+#' @inheritParams merge_colocalized_data
+#' 
 #' @family plots
+#' @export
+#' @importFrom patchwork plot_layout
 #' @examples
-#' data("coloc_QTLs")
-#' gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
-#' gg_gwas.qtl <- multi_locus_plot(gwas.qtl_paths = gwas.qtl_paths, coloc_QTLs = coloc_QTLs, coloc_thresh = .5, qtl_thresh = .005, remove_extra_panes = FALSE)
-#' \dontrun{
-#' data("coloc_QTLs_full")
-#' library(ggplot2)
-#' library(dplyr)
-#' root_dir <- "/pd-omics/brian/catalogueR_queries/Nalls23andMe_2019"
-#' gwas.qtl_paths <- list.files(root_dir, pattern = "*.tsv.gz", recursive = TRUE, full.names = TRUE)
-#' gwas.qtl_paths <- gsub("___", "__", gwas.qtl_paths)
-#' colnames(coloc_QTLs_full) <- gsub("\\.df1", ".QTL", colnames(coloc_QTLs_full))
-#' colnames(coloc_QTLs_full) <- gsub("\\.df2", ".GWAS", colnames(coloc_QTLs_full))
-#' plot_dat <- gather_colocalized_data(gwas.qtl_paths = gwas.qtl_paths, coloc_QTLs = coloc_QTLs_full, qtl_thresh = NULL, coloc_thresh = .95)
-#' gg_gwas.qtl <- multi_locus_plot(plot_dat = plot_dat)
-#' }
+#' coloc_QTLs <- catalogueR::get_coloc_QTLs()
+#' gwas.qtl_paths <- catalogueR::example_eQTL_Catalogue_query_paths()
+#' gg_gwas.qtl <- catalogueR::multi_locus_plot(
+#'     gwas.qtl_paths = gwas.qtl_paths,
+#'     coloc_QTLs = coloc_QTLs,
+#'     coloc_thresh = .5,
+#'     qtl_thresh = .005,
+#'     remove_extra_panes = FALSE
+#' )  
 multi_locus_plot <- function(gwas.qtl_paths = NULL,
                              coloc_QTLs = NULL,
                              plot_dat = NULL,
@@ -29,8 +34,11 @@ multi_locus_plot <- function(gwas.qtl_paths = NULL,
                              x_facet_angle = 270,
                              show_plot = TRUE,
                              verbose = TRUE) {
+    requireNamespace("ggplot2")
+    
+    MB <- P <- Locus.GWAS <- PP.H4 <- pvalue.QTL <- NULL;
     if (is.null(plot_dat)) {
-        plot_dat <- gather_colocalized_data(
+        plot_dat <- merge_colocalized_data(
             gwas.qtl_paths = gwas.qtl_paths,
             coloc_QTLs = coloc_QTLs,
             qtl_thresh = qtl_thresh,
@@ -42,39 +50,55 @@ multi_locus_plot <- function(gwas.qtl_paths = NULL,
     }
     # Plot
     alpha <- .2
-    gg.gwas <- ggplot(plot_dat, aes(x = MB, y = -log10(P), color = Locus.GWAS)) +
-        geom_hline(yintercept = -log10(5e-8), alpha = .5, linetype = "dashed", size = .5) +
-        geom_point(size = .5, alpha = alpha) +
-        labs(x = NULL) +
-        facet_grid(
-            facets = GWAS.label ~ Locus.GWAS + gene.QTL, # gsub(paste0("__",gene.QTL)[1],"",Locus__eGene) ,
+    gg.gwas <- ggplot2::ggplot(plot_dat, 
+                               ggplot2::aes(x = MB, y = -log10(P),
+                                            color = Locus.GWAS)) +
+        ggplot2::geom_hline(yintercept = -log10(5e-8), alpha = .5, 
+                            linetype = "dashed", size = .5) +
+        ggplot2::geom_point(size = .5, alpha = alpha) +
+        ggplot2::labs(x = NULL) +
+        ggplot2::facet_grid(
+            facets = GWAS.label ~ Locus.GWAS + gene.QTL,  
             scales = "free"
         ) +
-        theme_bw() +
-        theme(
-            axis.text.x = element_blank(),
-            strip.text.y = element_text(angle = y_facet_angle),
-            strip.text.x = element_text(angle = x_facet_angle),
-            panel.grid.minor = element_blank()
+        ggplot2::theme_bw() +
+        ggplot2::theme(
+            axis.text.x = ggplot2::element_blank(),
+            strip.text.y = ggplot2::element_text(angle = y_facet_angle),
+            strip.text.x = ggplot2::element_text(angle = x_facet_angle),
+            panel.grid.minor = ggplot2::element_blank()
         )
 
-    ann_text <- subset(plot_dat, !is.na(PP.H4))[, c("Locus.GWAS", "qtl_id", "gene.QTL", "PP.H4")] %>% unique()
-    gg.qtls <- ggplot(plot_dat, aes(x = MB, y = -log10(pvalue.QTL))) +
-        geom_point(aes(color = PP.H4), alpha = alpha, size = .5, show.legend = TRUE) +
-        scale_color_gradient(low = "blue", high = "red", na.value = "grey") +
-        geom_hline(yintercept = -log10(qtl_thresh), alpha = .5, linetype = "dashed", size = .5) +
-        facet_grid(
-            facets = gsub("\\.", "\n", qtl_id) ~ Locus.GWAS + gene.QTL, # gsub(paste0(Locus.GWAS,"__")[1],"",Locus__eGene),
+    ann_text <- subset(plot_dat, 
+                       !is.na(PP.H4))[, c("Locus.GWAS", "qtl_id", 
+                                          "gene.QTL", "PP.H4")] %>% unique()
+    gg.qtls <- ggplot2::ggplot(plot_dat, 
+                               ggplot2::aes(x = MB, y = -log10(pvalue.QTL))) +
+        ggplot2::geom_point(ggplot2::aes(color = PP.H4),
+                            alpha = alpha, size = .5,
+                   show.legend = TRUE) +
+        ggplot2::scale_color_gradient(low = "blue", high = "red"
+                                      , na.value = "grey") +
+        ggplot2::geom_hline(yintercept = -log10(qtl_thresh), alpha = .5,
+                   linetype = "dashed", size = .5) +
+        ggplot2::facet_grid(
+            facets = gsub("\\.", "\n", qtl_id) ~ Locus.GWAS + gene.QTL, 
             scales = "free"
         ) +
-        geom_text(data = ann_text, aes(x = Inf, y = Inf, label = paste0(round(PP.H4, 2))), hjust = 1.2, vjust = 1.5, alpha = .7) +
-        theme_bw() +
-        theme(
-            strip.background.x = element_rect(fill = "transparent", colour = "transparent"),
-            strip.text.x = element_text(angle = x_facet_angle, size = 0, color = "transparent"),
-            strip.text.y = element_text(angle = y_facet_angle),
-            axis.text.x = element_blank(),
-            panel.grid.minor = element_blank()
+        ggplot2::geom_text(data = ann_text, 
+                  ggplot2::aes(x = Inf, y = Inf, 
+                               label = paste0(round(PP.H4, 2))),
+                  hjust = 1.2, vjust = 1.5, alpha = .7) +
+        ggplot2:: theme_bw() +
+        ggplot2:: theme(
+            strip.background.x = ggplot2::element_rect(fill = "transparent", 
+                                                       colour = "transparent"),
+            strip.text.x = ggplot2::element_text(angle = x_facet_angle, 
+                                                 size = 0, 
+                                                 color = "transparent"),
+            strip.text.y = ggplot2::element_text(angle = y_facet_angle),
+            axis.text.x = ggplot2::element_blank(),
+            panel.grid.minor = ggplot2::element_blank()
         )
     # gg.qtls
 
@@ -86,14 +110,7 @@ multi_locus_plot <- function(gwas.qtl_paths = NULL,
     return(gg_gwas.qtl)
 }
 
-
-
-
-
-
-
-
-
+ 
 
 # merged_plot <- function(GWAS.QTL){
 #   # Group and melt

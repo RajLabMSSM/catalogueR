@@ -2,17 +2,17 @@
 #'
 #' 2.2 Method 2: RESTful API
 #' Slower than tabix (unless you're only querying several specific SNPs).
-#' @source 
+#' @source
 #' \code{
 #' data("meta")
-#' gwas_data <- echodata::BST1 
+#' gwas_data <- echodata::BST1
 #' qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1],
 #'                             gwas_data = gwas_data)
 #' }
 #' @inheritParams eQTL_Catalogue.query
 #' @family eQTL Catalogue
 #' @keywords internal
-#' @importFrom data.table data.table 
+#' @importFrom data.table data.table
 fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
                           quant_method = "ge",
                           infer_region = TRUE,
@@ -28,8 +28,8 @@ fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
     if (infer_region & !is.null(gwas_data)) {
         messager("+ Inferring coordinates from gwas_data", v = verbose)
         chrom <- gsub("chr", "", unique(gwas_data$CHR)[1])
-        bp_lower <- min(gwas_data$POS)
-        bp_upper <- max(gwas_data$POS)
+        bp_lower <- min(gwas_data$POS, na.rm = TRUE)
+        bp_upper <- max(gwas_data$POS, na.rm = TRUE)
     }
     meta.sub <- choose_quant_method(
         ui = unique_id,
@@ -59,13 +59,18 @@ fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
 
     message("+ eQTL_Catalogue:: Fetching: ")
     message(link)
-    qtl.subset <- fetch_from_eqtl_cat_API(link = link, is_gwas = is_gwas)
+    qtl.subset <- fetch_from_eqtl_cat_API(link = link, 
+                                          is_gwas = is_gwas)
     colnames(qtl.subset) <- paste0(colnames(qtl.subset), ".QTL")
     restAPI.end <- Sys.time()
-    messager("+ eQTL_Catalogue::", nrow(qtl.subset), 
-             "SNPs returned in", 
-             formatC(round(as.numeric(restAPI.end - restAPI.start), 1),
-                     big.mark = ","), 
-             "seconds.", v = verbose)
+    messager("+ eQTL_Catalogue::", 
+             formatC(nrow(qtl.subset), big.mark = ","),
+        "SNPs returned in",
+        formatC(round(as.numeric(restAPI.end - restAPI.start), 1),
+            big.mark = ","
+        ),
+        "seconds.",
+        v = verbose
+    )
     return(data.table::data.table(qtl.subset))
 }

@@ -1,5 +1,6 @@
-messager <- function(..., v = T) {
+messager <- function(..., v = TRUE) {
     if (v) {
-        message(paste(...))
+        msg <- paste(...)
+        message(msg)
     }
 }

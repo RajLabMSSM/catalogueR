@@ -1,8 +1,8 @@
 #' Read a tabix file subset
-#' 
-#' Query a subset of a (remote) tabix file and direclty import it with 
+#'
+#' Query a subset of a (remote) tabix file and direclty import it with
 #' \link[data.table]{fread}.
-#' 
+#'
 #' @keywords internal
 #' @importFrom echoconda find_package
 #' @importFrom data.table fread
@@ -30,7 +30,7 @@ tabix_reader <- function(tabix_path,
     )
     messager(tabix_cmd, v = verbose)
 
-    # Read directly into R rather than saving tabix subset 
+    # Read directly into R rather than saving tabix subset
     qtl.subset <- data.table::fread(
         cmd = tabix_cmd,
         nThread = nThread,

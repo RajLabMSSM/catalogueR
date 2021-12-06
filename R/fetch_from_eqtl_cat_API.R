@@ -27,12 +27,14 @@ fetch_from_eqtl_cat_API <- function(link,
     merged_summaries <- data.frame()
     while (!is.null(link)) {
         # print(paste0("Fetching page #",page))
-        api_raw_data <- jsonlite::fromJSON(link, simplifyDataFrame = TRUE, flatten = TRUE)
+        api_raw_data <- jsonlite::fromJSON(link, simplifyDataFrame = TRUE,
+                                           flatten = TRUE)
         link <- api_raw_data$`_links`$`next`$href
         if (rlang::is_empty(api_raw_data$`_embedded`$associations)) {
             return(merged_summaries)
         }
-        eqtl_raw_list_data <- do.call(rbind, lapply(api_raw_data$`_embedded`$associations, rbind))
+        eqtl_raw_list_data <- do.call(
+            rbind, lapply(api_raw_data$`_embedded`$associations, rbind))
         eqtl_data <- nullToNA(eqtl_raw_list_data) %>%
             as.matrix() %>%
             dplyr::as_tibble()

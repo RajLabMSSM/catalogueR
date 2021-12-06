@@ -6,17 +6,24 @@
 \usage{
 ensembl_to_hgnc(ensembl_ids, unique_only = TRUE, verbose = TRUE)
 }
+\arguments{
+\item{ensembl_ids}{Character vector of Ensembl gene IDs.}
+
+\item{unique_only}{Only query unique entries \code{ensembl_ids}.}
+
+\item{verbose}{Print messages.}
+}
 \description{
-Convert ENSEMBL IDs to HGNC gene symbols
+Convert ENSEMBL IDs to HGNC gene symbols using the 
+\link[EnsDb.Hsapiens.v75]{EnsDb.Hsapiens.v75} Bioconductor package.
 }
 \examples{
 ensembl_ids <- c("ENSG00000176697", "ENSG00000128573", "ENSG00000109743")
-gene_symbols <- ensembl_to_hgnc(ensembl_ids = ensembl_ids)
+gene_symbols <- catalogueR::ensembl_to_hgnc(ensembl_ids = ensembl_ids)
 }
 \seealso{
 Other utils: 
-\code{\link{gather_files}()},
 \code{\link{hgnc_to_ensembl}()},
-\code{\link{liftover}()}
+\code{\link{merge_files}()}
 }
 \concept{utils}

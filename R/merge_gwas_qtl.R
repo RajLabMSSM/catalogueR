@@ -1,10 +1,13 @@
-#' Merge GWAS data (query) and QTL data (results)
-#'
+#' Merge GWAS with QTL
+#' 
+#' Merge GWAS data (query) and QTL data (results).
 #' @family eQTL Catalogue
+#' @keywords internal
 #' @inheritParams eQTL_Catalogue.query
 merge_gwas_qtl <- function(gwas_data,
                            qtl.subset,
                            verbose = TRUE) {
+    A1 <- ref.QTL <- alt.QTL <- NULL;
     messager("++ Merging GWAS data and QTL query results.", v = verbose)
     gwas.qtl <- tryCatch(expr = {
         # Merging and allele flipping

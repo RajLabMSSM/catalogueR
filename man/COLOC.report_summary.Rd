@@ -4,17 +4,16 @@
 \alias{COLOC.report_summary}
 \title{Report coloc results}
 \usage{
-COLOC.report_summary(coloc.res, PP_threshold = 0.8)
+COLOC.report_summary(coloc.res, coloc_thresh = 0.8)
 }
 \description{
 Report coloc results
 }
 \seealso{
 Other coloc: 
-\code{\link{coloc_QTLs_full}},
-\code{\link{coloc_QTLs}},
-\code{\link{gather_colocalized_data}()},
+\code{\link{get_coloc_QTLs}()},
 \code{\link{get_colocs}()},
+\code{\link{merge_colocalized_data}()},
 \code{\link{plot_coloc_summary}()},
 \code{\link{retrieve_sumstats_info}()},
 \code{\link{run_coloc}()}

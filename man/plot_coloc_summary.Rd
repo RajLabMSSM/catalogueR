@@ -6,26 +6,41 @@
 \usage{
 plot_coloc_summary(
   coloc_QTLs,
-  PP_thresh = 0.8,
-  label_snp_groups = F,
-  save_dir = ".",
+  coloc_thresh = 0.8,
+  label_snp_groups = FALSE,
+  save_dir = tempdir(),
   show_plot = TRUE
 )
 }
+\arguments{
+\item{coloc_QTLs}{Colocalization results from \link[catalogueR]{run_coloc}.}
+
+\item{coloc_thresh}{Colocalization Posterior Probability threshold,
+ using the formula:
+\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.}
+
+\item{label_snp_groups}{Whether to label SNP groups.}
+
+\item{save_dir}{Directory to save plot in.}
+
+\item{show_plot}{Whether to print the plot.}
+}
 \description{
-Plots the output from \code{catalogueR::run_coloc}.
+Plots the output from \link[catalogueR]{run_coloc}.
 }
 \examples{
-data("coloc_QTLs")
-gg_coloc <- plot_coloc_summary(coloc_QTLs = coloc_QTLs, PP_thresh = .99, label_snp_groups = FALSE)
+coloc_QTLs <- catalogueR::get_coloc_QTLs()
+gg_coloc <- catalogueR::plot_coloc_summary(
+    coloc_QTLs = coloc_QTLs,
+    coloc_thresh = .5
+)
 }
 \seealso{
 Other coloc: 
 \code{\link{COLOC.report_summary}()},
-\code{\link{coloc_QTLs_full}},
-\code{\link{coloc_QTLs}},
-\code{\link{gather_colocalized_data}()},
+\code{\link{get_coloc_QTLs}()},
 \code{\link{get_colocs}()},
+\code{\link{merge_colocalized_data}()},
 \code{\link{retrieve_sumstats_info}()},
 \code{\link{run_coloc}()}
 }

@@ -1,25 +1,33 @@
-#' 2. Query eQTL Catalogue datasets by region
+#' Query eQTL Catalogue 
 #'
-#' Choose between tabix (faster for larger queries)
-#' or RESTful API (faster for small queries).
-#' @inheritParams eQTL_Catalogue.query
+#' Query eQTL Catalogue datasets with multiple methods options.
+#' 
+#' @param unique_id Unique eQTL Catalogue ID assigned in metadata
+#'  ("unique_id" column in \code{data(meta)}). 
+#' @param gwas_data \link[data.table]{data.table} of GWAS summary statistics.
+#' @param add_qtl_id Add "qtl_id" (i.e. "unique_id") column to the query result.
+#' @param convert_genes Convert Ensembl IDs to HGNC symbols.
+#' @param chrom Chromosome of the query window.
 #' @param bp_lower Minimum basepair position of the query window.
 #' @param bp_upper Maxmimum basepair position of the query window.
+#' @inheritParams eQTL_Catalogue.query
+#' 
 #' @family eQTL Catalogue
 #' @export
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table :=
 #' @examples
 #' data("meta")
-#' gwas_data <- echodata::BST1 
-#' gwas.qtl <- eQTL_Catalogue.fetch(unique_id = meta$unique_id[1],
-#'                                  gwas_data = gwas_data)
+#' GWAS.QTL_manual <- catalogueR:: eQTL_Catalogue.fetch(
+#'     unique_id = meta$unique_id[1],  
+#'     chrom = 8, 
+#'     bp_lower = 21527069-500,
+#'     bp_upper = 21527069+500)
 eQTL_Catalogue.fetch <- function(unique_id,
+                                 method = c("REST","tabix","echotabix"),
                                  quant_method = "ge",
                                  infer_region = TRUE,
-                                 gwas_data = NULL,
-                                 is_gwas = FALSE,
-                                 nThread = 1,
-                                 use_tabix = TRUE,
+                                 gwas_data = NULL, 
+                                 nThread = 1, 
                                  chrom = NULL,
                                  bp_lower = NULL,
                                  bp_upper = NULL,
@@ -28,10 +36,15 @@ eQTL_Catalogue.fetch <- function(unique_id,
                                  convert_genes = TRUE,
                                  conda_env = "echoR",
                                  verbose = TRUE) {
+    
+    method <- tolower(method[1]) 
+    use_tabix <- method %in% c("tabix","echotabix")
     if (use_tabix) {
-        # Tabix is about ~17x faster than the REST API.
+        ## Tabix is about ~17x faster than the REST API,
+        ## but gets blocked often by EBI server which thinks its an attack.
         gwas.qtl <- fetch_tabix(
             unique_id = unique_id,
+            method = method,
             quant_method = quant_method,
             infer_region = TRUE,
             gwas_data = gwas_data,
@@ -56,19 +69,22 @@ eQTL_Catalogue.fetch <- function(unique_id,
             verbose = verbose
         )
     }
-    # Post=processing
+    #### Post=processing ####
     if (add_qtl_id) {
-        gwas.qtl <- data.table::data.table(qtl_id = unique_id, gwas.qtl)
+        gwas.qtl <- data.table::data.table(
+            qtl_id = unique_id,
+            gwas.qtl
+        )
     }
-    # Convert genes
-    if (convert_genes) {
-        try({
-            gene_dict <- ensembl_to_hgnc(
-                ensembl_ids = gwas.qtl$gene_id.QTL,
-                verbose = verbose
-            )
-            gwas.qtl$gene.QTL <- gene_dict[gwas.qtl$molecular_trait_object_id.QTL]
-        })
+    #### Convert genes ####
+    if (convert_genes) { 
+        gene_dict <- ensembl_to_hgnc(
+            ensembl_ids = gwas.qtl$gene_id.QTL,
+            verbose = verbose
+        ) 
+        gwas.qtl$gene.QTL <- gene_dict[
+            gwas.qtl$gene_id.QTL
+        ]  
     }
     return(gwas.qtl)
 }

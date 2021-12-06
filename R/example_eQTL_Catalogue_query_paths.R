@@ -1,35 +1,66 @@
 #' Paths to example eQTL Catalogue query results
 #'
-#' Returns the paths to eQTL Catalogue query results stored within \emph{catalogueR}.
-#' Each file is a merged data.table of the GWAS summary stats used to make the query,
-#' and the eQTL Catalogue query results (which can contain data for multiple eGenes).
+#' Returns the paths to eQTL Catalogue query results stored within
+#' \pkg{catalogueR}. Each file is a merged \link[data.table]{data.table}
+#'  of the GWAS summary stats used to make
+#' the query, and the eQTL Catalogue query results
+#' (which can contain data for multiple eGenes).
 #'
 #' GWAS data originally comes from the Parkinson's disease GWAS
-#' by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv)}.
-#'
-#' \describe{
-#'   \item{SNP}{SNP RSID}
-#'   \item{CHR}{Chromosome}
-#'   \item{POS}{Genomic positiion (in basepairs)}
-#'   ...
-#' }
-#' @param Rlib_path This function will automatically find your Rlib path,
-#' but you can override this by supplying it manually.
-#' @source \url{https://www.biorxiv.org/content/10.1101/388165v3}
+#' by \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{
+#' Nalls et al., 2019 (The Lancet Neurology)}.
+#' 
+#' @param fnames Character vector of file names to download.
+#' @inheritParams get_data
+#' 
+#' @source \url{https://doi.org/10.1016/S1474-4422(19)30320-5} 
 #' @family Nalls23andMe_2019
-#' These example files can be used
+#' @returns Path to merged example GWAS-QTL summary statistics.
+#' @source 
+#' \code{
+#' paths <- catalogueR:::example_eQTL_Catalogue_query_paths_local()
+#' fnames <- lapply(paths, function(x){
+#'     piggyback::pb_upload(file = x, 
+#'                          repo = "RajLabMSSM/catalogueR")
+#'     return(basename(x))
+#' })
+#' }
+#' @export
+#' @importFrom piggyback pb_list
 #' @examples
-#' gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
-example_eQTL_Catalogue_query_paths <- function(Rlib_path = NULL) {
-    if (is.null(Rlib_path)) {
-        cat_dir <- system.file("extdata/eQTL_Catalogue_queries", package = "catalogueR")
+#' gwas.qtl_paths <- catalogueR::example_eQTL_Catalogue_query_paths()
+example_eQTL_Catalogue_query_paths <- function(
+    storage_dir = tempdir(),
+    fnames = c("BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",
+              "BST1__Alasoo_2018.macrophage_IFNg.tsv.gz",
+              "BST1__Alasoo_2018.macrophage_naive.tsv.gz",          
+              "BST1__Alasoo_2018.macrophage_Salmonella.tsv.gz",     
+              "LRRK2__Alasoo_2018.macrophage_IFNg.tsv.gz",          
+              "LRRK2__Alasoo_2018.macrophage_naive.tsv.gz",         
+              "MEX3C__Alasoo_2018.macrophage_IFNg.tsv.gz",          
+              "MEX3C__Alasoo_2018.macrophage_naive.tsv.gz")) {
+    
+    files <- piggyback::pb_list(repo = "RajLabMSSM/catalogueR")
+    tsv.gz <- grep("\\.tsv.gz",files$file_name,value = TRUE)
+    fnames_select <- fnames[fnames %in% tsv.gz]
+    fnames_drop <- fnames[!fnames %in% tsv.gz]
+    if(length(fnames_drop)>0){
+        messager(length(fnames_drop),
+                 "file(s) could not be found and will be ignored:\n",
+                 paste("-",fnames_drop,collapse = "\n"))
+    } 
+    if(length(fnames_select)>0){
+        messager(length(fnames_select),"file(s) will be downloaded.")
+        out_paths <- lapply(fnames_select, function(x){
+            group <- parse_gwas.qtl_path(gwas.qtl_path = x)
+            final_dir <- file.path(storage_dir,group) 
+            get_data(fname = x, 
+                     storage_dir = final_dir)
+        }) 
+        out_paths <- unlist(out_paths)
+        names(out_paths) <- gsub("\\.tsv\\.gz","",basename(out_paths))
+        return(out_paths)
     } else {
-        cat_dir <- file.path(Rlib_path, "catalogueR/extdata/eQTL_Catalogue_queries")
-    }
-    sumstats_paths <- list.files(cat_dir, pattern = "*.tsv.gz", recursive = TRUE, full.names = TRUE)
-    locus_names <- unlist(lapply(strsplit(basename(sumstats_paths), "_"), function(x) {
-        x[1]
-    }))
-    names(sumstats_paths) <- locus_names
-    return(sumstats_paths)
+        stop("0 files selected.")
+    } 
 }

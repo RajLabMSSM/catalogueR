@@ -6,7 +6,7 @@
 \source{
 \code{
 data("meta")
-gwas_data <- echodata::BST1 
+gwas_data <- echodata::BST1
 qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1],
                             gwas_data = gwas_data)
 }
@@ -30,16 +30,20 @@ fetch_restAPI(
  eQTL data.
 For each dataset, the following kinds of QTLs can be queried:
 \describe{
-\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) 
-or \code{quant_method="microarray"}, depending on the dataset. 
+\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default})
+or \code{quant_method="microarray"}, depending on the dataset.
 \strong{catalogueR} will automatically select whichever option is available.}
-\item{exon expression QTL}{\emph{*under construction*}  
+\item{exon expression QTL}{\emph{*under construction*}
 \code{quant_method="ex"}}
-\item{transcript usage QTL}{\emph{*under construction*}  
+\item{transcript usage QTL}{\emph{*under construction*}
 \code{quant_method="tx"}}
 \item{promoter, splice junction and 3' end usage QTL}{
 \emph{*under construction*}  \code{quant_method="txrev"}}
 }}
+
+\item{infer_region}{Infer the range of coordinates to query based on
+the min/max positions in each of the summary statistics files
+ (\code{sumstats_paths}).}
 
 \item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
@@ -49,9 +53,6 @@ Slower than tabix (unless you're only querying several specific SNPs).
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
-\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
-\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},

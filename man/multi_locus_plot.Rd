@@ -18,24 +18,46 @@ multi_locus_plot(
   verbose = TRUE
 )
 }
+\arguments{
+\item{gwas.qtl_paths}{Query results paths from 
+\link[catalogueR]{eQTL_Catalogue.query}.}
+
+\item{coloc_QTLs}{Colocalization results from \link[catalogueR]{run_coloc}.}
+
+\item{plot_dat}{[Optional] Pre-computed plot data from
+\link[catalogueR]{merge_colocalized_data}.}
+
+\item{qtl_thresh}{QTL uncorrected p-value ("pvalues.QTL") threshold.}
+
+\item{coloc_thresh}{Colocalization Posterior Probability threshold,
+ using the formula:
+\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.}
+
+\item{gwas_label}{Label for the GWAS subplot.}
+
+\item{remove_extra_panes}{Remove SNPs from non-significant panes.}
+
+\item{y_facet_angle}{Angle of the y-axis facet labels.}
+
+\item{x_facet_angle}{Angle of the x-axis facet labels.}
+
+\item{show_plot}{Whether to print the plot.}
+
+\item{verbose}{Print messages.}
+}
 \description{
-Use the coloc results (coloc_QTLs) to determine which full summary stats (gwas.qtl_paths) to plot.
+Use the coloc results (\code{coloc_QTLs}) to determine which
+full summary statistics (\code{gwas.qtl_paths}) to plot.
 }
 \examples{
-data("coloc_QTLs")
-gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
-gg_gwas.qtl <- multi_locus_plot(gwas.qtl_paths = gwas.qtl_paths, coloc_QTLs = coloc_QTLs, coloc_thresh = .5, qtl_thresh = .005, remove_extra_panes = FALSE)
-\dontrun{
-data("coloc_QTLs_full")
-library(ggplot2)
-library(dplyr)
-root_dir <- "/pd-omics/brian/catalogueR_queries/Nalls23andMe_2019"
-gwas.qtl_paths <- list.files(root_dir, pattern = "*.tsv.gz", recursive = TRUE, full.names = TRUE)
-gwas.qtl_paths <- gsub("___", "__", gwas.qtl_paths)
-colnames(coloc_QTLs_full) <- gsub("\\\\.df1", ".QTL", colnames(coloc_QTLs_full))
-colnames(coloc_QTLs_full) <- gsub("\\\\.df2", ".GWAS", colnames(coloc_QTLs_full))
-plot_dat <- gather_colocalized_data(gwas.qtl_paths = gwas.qtl_paths, coloc_QTLs = coloc_QTLs_full, qtl_thresh = NULL, coloc_thresh = .95)
-gg_gwas.qtl <- multi_locus_plot(plot_dat = plot_dat)
-}
+coloc_QTLs <- catalogueR::get_coloc_QTLs()
+gwas.qtl_paths <- catalogueR::example_eQTL_Catalogue_query_paths()
+gg_gwas.qtl <- catalogueR::multi_locus_plot(
+    gwas.qtl_paths = gwas.qtl_paths,
+    coloc_QTLs = coloc_QTLs,
+    coloc_thresh = .5,
+    qtl_thresh = .005,
+    remove_extra_panes = FALSE
+)  
 }
 \concept{plots}

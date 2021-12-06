@@ -2,7 +2,13 @@
 % Please edit documentation in R/find_consensus_SNPs.R
 \name{find_consensus_SNPs}
 \alias{find_consensus_SNPs}
-\title{Find Consensus SNPs in \emph{echolocatoR} output}
+\title{Find Consensus SNPs}
+\source{
+\code{
+finemap_dat <- echodata::BST1
+BST1 <- catalogueR:::find_consensus_SNPs(finemap_dat = finemap_dat)
+}
+}
 \usage{
 find_consensus_SNPs(
   finemap_dat,
@@ -14,10 +20,7 @@ find_consensus_SNPs(
 )
 }
 \description{
-Find Consensus SNPs in \emph{echolocatoR} output
-}
-\examples{
-finemap_dat <- echodata::BST1 
-BST1 <- find_consensus_SNPs(finemap_dat = finemap_dat)
+Find Consensus SNPs in \link[echolocatoR]{finemap_loci} output.
 }
 \concept{echolocatoR}
+\keyword{internal}

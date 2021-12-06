@@ -6,23 +6,40 @@
 \usage{
 eQTL_Catalogue.search_metadata(qtl_search = NULL, verbose = TRUE)
 }
+\arguments{
+\item{qtl_search}{This function will automatically search for any datasets
+that match your criterion.
+For example, if you search "Alasoo_2018", it will query the datasets:
+\itemize{
+\item{Alasoo_2018.macrophage_naive}
+\item{Alasoo_2018.macrophage_Salmonella}
+\item{Alasoo_2018.macrophage_IFNg+Salmonella}
+}
+You can be more specific about which datasets you want to include,
+for example by searching: "Alasoo_2018.macrophage_IFNg".
+You can even search by tissue or condition type
+(e.g. \code{c("blood","brain")})
+and any QTL datasets containing those substrings (case-insensitive)
+in their name or metadata will be queried too.}
+
+\item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
+}
 \description{
-Searches through multiple relevant metadata columns to find 
+Searches through multiple relevant metadata columns to find
 eQTL Catalogue datasets
 that match at least one of your substrings in a list.
 All searches are case-insensitive.
 If \code{qtl_search=NULL}, will return all available datasets.
 }
 \examples{
-qtl_datasets <- eQTL_Catalogue.search_metadata(qtl_search = c("Alasoo_2018",
-                                                              "monocyte"))
+qtl_datasets <- eQTL_Catalogue.search_metadata(qtl_search = c(
+    "Alasoo_2018",
+    "monocyte"
+))
 qtl_datasets.brain <- eQTL_Catalogue.search_metadata(qtl_search = "brain")
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
-\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
-\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},

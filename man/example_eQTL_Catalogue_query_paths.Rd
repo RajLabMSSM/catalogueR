@@ -4,33 +4,55 @@
 \alias{example_eQTL_Catalogue_query_paths}
 \title{Paths to example eQTL Catalogue query results}
 \source{
-\url{https://www.biorxiv.org/content/10.1101/388165v3}
+\url{https://doi.org/10.1016/S1474-4422(19)30320-5}
+
+\code{
+paths <- catalogueR:::example_eQTL_Catalogue_query_paths_local()
+fnames <- lapply(paths, function(x){
+    piggyback::pb_upload(file = x, 
+                         repo = "RajLabMSSM/catalogueR")
+    return(basename(x))
+})
+}
 }
 \usage{
-example_eQTL_Catalogue_query_paths(Rlib_path = NULL)
+example_eQTL_Catalogue_query_paths(
+  storage_dir = tempdir(),
+  fnames = c("BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",
+    "BST1__Alasoo_2018.macrophage_IFNg.tsv.gz",
+    "BST1__Alasoo_2018.macrophage_naive.tsv.gz",
+    "BST1__Alasoo_2018.macrophage_Salmonella.tsv.gz",
+    "LRRK2__Alasoo_2018.macrophage_IFNg.tsv.gz",
+    "LRRK2__Alasoo_2018.macrophage_naive.tsv.gz",
+    "MEX3C__Alasoo_2018.macrophage_IFNg.tsv.gz",
+    "MEX3C__Alasoo_2018.macrophage_naive.tsv.gz")
+)
 }
 \arguments{
-\item{Rlib_path}{This function will automatically find your Rlib path,
-but you can override this by supplying it manually.}
+\item{storage_dir}{Data storage directory.}
+
+\item{fnames}{Character vector of file names to download.}
+}
+\value{
+Path to merged example GWAS-QTL summary statistics.
 }
 \description{
-Returns the paths to eQTL Catalogue query results stored within \emph{catalogueR}.
-Each file is a merged data.table of the GWAS summary stats used to make the query,
-and the eQTL Catalogue query results (which can contain data for multiple eGenes).
+Returns the paths to eQTL Catalogue query results stored within
+\pkg{catalogueR}. Each file is a merged \link[data.table]{data.table}
+ of the GWAS summary stats used to make
+the query, and the eQTL Catalogue query results
+(which can contain data for multiple eGenes).
 }
 \details{
 GWAS data originally comes from the Parkinson's disease GWAS
-by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv)}.
-
-\describe{
-  \item{SNP}{SNP RSID}
-  \item{CHR}{Chromosome}
-  \item{POS}{Genomic positiion (in basepairs)}
-  ...
-}
+by \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{
+Nalls et al., 2019 (The Lancet Neurology)}.
 }
 \examples{
-gwas.qtl_paths <- example_eQTL_Catalogue_query_paths()
+gwas.qtl_paths <- catalogueR::example_eQTL_Catalogue_query_paths()
 }
-\concept{Nalls23andMe_2019
-These example files can be used}
+\seealso{
+Other Nalls23andMe_2019: 
+\code{\link{example_sumstats_paths}()}
+}
+\concept{Nalls23andMe_2019}

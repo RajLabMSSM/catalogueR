@@ -2,7 +2,13 @@
 % Please edit documentation in R/get_sample_size.R
 \name{get_sample_size}
 \alias{get_sample_size}
-\title{Infer (effective) sample size from summary stats}
+\title{Infer sample size}
+\source{
+\code{
+subset_DT <- echodata::BST1
+subset_DT <- catalogueR:::get_sample_size(subset_DT = subset_DT)
+}
+}
 \usage{
 get_sample_size(
   subset_DT,
@@ -12,11 +18,8 @@ get_sample_size(
 )
 }
 \description{
-Infer (effective) sample size from summary stats
-}
-\examples{
-subset_DT <- echodata::BST1 
-subset_DT <- get_sample_size(subset_DT = subset_DT)
+Detect or create column with (effective) sample size from 
+summary statistics data.
 }
 \concept{general}
 \keyword{internal}

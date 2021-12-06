@@ -13,7 +13,7 @@ tabix_reader(
 )
 }
 \description{
-Query a subset of a (remote) tabix file and direclty import it with 
+Query a subset of a (remote) tabix file and direclty import it with
 \link[data.table]{fread}.
 }
 \keyword{internal}

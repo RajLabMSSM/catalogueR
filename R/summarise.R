@@ -14,8 +14,8 @@
 #   # gwas.qtl_paths <- list.files("/pd-omics/brian/eQTL_Catalogue/Nalls23andMe_2019", full.names  = TRUE, recursive  = TRUE)
 #   # gwas.qtl_paths <- gwas.qtl_paths[1:10]
 #   PP.H4.thresh=.8
-#   coloc_QTLs_sig <- coloc_QTLs %>% dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=PP_thresh, PP.H4,NA),
-#                                                  PP.Hyp4= ifelse((PP.H3 + PP.H4 >= PP_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
+#   coloc_QTLs_sig <- coloc_QTLs %>% dplyr::mutate(PP.H4.thresh = ifelse(PP.H4>=coloc_thresh, PP.H4,NA),
+#                                                  PP.Hyp4= ifelse((PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4/PP.H3 >= 2), PP.H4,NA)) %>%
 #     subset(!is.na(PP.Hyp4))# %>%
 #   # subset(Locus.GWAS %in% c("BIN3","MED12L","LRRK2"))
 #   top_files <- file_names(topQTL = coloc_QTLs_sig,

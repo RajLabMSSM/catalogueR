@@ -10,7 +10,7 @@ An object of class \code{data.table} (inherits from \code{data.frame}) with 498 
 \source{
 \code{
 meta <- eQTL_Catalogue.list_datasets(force_new = TRUE)
-# Some paths in the metadata were originally wrong. 
+# Some paths in the metadata were originally wrong.
 # Has since been corrected by authors.
 # meta <- meta %>% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte",
 #                                               "Fairfax_2014",ftp_path))
@@ -26,9 +26,6 @@ and their associated systems/tissues/cell types.
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
-\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
-\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},

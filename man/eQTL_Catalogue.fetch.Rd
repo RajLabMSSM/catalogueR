@@ -2,16 +2,15 @@
 % Please edit documentation in R/eQTL_Catalogue.fetch.R
 \name{eQTL_Catalogue.fetch}
 \alias{eQTL_Catalogue.fetch}
-\title{2. Query eQTL Catalogue datasets by region}
+\title{Query eQTL Catalogue}
 \usage{
 eQTL_Catalogue.fetch(
   unique_id,
+  method = c("REST", "tabix", "echotabix"),
   quant_method = "ge",
   infer_region = TRUE,
   gwas_data = NULL,
-  is_gwas = FALSE,
   nThread = 1,
-  use_tabix = TRUE,
   chrom = NULL,
   bp_lower = NULL,
   bp_upper = NULL,
@@ -23,30 +22,50 @@ eQTL_Catalogue.fetch(
 )
 }
 \arguments{
+\item{unique_id}{Unique eQTL Catalogue ID assigned in metadata
+("unique_id" column in \code{data(meta)}).}
+
+\item{method}{Method for querying eQTL Catalogue:
+\itemize{
+\item{"tabix"}{Uses tabix CLI tool. Fastest option, but less reliable. 
+Requires tabix CLI tool to be installed by user first.}
+\item{"echotabix"}{Uses tabix CLI tool. 2nd fastest option,
+ but less reliable. 
+ Does not require any additional software to be installed.}
+\item{"REST"}{Uses the REST API.}{Slowest, but most reliable.
+Does not require any additional software to be installed.}
+}
+\emph{Note}:Tabix is about ~17x faster than the REST API,
+ but is currently a far less reliable method than the REST API because 
+ tabix tends to get blocked by eQTL Catalogue's firewall.
+See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here}
+for more details.}
+
 \item{quant_method}{eQTL Catalogue actually contains more than just
  eQTL data.
 For each dataset, the following kinds of QTLs can be queried:
 \describe{
-\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) 
-or \code{quant_method="microarray"}, depending on the dataset. 
+\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default})
+or \code{quant_method="microarray"}, depending on the dataset.
 \strong{catalogueR} will automatically select whichever option is available.}
-\item{exon expression QTL}{\emph{*under construction*}  
+\item{exon expression QTL}{\emph{*under construction*}
 \code{quant_method="ex"}}
-\item{transcript usage QTL}{\emph{*under construction*}  
+\item{transcript usage QTL}{\emph{*under construction*}
 \code{quant_method="tx"}}
 \item{promoter, splice junction and 3' end usage QTL}{
 \emph{*under construction*}  \code{quant_method="txrev"}}
 }}
 
-\item{nThread}{The number of CPU cores you want to use to speed up your 
+\item{infer_region}{Infer the range of coordinates to query based on
+the min/max positions in each of the summary statistics files
+ (\code{sumstats_paths}).}
+
+\item{gwas_data}{\link[data.table]{data.table} of GWAS summary statistics.}
+
+\item{nThread}{The number of CPU cores you want to use to speed up your
 queries through parallelization.}
 
-\item{use_tabix}{Use Tabix to makes queries (Default: \emph{FALSE}). 
-Tabix is about ~17x faster than the REST API, but is currently a far less 
-reliable method than the REST API because it tends to get blocked by
-eQTL Catalogue's firewall. 
-See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here} 
-for more details.}
+\item{chrom}{Chromosome of the query window.}
 
 \item{bp_lower}{Minimum basepair position of the query window.}
 
@@ -55,23 +74,27 @@ for more details.}
 \item{multithread_tabix}{Multi-thread across within a single tabix file query
 (good when you have one-several large loci).}
 
+\item{add_qtl_id}{Add "qtl_id" (i.e. "unique_id") column to the query result.}
+
+\item{convert_genes}{Convert Ensembl IDs to HGNC symbols.}
+
+\item{conda_env}{Conda environment to search for tabix executable in.}
+
 \item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
 \description{
-Choose between tabix (faster for larger queries)
-or RESTful API (faster for small queries).
+Query eQTL Catalogue datasets with multiple methods options.
 }
 \examples{
 data("meta")
-gwas_data <- echodata::BST1 
-gwas.qtl <- eQTL_Catalogue.fetch(unique_id = meta$unique_id[1],
-                                 gwas_data = gwas_data)
+GWAS.QTL_manual <- catalogueR:: eQTL_Catalogue.fetch(
+    unique_id = meta$unique_id[1],  
+    chrom = 8, 
+    bp_lower = 21527069-500,
+    bp_upper = 21527069+500)
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
-\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
-\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.iterate_fetch}()},
 \code{\link{eQTL_Catalogue.query}()},

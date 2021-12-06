@@ -1,44 +1,29 @@
-`catalogueR`
-================
+<img src='https://github.com/RajLabMSSM/catalogueR/raw/dev/inst/hex/hex.png' height='300'><br><br>
+[![](https://img.shields.io/badge/devel%20version-0.1.1-black.svg)](https://github.com/RajLabMSSM/catalogueR)
+[![R build
+status](https://github.com/RajLabMSSM/catalogueR/workflows/R-CMD-check-bioc/badge.svg)](https://github.com/RajLabMSSM/catalogueR/actions)
+[![](https://img.shields.io/github/last-commit/RajLabMSSM/catalogueR.svg)](https://github.com/RajLabMSSM/catalogueR/commits/master)
+[![](https://codecov.io/gh/RajLabMSSM/catalogueR/branch/master/graph/badge.svg)](https://codecov.io/gh/RajLabMSSM/catalogueR)
+[![License:
+GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://cran.r-project.org/web/licenses/GPL-3)
 <h5>
 Author: <i>Brian M. Schilder</i>
 </h5>
 <h5>
-Updated: <i>Nov-27-2021</i>
+README updated: <i>Dec-03-2021</i>
 </h5>
 
-Rapid querying, colocalization, and plotting of summary stats from the
-*eQTL Catalogue*.
+## `catalogueR`: Rapid querying, colocalization, and plotting of summary stats from the [*eQTL Catalogue*](https://www.ebi.ac.uk/eqtl/). *eQTL Catalogue* currently contains &gt;100 datasets from 20 different studies (including GTEx), across many tissues/cell types/conditions.
 
-*eQTL Catalogue* currently contains 110 QTL datasets (full, genome-wide,
-standardized summary statistics and metadata) from 20 different studies
-(including GTEx V8), across many tissues/cell types/conditions
-(*updated: 7/5/20*).
+This R package is part of the *echoverse* suite that supports
+[`echolocatoR`](https://github.com/RajLabMSSM/echolocatoR): an automated
+genomic fine-mapping pipeline.
 
-## Intro
+If you use `catalogueR`, please cite:
 
-The functions in `catalogueR` are partly derived from the [*eQTL
-Catalogue*
-tutorial](http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html).  
-Additional *eQTL Catalogue* resources:  
-- [GitHub
-repository](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
-- [In-depth API documentation](https://www.ebi.ac.uk/eqtl/api-docs/)  
--
-[Preprint](https://www.biorxiv.org/content/10.1101/2020.01.29.924266v1)  
-- FTP server: *<ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv>*
-
-*NOTE*: [The ALT allele is always the effect allele in eQTL
-Catalogue](https://www.ebi.ac.uk/eqtl/Data_access/).
-
-## Citation
-
-If you use `catalogueR` please cite the original authors of the dataset,
-as well as:
-
-> Brian M Schilder, Jack Humphrey, Towfique Raj, echolocatoR: an
+> Brian M Schilder, Jack Humphrey, Towfique Raj (2021) echolocatoR: an
 > automated end-to-end statistical and functional genomic fine-mapping
-> pipeline, Bioinformatics, 2021;, btab658,
+> pipeline, *Bioinformatics*; btab658,
 > <https://doi.org/10.1093/bioinformatics/btab658>
 
 and
@@ -48,21 +33,12 @@ and
 > Nat Genet 53, 1290–1299 (2021).
 > <https://doi.org/10.1038/s41588-021-00924-w>
 
-## Documentation
-
-## [Website](https://rajlabmssm.github.io/catalogueR/)
-
-## [PDF](https://rajlabmssm.github.io/catalogueR/catalogueR_0.1.0.pdf)
-
-## Getting started
-
-### Installation
+## Installation
 
 ### \[1\] *Optional step: conda*
 
 To ensure all dependencies are installed and don’t conflict with each
-other, you can create a *conda* environment by downloading [this
-*yaml*\`
+other, you can create a *conda* environment by downloading [this *yaml*
 file](https://github.com/RajLabMSSM/catalogueR/blob/master/inst/conda/catalogueR.yml)
 and entering the following in command line:
 
@@ -88,45 +64,41 @@ of preference:
     in over 2 years, so I do NOT recommend you use it.
 
 ``` r
-if(!"remotes" %in% installed.packages()){install.packages("remotes")}
+if(!require("remotes")) install.packages("remotes")
+
 remotes::install_github("RajLabMSSM/catalogueR")
+library(catalogueR)
 ```
 
-### Intro example
+## Documentation
 
-Supply one or more paths to \[GWAS\] summary stats files (one per locus)
-and automatically download any eQTL data within that range. The files
-can be any of these formats, either *gzip*-compressed (`.gz`) or
-uncompressed: `.csv`, `.tsv`, `space-separated`
+### [Website](https://rajlabmssm.github.io/catalogueR)
 
-<br>
+### [Getting started](https://rajlabmssm.github.io/catalogueR/articles/catalogueR)
 
-The summary stats files must have the following column names (order
-doesn’t matter): - `SNP` (rsid for each SNP) - `CHR` (chromosome; with
-or without the “chr” prefix is fine) - `POS` (basepair position) - …
-(optional extra columns)
+## Notes
 
-``` r
-sumstats_paths <- example_sumstats_paths()
+-   The functions in `catalogueR` are partly derived from the [*eQTL
+    Catalogue*
+    tutorial](http://htmlpreview.github.io/?https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources/blob/master/scripts/eQTL_API_usecase.html).  
 
-gwas.qtl_paths <- eQTL_Catalogue.query(sumstats_paths = sumstats_paths,  
-                                       qtl_search = c("myeloid","Alasoo_2018"),
-                                       output_dir = "./catalogueR_queries", 
-                                       split_files = T,  
-                                       merge_with_gwas = T,
-                                       force_new_subset = T,
-                                       nThread=4)
-GWAS.QTL <- gather_files(file_paths = gwas.qtl_paths)
-# Interactive datatable of results 
-## WARNING: Don't use this function on large datatables, might cause freezing.
-createDT(head(GWAS.QTL))
-```
+-   [The ALT allele is always the effect allele in eQTL
+    Catalogue](https://www.ebi.ac.uk/eqtl/Data_access/).
+
+-   Additional *eQTL Catalogue* resources:
+
+    -   [GitHub
+        repository](https://github.com/eQTL-Catalogue/eQTL-Catalogue-resources)  
+    -   [In-depth API
+        documentation](https://www.ebi.ac.uk/eqtl/api-docs/)
+    -   FTP server: *<ftp://ftp.ebi.ac.uk/pub/databases/spot/eQTL/csv>*
 
 <hr>
 
-## Author
+## Contact
 
-Brian M. Schilder  
-[Raj Lab](http://rajlab.org)  
-Icahn School of Medicine at Mount Sinai  
-New York, New York, USA
+<a href="https://bschilder.github.io/BMSchilder/" target="_blank">Brian
+M. Schilder, Bioinformatician II</a>  
+<a href="https://rajlab.org" target="_blank">Raj Lab</a>  
+<a href="https://icahn.mssm.edu/about/departments/neuroscience" target="_blank">Department
+of Neuroscience, Icahn School of Medicine at Mount Sinai</a>

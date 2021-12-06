@@ -1,21 +1,22 @@
-#' 2. Query eQTL Catalogue datasets by region
+#' Query eQTL Catalogue:tabix/echotabix
 #'
-#' 2.1 Method 1: Tabix
+#' Query eQTL Catalogue datasets by region with tabix or \pkg{echotabix}.
 #' Faster alternative to REST API.
+#' @inheritParams eQTL_Catalogue.query
 #' @source
 #' \code{
-#' data("meta"); 
-#' gwas_data <- echodata::BST1 
+#' data("meta");
+#' gwas_data <- echodata::BST1
 #' qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
 #'                                        gwas_data=gwas_data,
 #'                                        conda_env=NULL)
 #' }
 #' @inheritParams eQTL_Catalogue.query
-#' @family eQTL Catalogue
-#'
+#' @family eQTL Catalogue 
 #' @keywords internal
-#' @importFrom echotabix query_tabular 
+#' @importFrom echotabix query_tabular
 fetch_tabix <- function(unique_id,
+                        method = c("tabix","echotabix"),
                         quant_method = "ge",
                         infer_region = TRUE,
                         gwas_data = NULL,
@@ -23,16 +24,18 @@ fetch_tabix <- function(unique_id,
                         bp_lower = NULL,
                         bp_upper = NULL,
                         is_gwas = FALSE,
-                        nThread = 4,
+                        nThread = 1,
                         conda_env = NULL,
                         verbose = TRUE) {
-    # quant_method="ge"; infer_region=T;is_gwas=F; chrom=NULL; remove_tmp=F;  
-  # add_chr=T; bp_lower=bp_upper=NULL; verbose=T; conda_env="echoR"; 
-  # nThread=10; unique_id=meta$unique_id[2]; gwas_data=BST1;
+    # quant_method="ge"; infer_region=T;is_gwas=F; chrom=NULL; remove_tmp=F;
+    # add_chr=T; bp_lower=bp_upper=NULL; verbose=T; conda_env="echoR";
+    # nThread=10; unique_id=meta$unique_id[2]; gwas_data=BST1;
+    
+    method <- check_tabix_method(method = method)
     check_coord_input(
         gwas_data = gwas_data,
         chrom = chrom,
-        bp_lower = bp_lower, 
+        bp_lower = bp_lower,
         bp_upper = bp_upper
     )
     tabix.start <- Sys.time()
@@ -67,23 +70,25 @@ fetch_tabix <- function(unique_id,
         )
     })
 
-    # Run tabix
-    #### Method 1 ####
-    qtl.subset <- tabix_reader(
-        tabix_path = meta.sub$ftp_path,
-        region = region,
-        conda_env = conda_env,
-        nThread = nThread,
-        verbose = verbose
-    )
-    #### Method 2 #### 
-    # chrom <- 12; bp_lower=40189191; bp_upper=40334626
-    # qtl.subset <- echotabix::query_tabular(fullSS_tabix = meta.sub$ftp_path,
-    #                                        chrom = chrom,
-    #                                        start_pos = bp_lower,
-    #                                        end_pos = bp_upper,
-    #                                        local = FALSE,
-    #                                        verbose = TRUE)
+    #### Run tabix ####
+    if(method == "tabix"){
+        #### Method 1 (CLI-based) ####
+        qtl.subset <- tabix_reader(
+            tabix_path = meta.sub$ftp_path,
+            region = region,
+            conda_env = conda_env,
+            nThread = nThread,
+            verbose = verbose
+        )
+    } else if(method == "echotabix"){ 
+        #### Method 2 (R-based) ####
+        qtl.subset <- echotabix::query_tabular(fullSS_tabix = meta.sub$ftp_path,
+                                               chrom = chrom,
+                                               start_pos = bp_lower,
+                                               end_pos = bp_upper,
+                                               local = FALSE,
+                                               verbose = verbose)
+    }
     if (length(header) != ncol(qtl.subset)) {
         header <- tabix_header(
             tabix_path = meta.sub$ftp_path,

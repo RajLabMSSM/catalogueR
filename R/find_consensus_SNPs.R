@@ -1,15 +1,21 @@
-#' Find Consensus SNPs in \emph{echolocatoR} output
+#' Find Consensus SNPs
 #'
+#' Find Consensus SNPs in \link[echolocatoR]{finemap_loci} output.
+#' @source
+#' \code{
+#' finemap_dat <- echodata::BST1
+#' BST1 <- catalogueR:::find_consensus_SNPs(finemap_dat = finemap_dat)
+#' }
 #' @family echolocatoR
-#' @examples
-#' finemap_dat <- echodata::BST1 
-#' BST1 <- find_consensus_SNPs(finemap_dat = finemap_dat)
+#' @keywords internal
+#' @importFrom dplyr %>% arrange desc
 find_consensus_SNPs <- function(finemap_dat,
                                 verbose = TRUE,
                                 credset_thresh = .95,
                                 consensus_thresh = 2,
                                 sort_by_support = TRUE,
                                 exclude_methods = NULL) {
+    Consensus_SNP <- Support <- NULL;
     messager("+ Identifying Consensus SNPs...", v = verbose)
     exclude_methods <- append(exclude_methods, "mean")
     # Find SNPs that are in the credible set for all fine-mapping tools
@@ -29,14 +35,19 @@ find_consensus_SNPs <- function(finemap_dat,
     finemap_dat$Consensus_SNP <- finemap_dat$Support >= consensus_thresh
     # Sort
     if (sort_by_support) {
-        finemap_dat <- finemap_dat %>% arrange(desc(Consensus_SNP), desc(Support))
+        finemap_dat <- finemap_dat %>% 
+            dplyr::arrange(
+            dplyr::desc(Consensus_SNP),
+            dplyr::desc(Support)
+        )
     }
 
     # Calculate mean PP
     messager("+ Calculating mean Posterior Probability (mean.PP)...")
     PP.cols <- grep(".PP", colnames(finemap_dat), value = TRUE)
     PP.cols <- PP.cols[!(PP.cols %in% paste0(exclude_methods, ".PP"))]
-    PP.sub <- subset(finemap_dat, select = c("SNP", PP.cols)) %>% data.frame() # %>% unique()
+    PP.sub <- subset(finemap_dat, select = c("SNP", PP.cols)) %>%
+        data.frame() # %>% unique()
     PP.sub[is.na(PP.sub)] <- 0
     if (NCOL(PP.sub[, -1]) > 1) {
         finemap_dat$mean.PP <- rowMeans(PP.sub[, -1])
@@ -47,7 +58,13 @@ find_consensus_SNPs <- function(finemap_dat,
 
     # PP.sub %>% arrange(desc(mean.PP)) %>% head()
     messager("++", length(CS_cols), "fine-mapping methods used.")
-    messager("++", dim(subset(finemap_dat, Support > 0))[1], "Credible Set SNPs identified.")
-    messager("++", dim(subset(finemap_dat, Consensus_SNP = TRUE))[1], "Consensus SNPs identified.")
+    messager(
+        "++", dim(subset(finemap_dat, Support > 0))[1],
+        "Credible Set SNPs identified."
+    )
+    messager(
+        "++", dim(subset(finemap_dat, Consensus_SNP = TRUE))[1],
+        "Consensus SNPs identified."
+    )
     return(finemap_dat)
 }

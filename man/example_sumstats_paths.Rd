@@ -4,21 +4,26 @@
 \alias{example_sumstats_paths}
 \title{Paths to example summary stats}
 \source{
-\url{https://www.biorxiv.org/content/10.1101/388165v3}
+\url{https://doi.org/10.1016/S1474-4422(19)30320-5}
 }
 \usage{
-example_sumstats_paths(Rlib_path = NULL)
+example_sumstats_paths(
+  save_dir = file.path(tempdir(), "GWAS/Nalls2019"),
+  verbose = FALSE
+)
 }
 \arguments{
-\item{Rlib_path}{This function will automatically find your Rlib path,
-but you can override this by supplying it manually.}
+\item{save_dir}{Folder to save example summary statistics in.}
+
+\item{verbose}{Print messages.}
 }
 \description{
 Returns the paths to summary stats stored within \emph{catalogueR}.
-Each file is the output of a locus that has been fine-mapping
-using \emph{echolocatoR}.
+Each file is the output of a locus that has been fine-mapped
+using \link[echolocatoR]{finemap_loci}.
 Data originally comes from the Parkinson's disease GWAS
-by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv)}.
+by \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{
+Nalls et al., 2019 (The Lancet Neurology)}.
 }
 \details{
 \describe{
@@ -29,6 +34,10 @@ by \href{https://www.biorxiv.org/content/10.1101/388165v3}{Nalls et al. (bioRxiv
 }
 }
 \examples{
-sumstats_paths <- example_sumstats_paths()
+sumstats_paths <- catalogueR::example_sumstats_paths()
+}
+\seealso{
+Other Nalls23andMe_2019: 
+\code{\link{example_eQTL_Catalogue_query_paths}()}
 }
 \concept{Nalls23andMe_2019}

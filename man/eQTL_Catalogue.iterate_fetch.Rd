@@ -3,22 +3,34 @@
 \name{eQTL_Catalogue.iterate_fetch}
 \alias{eQTL_Catalogue.iterate_fetch}
 \title{Iterate queries to \emph{eQTL Catalogue}}
+\source{
+\code{
+sumstats_paths <-catalogueR::example_sumstats_paths()
+qtl_id <- catalogueR::eQTL_Catalogue.list_datasets()$unique_id[1]
+GWAS.QTL <- catalogueR:::eQTL_Catalogue.iterate_fetch(
+    sumstats_paths = sumstats_paths,
+     qtl_id = qtl_id,
+     nThread = 1,
+     split_files = FALSE,
+     progress_bar = FALSE)
+}
+}
 \usage{
 eQTL_Catalogue.iterate_fetch(
   sumstats_paths,
-  output_dir = "./catalogueR_queries",
+  output_dir = file.path(tempdir(), "catalogueR_queries"),
   qtl_id,
+  method = c("REST", "tabix", "echotabix"),
   quant_method = "ge",
   infer_region = TRUE,
-  use_tabix = TRUE,
   conda_env = "echoR",
   multithread_loci = TRUE,
-  multithread_tabix = F,
-  nThread = 4,
+  multithread_tabix = FALSE,
+  nThread = 1,
   split_files = TRUE,
-  merge_with_gwas = F,
-  force_new_subset = F,
-  progress_bar = F,
+  merge_with_gwas = FALSE,
+  force_new_subset = FALSE,
+  progress_bar = FALSE,
   genome_build = "hg19",
   verbose = TRUE
 )
@@ -26,11 +38,11 @@ eQTL_Catalogue.iterate_fetch(
 \arguments{
 \item{sumstats_paths}{A list of paths to any number of summary stats files
 whose coordinates you want to use to make queries to eQTL Catalogue.
-If you wish to add custom names to the loci, simply add these as the 
+If you wish to add custom names to the loci, simply add these as the
 names of the path list
  (e.g. \code{c(BST1="<path>/<to>/<BST1_file>",
   LRRK2="<path>/<to>/<LRRK2_file>")}).
- Otherwise, loci will automatically named based on their min/max 
+ Otherwise, loci will automatically named based on their min/max
  genomic coordinates.
 
 The minimum columns in these files required to make queries include:
@@ -41,68 +53,83 @@ The minimum columns in these files required to make queries include:
 \item{...}{Optional extra columns.}
 }}
 
-\item{output_dir}{The folder you want the merged gwas/qtl results to be 
+\item{output_dir}{The folder you want the merged gwas/qtl results to be
 saved to (set \code{output_dir=FALSE} if you don't want to save the results).
-If \code{split_files=FALSE}, all query results will be merged into one and 
+If \code{split_files=FALSE}, all query results will be merged into one and
 saved as \emph{<output_dir>/eQTL_Catalogue.tsv.gz}.
 If \code{split_files=TRUE}, all query results will instead be split into
  smaller files and stored in \emph{<output_dir>/}.}
+
+\item{method}{Method for querying eQTL Catalogue:
+\itemize{
+\item{"tabix"}{Uses tabix CLI tool. Fastest option, but less reliable. 
+Requires tabix CLI tool to be installed by user first.}
+\item{"echotabix"}{Uses tabix CLI tool. 2nd fastest option,
+ but less reliable. 
+ Does not require any additional software to be installed.}
+\item{"REST"}{Uses the REST API.}{Slowest, but most reliable.
+Does not require any additional software to be installed.}
+}
+\emph{Note}:Tabix is about ~17x faster than the REST API,
+ but is currently a far less reliable method than the REST API because 
+ tabix tends to get blocked by eQTL Catalogue's firewall.
+See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here}
+for more details.}
 
 \item{quant_method}{eQTL Catalogue actually contains more than just
  eQTL data.
 For each dataset, the following kinds of QTLs can be queried:
 \describe{
-\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default}) 
-or \code{quant_method="microarray"}, depending on the dataset. 
+\item{gene expression QTL}{\code{quant_method="ge"} (\emph{default})
+or \code{quant_method="microarray"}, depending on the dataset.
 \strong{catalogueR} will automatically select whichever option is available.}
-\item{exon expression QTL}{\emph{*under construction*}  
+\item{exon expression QTL}{\emph{*under construction*}
 \code{quant_method="ex"}}
-\item{transcript usage QTL}{\emph{*under construction*}  
+\item{transcript usage QTL}{\emph{*under construction*}
 \code{quant_method="tx"}}
 \item{promoter, splice junction and 3' end usage QTL}{
 \emph{*under construction*}  \code{quant_method="txrev"}}
 }}
 
-\item{use_tabix}{Use Tabix to makes queries (Default: \emph{FALSE}). 
-Tabix is about ~17x faster than the REST API, but is currently a far less 
-reliable method than the REST API because it tends to get blocked by
-eQTL Catalogue's firewall. 
-See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here} 
-for more details.}
+\item{infer_region}{Infer the range of coordinates to query based on
+the min/max positions in each of the summary statistics files
+ (\code{sumstats_paths}).}
+
+\item{conda_env}{Conda environment to search for tabix executable in.}
 
 \item{multithread_tabix}{Multi-thread across within a single tabix file query
 (good when you have one-several large loci).}
 
-\item{nThread}{The number of CPU cores you want to use to speed up your 
+\item{nThread}{The number of CPU cores you want to use to speed up your
 queries through parallelization.}
 
-\item{split_files}{Save the results as one file per QTL dataset 
+\item{split_files}{Save the results as one file per QTL dataset
 (with all loci within each file).
-If this is set to \code{=TRUE}, then this function will return the list of 
+If this is set to \code{=TRUE}, then this function will return the list of
 paths where these files were saved.
 A helper function is provided to import and merge them back together in R.
-If this is set to  \code{=FALSE}, then this function will instead return one 
+If this is set to  \code{=FALSE}, then this function will instead return one
 big merged \link[data.table]{data.table}
 containing results from all QTL datasets and all loci.
-\code{=FALSE} is not recommended when you have many large loci and/or many 
+\code{=FALSE} is not recommended when you have many large loci and/or many
 QTL datasets,
 because you can only fit so much data into memory.}
 
-\item{merge_with_gwas}{Whether you want to merge your QTL query results 
+\item{merge_with_gwas}{Whether you want to merge your QTL query results
 with your GWAS data
 (convenient, but takes up more storage).}
 
-\item{force_new_subset}{By default, \strong{catalogueR} will use any 
+\item{force_new_subset}{By default, \strong{catalogueR} will use any
 pre-existing files that match your query.
 Set \code{force_new_subset=T} to override this and force a new query.}
 
 \item{progress_bar}{Show progress bar during parallelization across loci.
-\emph{WARNING!}: Progress bar (via \code{\link{pbmclapply}}) only works
+\emph{WARNING!}: Progress bar (via \link[pbmcapply]{progressBar}) only works
  on Linux/Unix systems (e.g. mac) and NOT on Windows.}
 
-\item{genome_build}{The genome build of your query coordinates 
+\item{genome_build}{The genome build of your query coordinates
 (e.g. \code{gwas_data}).
-If your coordinates are in \emph{hg19}, \strong{catalogueR} will 
+If your coordinates are in \emph{hg19}, \strong{catalogueR} will
 automatically lift them over
 to \emph{hg38} (as this is the build that eQTL Catalogue uses).}
 
@@ -112,16 +139,8 @@ to \emph{hg38} (as this is the build that eQTL Catalogue uses).}
 Uses coordinates from stored summary stats files (e.g. GWAS)
 to determine which regions to query from \emph{eQTL Catalogue}.
 }
-\examples{
-sumstats_paths <- example_sumstats_paths()
-qtl_id <- eQTL_Catalogue.list_datasets()$unique_id[1]
-GWAS.QTL <- eQTL_Catalogue.iterate_fetch(sumstats_paths = sumstats_paths, qtl_id = qtl_id, force_new_subset = TRUE, multithread_loci = TRUE, nThread = 1, split_files = F, progress_bar = FALSE)
-}
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{BST1__Alasoo_2018.macrophage_IFNg}},
-\code{\link{LRRK2__Alasoo_2018.macrophage_IFNg}},
-\code{\link{MEX3C__Alasoo_2018.macrophage_IFNg}},
 \code{\link{eQTL_Catalogue.fetch}()},
 \code{\link{eQTL_Catalogue.header}},
 \code{\link{eQTL_Catalogue.query}()},
@@ -132,3 +151,4 @@ Other eQTL Catalogue:
 \code{\link{meta}}
 }
 \concept{eQTL Catalogue}
+\keyword{internal}
