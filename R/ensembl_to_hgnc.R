@@ -16,15 +16,17 @@
 ensembl_to_hgnc <- function(ensembl_ids,
                             unique_only = TRUE,
                             verbose = TRUE) {
-    messager("++ Converting: Ensembl IDs ==> HGNC gene symbols", v = verbose)
-    if (unique_only) ensembl_ids <- unique(ensembl_ids)
-    ensembl_ids[is.na(ensembl_ids)] <- "NA"
-    conversion <- suppressWarnings(
-        AnnotationDbi::mapIds(
-            EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75,
-            keys = ensembl_ids,
-            keytype = "GENEID",
-            column = "SYMBOL") 
-    )
-    return(conversion)
+  
+  messager("++ Converting: Ensembl IDs ==> HGNC gene symbols", v = verbose)
+  ensembl_ids <- unlist(ensembl_ids)
+  if (isTRUE(unique_only)) ensembl_ids <- unique(ensembl_ids)
+  ensembl_ids[is.na(ensembl_ids)] <- "NA"
+  conversion <- suppressWarnings(
+      AnnotationDbi::mapIds(
+          EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75,
+          keys = ensembl_ids,
+          keytype = "GENEID",
+          column = "SYMBOL") 
+  )
+  return(conversion)
 }

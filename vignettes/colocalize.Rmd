@@ -25,12 +25,12 @@ library(catalogueR)
 ## List datasets 
 
 - We have previously queried *eQTL Catalogue* using several Parkinson's disease
-GWAS loci (with `eQTL_Catalogue.query()`). 
+GWAS loci (with `eQTLcatalogue_query()`). 
 
 - Let's first gather those files saved as csv files.  
 
-```{r Import datasets }
-gwas.qtl_paths <- catalogueR::example_eQTL_Catalogue_query_paths(fnames = c(
+```{r Import datasets, max.height='100px' }
+gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries(fnames = c(
   "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",
   "BST1__Alasoo_2018.macrophage_naive.tsv.gz",
   "BST1__Alasoo_2018.macrophage_Salmonella.tsv.gz"
@@ -48,8 +48,8 @@ whereas previously it could assume one causal variants.
 Thus, it may be able to better estimate the colocalization probability 
 between two datasets. 
 
-```{r Run coloc, attr.output='style="max-height: 200px;"'}
-coloc_QTLs <- catalogueR::run_coloc(gwas.qtl_paths = gwas.qtl_paths,
+```{r Run coloc, max.height='100px'}
+coloc_QTLs <- catalogueR::COLOC_run(gwas.qtl_paths = gwas.qtl_paths,
                                     top_snp_only = TRUE,
                                     split_by_group = FALSE,
                                     method = "abf")
@@ -61,7 +61,7 @@ First, let's plot only the results with >80% colocalization probability.
 This is a colocalization threshold commonly used in the field. 
 
 ```{r Plot results, error=TRUE}
-coloc_plot <- catalogueR::plot_coloc_summary(coloc_QTLs = coloc_QTLs, 
+coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs, 
                                              coloc_thresh = .8)
 ```
 
@@ -70,7 +70,7 @@ Let's explore the data a bit and lower the threshold to 0
 (not advisable except for demonstration purposes).
 
 ```{r Plot results 2}
-coloc_plot <- catalogueR::plot_coloc_summary(coloc_QTLs = coloc_QTLs,
+coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs,
                                              coloc_thresh = 0)
 ```
 

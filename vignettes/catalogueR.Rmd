@@ -31,13 +31,15 @@ You can view of a metadata table for all current datasets:
 
 ```{r}
 data("meta")
-echodata::createDT(meta)
+messager("There are",formatC(nrow(meta),big.mark = ","),
+         "datasets in eQTL Catalogue.")
+knitr::kable(meta[1:10,])
 ```
 
 You can seach through the metadata for datasets with certain keywords (case-insensitive substrings across multiple columns). 
 
 ```{r}
-qtl_datasets <- catalogueR::eQTL_Catalogue.search_metadata(
+qtl_datasets <- catalogueR::eQTLcatalogue_search_metadata(
   qtl_search=c("Alasoo_2018","monocyte"))
 
 print(qtl_datasets)
@@ -56,19 +58,15 @@ The summary stats files must have the following column names (order doesn't matt
   - ... (optional extra columns)
 
 ```{r Approach 1} 
-sumstats_paths <- catalogueR::example_sumstats_paths()
-dat <- data.table::fread(sumstats_paths["BST1"])
-tmp <- tempfile()
-data.table::fwrite(dat[seq_len(5),], tmp)
-
-gwas.qtl_paths <- catalogueR::eQTL_Catalogue.query(
-  sumstats_paths = tmp,  # sumstats_paths["BST1"]
+sumstats_paths <- echodata::get_Nalls2019_loci(limit_snps = 5)
+gwas.qtl_paths <- catalogueR::eQTLcatalogue_query(
+  sumstats_paths =  sumstats_paths["BST1"],
   qtl_search = c("Alasoo_2018.macrophage_naive"),
   split_files  = TRUE)
 ```
 
 - Because you selected the argument `split_files=TRUE` the query results have been distributed across multiple files and saved to disk (useful when you don't want to load one massive data.table every time you want to look at specific results subsets).  
-- In this scenario, `eQTL_Catalogue.query()` returns a list of those file paths (instead of the data.table itself).  
+- In this scenario, `eQTLcatalogue_query()` returns a list of those file paths (instead of the data.table itself).  
 - To merge these files back together and import them into R, use the following function:  
 
 ```{r}
@@ -86,7 +84,7 @@ You can also makes queries to *eQTL Catalogue* by manually specifying the coordi
 as well as the `unique_id` of the QTL dataset (see `data("meta")` for IDs).
  
 ```{r Approach 2- Query with coordinates  } 
-GWAS.QTL_manual <- catalogueR:: eQTL_Catalogue.fetch(
+GWAS.QTL_manual <- catalogueR:: eQTLcatalogue_fetch(
   unique_id="Alasoo_2018.macrophage_IFNg",  
   chrom = 8, 
   bp_lower = 21527069-500,

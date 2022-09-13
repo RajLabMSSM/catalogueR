@@ -4,7 +4,7 @@
 \alias{merge_gwas_qtl}
 \title{Merge GWAS with QTL}
 \usage{
-merge_gwas_qtl(gwas_data, qtl.subset, verbose = TRUE)
+merge_gwas_qtl(query_dat, qtl.subset, verbose = TRUE)
 }
 \arguments{
 \item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
@@ -14,11 +14,11 @@ Merge GWAS data (query) and QTL data (results).
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{eQTL_Catalogue.fetch}()},
-\code{\link{eQTL_Catalogue.header}},
-\code{\link{eQTL_Catalogue.iterate_fetch}()},
-\code{\link{eQTL_Catalogue.query}()},
-\code{\link{eQTL_Catalogue.search_metadata}()},
+\code{\link{eQTLcatalogue_fetch}()},
+\code{\link{eQTLcatalogue_header}},
+\code{\link{eQTLcatalogue_iterate_fetch}()},
+\code{\link{eQTLcatalogue_query}()},
+\code{\link{eQTLcatalogue_search_metadata}()},
 \code{\link{fetch_restAPI}()},
 \code{\link{fetch_tabix}()},
 \code{\link{meta}}

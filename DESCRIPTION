@@ -1,7 +1,7 @@
 Package: catalogueR
 Type: Package
 Title: QTL data extraction and colocalization
-Version: 0.1.1
+Version: 1.0.0
 Authors@R: 
     c(person(given = "Brian",
            family = "Schilder",
@@ -28,6 +28,9 @@ BugReports: https://github.com/RajLabMSSM/catalogueR/issues
 Depends: R (>= 3.6.0)
 biocViews:
 Imports: 
+  echoconda,
+  echodata,
+  echotabix,
   dplyr,
   tidyr,
   utils,
@@ -43,27 +46,22 @@ Imports:
   jsonlite, 
   coloc, 
   AnnotationDbi,
-  EnsDb.Hsapiens.v75, 
-  echotabix,
-  echoconda,
-  echodata
+  EnsDb.Hsapiens.v75
 Suggests:
+  echoLD,
   markdown,
   rmarkdown,
+  magick,
   methods,
-  pbmcapply,
   devtools,
   badger, 
   BiocStyle,
-  testthat (>= 3.0.0), 
-  echoLD,
-  echolocatoR
+  testthat (>= 3.0.0)
 Remotes:
-  github::RajLabMSSM/echotabix,
   github::RajLabMSSM/echoconda,
+  github::RajLabMSSM/echotabix,
   github::RajLabMSSM/echodata,
-  github::RajLabMSSM/echoLD,
-  github::RajLabMSSM/echolocatoR
-RoxygenNote: 7.1.2
+  github::RajLabMSSM/echoLD
+RoxygenNote: 7.2.1.9000
 VignetteBuilder: knitr
 Config/testthat/edition: 3

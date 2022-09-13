@@ -1,3 +1,36 @@
+# catalogueR 1.0.0
+
+## New features
+
+* Offload functions to echoverse deps:
+  - `get_data()` --> `echodata`
+  - `get_os()` --> `echodata`
+  - `load_rdata()` --> `downloadR`
+  - `example_sumstats_paths()` --> `echpdata::get_Nalls2019_loci()`
+  - `find_consensus_SNPs` --> `echodata::find_consensus_snps()`
+  - `locus_plot` --> `echoplot`
+* Rename functions to fit *echoverse* conventions:
+  - Remove "." from any function names. 
+  - All eQTL Catalogue functions start with `eQTLcatalogue_`.
+  - All COLOC functions start with `COLOC_`.
+  - Deprecated all functions properly to let users know. 
+* Change arg in all functions: 
+  - `gwas_data` --> `query_granges`
+  - `genome_build` --> `query_genome` 
+* Condensed multiple arguments into `echotabix::construct_query()`
+  - `gwas.data`, `chrom`, `bp_min`, `bp_max`
+* New exported functions:
+  - `COLOC_heatmap`
+  - `COLOC_corplot` 
+  
+
+## Bug fixes
+
+* Updated function/arg names from *echoverse* deps.
+* Updated `meta` data to include latest paths and datasets.
+* `fix_ftp`: Replacing "ftp:" prefix with "http:" seems to drastically improve the 
+  ability of functions to query the files. 
+
 # catalogueR 0.1.1
 
 ## New features

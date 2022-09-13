@@ -5,15 +5,15 @@
 \alias{meta}
 \title{eQTL Catalogue dataset metadata}
 \format{
-An object of class \code{data.table} (inherits from \code{data.frame}) with 498 rows and 12 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 503 rows and 12 columns.
 }
 \source{
 \code{
-meta <- eQTL_Catalogue.list_datasets(force_new = TRUE)
+meta <- eQTLcatalogue_list_datasets(force_new = TRUE)
 # Some paths in the metadata were originally wrong.
 # Has since been corrected by authors.
-# meta <- meta %>% dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte",
-#                                               "Fairfax_2014",ftp_path))
+# meta <- meta |> dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte",
+#                                              "Fairfax_2014",ftp_path))
 usethis::use_data(meta, overwrite = TRUE)
 }
 }
@@ -26,11 +26,11 @@ and their associated systems/tissues/cell types.
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{eQTL_Catalogue.fetch}()},
-\code{\link{eQTL_Catalogue.header}},
-\code{\link{eQTL_Catalogue.iterate_fetch}()},
-\code{\link{eQTL_Catalogue.query}()},
-\code{\link{eQTL_Catalogue.search_metadata}()},
+\code{\link{eQTLcatalogue_fetch}()},
+\code{\link{eQTLcatalogue_header}},
+\code{\link{eQTLcatalogue_iterate_fetch}()},
+\code{\link{eQTLcatalogue_query}()},
+\code{\link{eQTLcatalogue_search_metadata}()},
 \code{\link{fetch_restAPI}()},
 \code{\link{fetch_tabix}()},
 \code{\link{merge_gwas_qtl}()}

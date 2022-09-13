@@ -3,7 +3,7 @@ choose_quant_method <- function(ui,
                                 qm,
                                 verbose = TRUE) {
     unique_id <- quant_method <- NULL;
-    meta <- eQTL_Catalogue.list_datasets(verbose = FALSE)
+    meta <- eQTLcatalogue_list_datasets(verbose = FALSE)
     meta.sub <- data.frame(subset(meta, unique_id == ui))
     if (qm %in% unique(meta.sub$quant_method)) {
         meta.sub <- subset(meta.sub, quant_method == qm)

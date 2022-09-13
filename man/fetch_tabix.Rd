@@ -4,46 +4,35 @@
 \alias{fetch_tabix}
 \title{Query eQTL Catalogue:tabix/echotabix}
 \source{
+\href{https://github.com/RajLabMSSM/catalogueR/issues/5}{
+eQTL Catalogue blocking tabix requests}
+
 \code{
 data("meta");
-gwas_data <- echodata::BST1
+query_granges <- echotabix::construct_query(query_dat = echodata::BST1)
 qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
-                                       gwas_data=gwas_data,
-                                       conda_env=NULL)
+                                       query_granges=query_granges)
 }
 }
 \usage{
 fetch_tabix(
   unique_id,
-  method = c("tabix", "echotabix"),
+  query_granges,
+  query_method = c("rsamtools", "variantannotation", "conda", "seqminer"),
   quant_method = "ge",
-  infer_region = TRUE,
-  gwas_data = NULL,
-  chrom = NULL,
-  bp_lower = NULL,
-  bp_upper = NULL,
-  is_gwas = FALSE,
   nThread = 1,
-  conda_env = NULL,
+  conda_env = "echoR_mini",
   verbose = TRUE
 )
 }
 \arguments{
-\item{method}{Method for querying eQTL Catalogue:
-\itemize{
-\item{"tabix"}{Uses tabix CLI tool. Fastest option, but less reliable. 
-Requires tabix CLI tool to be installed by user first.}
-\item{"echotabix"}{Uses tabix CLI tool. 2nd fastest option,
- but less reliable. 
- Does not require any additional software to be installed.}
-\item{"REST"}{Uses the REST API.}{Slowest, but most reliable.
-Does not require any additional software to be installed.}
-}
-\emph{Note}:Tabix is about ~17x faster than the REST API,
- but is currently a far less reliable method than the REST API because 
- tabix tends to get blocked by eQTL Catalogue's firewall.
-See \href{https://github.com/RajLabMSSM/catalogueR/issues/5}{here}
-for more details.}
+\item{query_granges}{\link[GenomicRanges]{GRanges} object 
+to be used for querying the \code{target_path} file. 
+Alternatively, can be variant-level summary statistics to be converted into a
+\link[GenomicRanges]{GRanges} object by \link[echotabix]{construct_query}.}
+
+\item{query_method}{Method used for querying. 
+See \link[echotabix]{query} for available options.}
 
 \item{quant_method}{eQTL Catalogue actually contains more than just
  eQTL data.
@@ -60,10 +49,6 @@ or \code{quant_method="microarray"}, depending on the dataset.
 \emph{*under construction*}  \code{quant_method="txrev"}}
 }}
 
-\item{infer_region}{Infer the range of coordinates to query based on
-the min/max positions in each of the summary statistics files
- (\code{sumstats_paths}).}
-
 \item{nThread}{The number of CPU cores you want to use to speed up your
 queries through parallelization.}
 
@@ -77,11 +62,11 @@ Faster alternative to REST API.
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{eQTL_Catalogue.fetch}()},
-\code{\link{eQTL_Catalogue.header}},
-\code{\link{eQTL_Catalogue.iterate_fetch}()},
-\code{\link{eQTL_Catalogue.query}()},
-\code{\link{eQTL_Catalogue.search_metadata}()},
+\code{\link{eQTLcatalogue_fetch}()},
+\code{\link{eQTLcatalogue_header}},
+\code{\link{eQTLcatalogue_iterate_fetch}()},
+\code{\link{eQTLcatalogue_query}()},
+\code{\link{eQTLcatalogue_search_metadata}()},
 \code{\link{fetch_restAPI}()},
 \code{\link{merge_gwas_qtl}()},
 \code{\link{meta}}

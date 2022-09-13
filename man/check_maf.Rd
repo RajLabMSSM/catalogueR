@@ -4,7 +4,10 @@
 \alias{check_maf}
 \title{Check MAF}
 \usage{
-check_maf(gwas_shared, eqtl_shared)
+check_maf(gwas_shared, eqtl_shared, verbose = TRUE)
+}
+\arguments{
+\item{verbose}{Print messages.}
 }
 \description{
 Check Minor Allele Frequency (MAF) column is 

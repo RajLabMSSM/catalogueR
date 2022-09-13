@@ -4,7 +4,7 @@
 \alias{check_coord_input}
 \title{Check coordinates input}
 \usage{
-check_coord_input(gwas_data, chrom, bp_lower, bp_upper)
+check_coord_input(query_dat, chrom, bp_lower, bp_upper)
 }
 \description{
 Make sure there's some way to specify genomic coordinates for tabix query.

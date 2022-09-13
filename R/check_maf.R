@@ -3,14 +3,16 @@
 #' Check Minor Allele Frequency (MAF) column is 
 #' prepared for running \pkg{coloc}. Must be numeric, <1, >0, 
 #' and not contain NAs.
+#' @param verbose Print messages.
 #' @keywords internal
 check_maf <- function(gwas_shared,
-                      eqtl_shared) {
+                      eqtl_shared,
+                      verbose=TRUE) {
     MAF <- maf.QTL <- NULL;
     if (!"MAF" %in% colnames(gwas_shared)) {
         messager(
             "WARNING: `MAF` column not provided in GWAS data.",
-            "Borrowing MAF from QTL data instead."
+            "Borrowing MAF from QTL data instead.",v=verbose
         )
         gwas_shared$MAF <- eqtl_shared$maf.QTL
     }

@@ -6,22 +6,19 @@
 \source{
 \code{
 data("meta")
-gwas_data <- echodata::BST1
+query_granges <- echotabix::construct_query(query_dat = echodata::BST1)
 qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1],
-                            gwas_data = gwas_data)
+                            query_granges = query_granges)
 }
 }
 \usage{
 fetch_restAPI(
   unique_id,
+  query_granges,
   quant_method = "ge",
-  infer_region = TRUE,
-  gwas_data = NULL,
-  chrom = NULL,
-  bp_lower = NULL,
-  bp_upper = NULL,
   is_gwas = FALSE,
   size = NULL,
+  timeout = 5 * 60,
   verbose = TRUE
 )
 }
@@ -41,10 +38,6 @@ or \code{quant_method="microarray"}, depending on the dataset.
 \emph{*under construction*}  \code{quant_method="txrev"}}
 }}
 
-\item{infer_region}{Infer the range of coordinates to query based on
-the min/max positions in each of the summary statistics files
- (\code{sumstats_paths}).}
-
 \item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
 }
 \description{
@@ -53,11 +46,11 @@ Slower than tabix (unless you're only querying several specific SNPs).
 }
 \seealso{
 Other eQTL Catalogue: 
-\code{\link{eQTL_Catalogue.fetch}()},
-\code{\link{eQTL_Catalogue.header}},
-\code{\link{eQTL_Catalogue.iterate_fetch}()},
-\code{\link{eQTL_Catalogue.query}()},
-\code{\link{eQTL_Catalogue.search_metadata}()},
+\code{\link{eQTLcatalogue_fetch}()},
+\code{\link{eQTLcatalogue_header}},
+\code{\link{eQTLcatalogue_iterate_fetch}()},
+\code{\link{eQTLcatalogue_query}()},
+\code{\link{eQTLcatalogue_search_metadata}()},
 \code{\link{fetch_tabix}()},
 \code{\link{merge_gwas_qtl}()},
 \code{\link{meta}}

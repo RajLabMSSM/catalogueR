@@ -13,7 +13,7 @@
 #' @importFrom parallel mclapply
 #' @importFrom data.table data.table fread rbindlist
 #' @examples
-#' sumstats_paths <- catalogueR::example_sumstats_paths()
+#' sumstats_paths <- echodata:: get_Nalls2019_loci(limit_snps = 5)
 #' merged_dat <- merge_files(file_paths = sumstats_paths)
 merge_files <- function(file_paths,
                         nThread = 1,
@@ -34,7 +34,7 @@ merge_files <- function(file_paths,
             dat$file <- basename(x)
         })
         return(dat)
-    }, mc.cores = nThread) %>% data.table::rbindlist(fill = TRUE)
+    }, mc.cores = nThread) |> data.table::rbindlist(fill = TRUE)
     messager("+ Merged data.table:", formatC(nrow(DAT), big.mark = ","),
         "rows x", formatC(ncol(DAT), big.mark = ","),
         "columns.",

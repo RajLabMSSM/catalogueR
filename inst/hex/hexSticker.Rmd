@@ -70,9 +70,9 @@ set.seed(1234)
 n_bats <- 20
 d <- data.frame(x = -rexp(n_bats, rate = 3),
                 y = rexp(n_bats, rate = 3)
-                ) %>%
+                ) |>
   dplyr::mutate(image = URL,
-                bsize = abs(x*y^2)) %>%
+                bsize = abs(x*y^2)) |>
   dplyr::arrange(dplyr::desc(x), dplyr::desc(y))
 qplot(d$x, d$y, size=d$bsize)
 ```
