@@ -1,3 +1,9 @@
+# catalogueR 1.0.1
+
+## New features
+
+* Implement `rworkflows`.
+
 # catalogueR 1.0.0
 
 ## New features

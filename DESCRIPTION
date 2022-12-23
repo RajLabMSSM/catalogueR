@@ -1,7 +1,7 @@
 Package: catalogueR
 Type: Package
 Title: QTL data extraction and colocalization
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     c(person(given = "Brian",
            family = "Schilder",
@@ -62,6 +62,6 @@ Remotes:
   github::RajLabMSSM/echotabix,
   github::RajLabMSSM/echodata,
   github::RajLabMSSM/echoLD
-RoxygenNote: 7.2.1.9000
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 Config/testthat/edition: 3
