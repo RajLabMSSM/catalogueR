@@ -1,7 +1,7 @@
 Package: catalogueR
 Type: Package
 Title: QTL data extraction and colocalization
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     c(person(given = "Brian",
            family = "Schilder",

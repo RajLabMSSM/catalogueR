@@ -5,6 +5,11 @@
 - Update to v3 of *eQTL Catalogue* API (https://github.com/eQTL-Catalogue/eQTL-SumStats) which specifies chromosomes as an arg instead of part of the API path.
 - Change the base URL from *http* to *https*.
 - Update `catalogueR::meta` object.`
+* Standardize `rworkflows.yml` with canonical template:
+  enable Docker on `ghcr.io`, set `write-all` permissions,
+  use `GITHUB_TOKEN`, add `devel` branch trigger.
+* Update R requirement from `>= 3.6.0` to `>= 4.1`.
+* Remove tracked `.DS_Store` files.
 
 
 # catalogueR 1.0.1
