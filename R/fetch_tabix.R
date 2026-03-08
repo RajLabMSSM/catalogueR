@@ -9,7 +9,7 @@
 #' \code{
 #' data("meta");
 #' query_granges <- echotabix::construct_query(query_dat = echodata::BST1)
-#' qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
+#' qtl.subset <- catalogueR:::fetch_tabix(unique_label=meta$unique_label[2],
 #'                                        query_granges=query_granges)
 #' }
 #' @inheritParams eQTLcatalogue_query
@@ -17,7 +17,7 @@
 #' @family eQTL Catalogue 
 #' @keywords internal
 #' @importFrom echotabix query
-fetch_tabix <- function(unique_id,
+fetch_tabix <- function(dataset_id,
                         query_granges, 
                         query_method = c("rsamtools", 
                                          "variantannotation",
@@ -42,7 +42,7 @@ fetch_tabix <- function(unique_id,
     
     tabix.start <- Sys.time()  
     meta.sub <- choose_quant_method(
-        ui = unique_id,
+        di = dataset_id,
         qm = quant_method,
         verbose = verbose
     ) 

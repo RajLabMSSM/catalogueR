@@ -1,10 +1,10 @@
 # Try selecting the quant_method requested, but if not available select another
-choose_quant_method <- function(ui,
+choose_quant_method <- function(di,
                                 qm,
                                 verbose = TRUE) {
-    unique_id <- quant_method <- NULL;
+    dataset_id <- quant_method <- NULL;
     meta <- eQTLcatalogue_list_datasets(verbose = FALSE)
-    meta.sub <- data.frame(subset(meta, unique_id == ui))
+    meta.sub <- data.frame(subset(meta, dataset_id == di))
     if (qm %in% unique(meta.sub$quant_method)) {
         meta.sub <- subset(meta.sub, quant_method == qm)
     } else {

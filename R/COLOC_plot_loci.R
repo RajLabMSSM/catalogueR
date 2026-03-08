@@ -69,7 +69,7 @@ COLOC_plot_loci <- function(gwas.qtl_paths = NULL,
         )
 
     ann_text <- subset(plot_dat, 
-                       !is.na(PP.H4))[, c("Locus.GWAS", "qtl_id", 
+                       !is.na(PP.H4))[, c("Locus.GWAS", "dataset_id", 
                                           "gene.QTL", "PP.H4")] |> unique()
     gg.qtls <- ggplot2::ggplot(plot_dat, 
                                ggplot2::aes(x = MB, y = -log10(pvalue.QTL))) +
@@ -81,7 +81,7 @@ COLOC_plot_loci <- function(gwas.qtl_paths = NULL,
         ggplot2::geom_hline(yintercept = -log10(qtl_thresh), alpha = .5,
                    linetype = "dashed", size = .5) +
         ggplot2::facet_grid(
-            facets = gsub("\\.", "\n", qtl_id) ~ Locus.GWAS + gene.QTL, 
+            facets = gsub("\\.", "\n", dataset_id) ~ Locus.GWAS + gene.QTL, 
             scales = "free"
         ) +
         ggplot2::geom_text(data = ann_text, 
@@ -121,14 +121,14 @@ multi_locus_plot <- function(...){
 #   # Group and melt
 #   GWAS.QTL <- find_consensus_SNPs(GWAS.QTL)
 #   gwas.qtl.melt <-  data.table::setDT(GWAS.QTL)[, .(Count = data.table::uniqueN(SNP[Support<0],na.rm  = TRUE)),
-#                                                 by=c("Locus","qtl_id","SNP","gene.QTL")] #"leadSNP","Consensus_SNP","UCS"
+#                                                 by=c("Locus","dataset_id","SNP","gene.QTL")] #"leadSNP","Consensus_SNP","UCS"
 #   gwas.qtl.melt <- gwas.qtl.melt |>
-#     dplyr::group_by(Locus, qtl_id, SNP) |>
+#     dplyr::group_by(Locus, dataset_id, SNP) |>
 #     dplyr::summarise(Count = sum(Count, na.rm = TRUE),
 #                      Genes = paste(gene.QTL,collapse=", "))
 #
 #   gwas.qtl.melt[gwas.qtl.melt$Count==0,"Count"] <- NA
-#   gg_gwas.qtl <- ggplot(data=gwas.qtl.melt, aes(x=qtl_id, y=Locus, fill=Count)) +
+#   gg_gwas.qtl <- ggplot(data=gwas.qtl.melt, aes(x=dataset_id, y=Locus, fill=Count)) +
 #     geom_raster() +
 #     # scale_fill_manual(values = consensus_colors) +
 #     scale_fill_gradient(na.value = "transparent", low = scales::alpha("blue",.7), high = scales::alpha("red",.7)) +

@@ -10,13 +10,13 @@ eQTL Catalogue blocking tabix requests}
 \code{
 data("meta");
 query_granges <- echotabix::construct_query(query_dat = echodata::BST1)
-qtl.subset <- catalogueR:::fetch_tabix(unique_id=meta$unique_id[2],
+qtl.subset <- catalogueR:::fetch_tabix(unique_label=meta$unique_label[2],
                                        query_granges=query_granges)
 }
 }
 \usage{
 fetch_tabix(
-  unique_id,
+  unique_label,
   query_granges,
   query_method = c("rsamtools", "variantannotation", "conda", "seqminer"),
   quant_method = "ge",

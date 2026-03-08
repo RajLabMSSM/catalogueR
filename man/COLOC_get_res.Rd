@@ -11,7 +11,7 @@ query <- paths["BST1__Alasoo_2018.macrophage_IFNg"]
 
 qtl.egene <- data.frame(
     query
-    )[, grep("*.QTL$|qtl_id|SNP",
+    )[, grep("*.QTL$|dataset_id|SNP",
              colnames(query), value = TRUE)]
 sorted_egenes <- qtl.egene |>
     dplyr::group_by(gene.QTL) |>
@@ -21,7 +21,7 @@ qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
 
 gwas.region <- data.frame(
     query
-    )[, grep("*.QTL$|qtl_id",
+    )[, grep("*.QTL$|dataset_id",
              colnames(query),
              value = TRUE, invert = TRUE)]
 #### Run ####

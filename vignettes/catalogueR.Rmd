@@ -31,12 +31,13 @@ You can view of a metadata table for all current datasets:
 
 ```{r}
 data("meta")
-messager("There are",formatC(nrow(meta),big.mark = ","),
-         "datasets in eQTL Catalogue.")
+print(
+  paste("There are",formatC(nrow(meta),big.mark = ","), "datasets in eQTL Catalogue.")
+)
 knitr::kable(meta[1:10,])
 ```
 
-You can seach through the metadata for datasets with certain keywords (case-insensitive substrings across multiple columns). 
+You can search through the metadata for datasets with certain keywords (case-insensitive substrings across multiple columns). 
 
 ```{r}
 qtl_datasets <- catalogueR::eQTLcatalogue_search_metadata(
@@ -47,7 +48,9 @@ print(qtl_datasets)
 
 ### [Approach 1] Query with summary stats  
 
-Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range. The files can be any of these formats, either *gzip*-compressed (`.gz`) or uncompressed: `.csv`, `.tsv`, `space-separated`  
+Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range. 
+
+The files can be any of these formats, either *gzip*-compressed (`.gz`) or uncompressed: `.csv`, `.tsv`, `space-separated`  
 
 <br>
 
@@ -81,11 +84,11 @@ echodata::createDT(utils::head(GWAS.QTL))
 ### [Approach 2] Query with coordinates  
 
 You can also makes queries to *eQTL Catalogue* by manually specifying the coordinates of the region you want to extract,
-as well as the `unique_id` of the QTL dataset (see `data("meta")` for IDs).
+as well as the `unique_label` of the QTL dataset (see `data("meta")` for IDs).
  
 ```{r Approach 2- Query with coordinates  } 
 GWAS.QTL_manual <- catalogueR:: eQTLcatalogue_fetch(
-  unique_id="Alasoo_2018.macrophage_IFNg",  
+  unique_label="Alasoo_2018.macrophage_IFNg",  
   chrom = 8, 
   bp_lower = 21527069-500,
   bp_upper = 21527069+500)

@@ -9,7 +9,7 @@
 #'
 #' qtl.egene <- data.frame(
 #'     query
-#'     )[, grep("*.QTL$|qtl_id|SNP",
+#'     )[, grep("*.QTL$|dataset_id|SNP",
 #'              colnames(query), value = TRUE)]
 #' sorted_egenes <- qtl.egene |>
 #'     dplyr::group_by(gene.QTL) |>
@@ -19,7 +19,7 @@
 #'
 #' gwas.region <- data.frame(
 #'     query
-#'     )[, grep("*.QTL$|qtl_id",
+#'     )[, grep("*.QTL$|dataset_id",
 #'              colnames(query),
 #'              value = TRUE, invert = TRUE)]
 #' #### Run ####

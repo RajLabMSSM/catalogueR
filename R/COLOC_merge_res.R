@@ -23,7 +23,7 @@ COLOC_merge_res <- function(gwas.qtl_paths,
                                     gwas_label = "GWAS",
                                     remove_extra_panes = TRUE,
                                     verbose = TRUE) {
-    PP.H4 <- PP.H3 <- Locus.GWAS <- qtl_id <- gene.QTL <- PP.Hyp4 <- 
+    PP.H4 <- PP.H3 <- Locus.GWAS <- dataset_id <- gene.QTL <- PP.Hyp4 <- 
         PP.H4.thresh <- pvalues.QTL <- POS <- Locus.QTL.eGene <- NULL;
     # Filter colocalization
     coloc_QTLs_sig <- coloc_QTLs |>
@@ -33,7 +33,7 @@ COLOC_merge_res <- function(gwas.qtl_paths,
                                  (PP.H4 / PP.H3 >= 2), PP.H4, NA)
         ) |>
         dplyr::mutate(Locus.QTL.eGene = paste(Locus.GWAS,
-                                              qtl_id, gene.QTL, sep = "--"))
+                                              dataset_id, gene.QTL, sep = "--"))
     if (!is.null(coloc_thresh)) {
         coloc_QTLs_sig <- subset(coloc_QTLs_sig,
                                  (!is.na(PP.Hyp4)) & (!is.na(PP.H4.thresh)))
@@ -71,7 +71,7 @@ COLOC_merge_res <- function(gwas.qtl_paths,
         dplyr::mutate(
             MB = POS / 1000000,
             Locus__eGene = paste(Locus.GWAS, gene.QTL, sep = "__"),
-            Locus.QTL.eGene = paste(Locus.GWAS, qtl_id, gene.QTL, sep = "--"),
+            Locus.QTL.eGene = paste(Locus.GWAS, dataset_id, gene.QTL, sep = "--"),
             GWAS.label = gwas_label
         )
     # Add coloc probs back into SNP-wise dataframe 
@@ -93,9 +93,9 @@ COLOC_merge_res <- function(gwas.qtl_paths,
     } else {
         plot_dat <- subset(
             plot_dat,
-            ((qtl_id %in% tmp_subset$qtl_id) & 
+            ((dataset_id %in% tmp_subset$dataset_id) & 
                  (Locus.GWAS %in% tmp_subset$Locus.GWAS)) |
-                ((qtl_id %in% tmp_subset$qtl_id) &
+                ((dataset_id %in% tmp_subset$dataset_id) &
                      (gene.QTL %in% tmp_subset$gene.QTL))
             # (gene.QTL %in% tmp_subset$gene.QTL)
         )

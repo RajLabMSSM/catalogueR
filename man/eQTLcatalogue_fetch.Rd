@@ -5,12 +5,12 @@
 \title{Query eQTL Catalogue}
 \usage{
 eQTLcatalogue_fetch(
-  unique_id,
+  unique_label,
   query_granges,
   method = c("REST", "tabix"),
   quant_method = "ge",
   multithread_tabix = FALSE,
-  add_qtl_id = TRUE,
+  add_dataset_id = TRUE,
   convert_genes = TRUE,
   suffix = ".QTL",
   timeout = 5 * 60,
@@ -20,8 +20,8 @@ eQTLcatalogue_fetch(
 )
 }
 \arguments{
-\item{unique_id}{Unique eQTL Catalogue ID assigned in metadata
-("unique_id" column in \code{data(meta)}).}
+\item{unique_label}{Unique eQTL Catalogue ID assigned in metadata
+("unique_label" column in \code{data(meta)}).}
 
 \item{method}{Method for querying eQTL Catalogue:
 \itemize{
@@ -55,7 +55,7 @@ or \code{quant_method="microarray"}, depending on the dataset.
 \item{multithread_tabix}{Multi-thread across within a single tabix file query
 (good when you have one-several large loci).}
 
-\item{add_qtl_id}{Add "qtl_id" (i.e. "unique_id") column to the query result.}
+\item{add_dataset_id}{Add "dataset_id" (i.e. "unique_label") column to the query result.}
 
 \item{convert_genes}{Convert Ensembl IDs to HGNC symbols.}
 
@@ -82,7 +82,7 @@ data("meta")
 query_granges <- echodata::BST1
 GWAS.QTL_manual <- catalogueR::eQTLcatalogue_fetch(
   query_granges = query_granges,
-  unique_id = meta$unique_id[1])
+  unique_label = meta$unique_label[1])
 }
 \seealso{
 Other eQTL Catalogue: 

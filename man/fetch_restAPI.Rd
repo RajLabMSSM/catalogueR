@@ -7,13 +7,13 @@
 \code{
 data("meta")
 query_granges <- echotabix::construct_query(query_dat = echodata::BST1)
-qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1],
+qtl.subset <- fetch_restAPI(unique_label = meta$unique_label[1],
                             query_granges = query_granges)
 }
 }
 \usage{
 fetch_restAPI(
-  unique_id,
+  unique_label,
   query_granges,
   quant_method = "ge",
   is_gwas = FALSE,

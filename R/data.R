@@ -21,11 +21,7 @@
 #' and their associated systems/tissues/cell types.
 #' @source
 #' \code{
-#' meta <- eQTLcatalogue_list_datasets(force_new = TRUE)
-#' # Some paths in the metadata were originally wrong.
-#' # Has since been corrected by authors.
-#' # meta <- meta |> dplyr::mutate(ftp_path= gsub("Fairfax_2014_monocyte",
-#' #                                              "Fairfax_2014",ftp_path))
+#' meta <- eQTLcatalogue_list_datasets(force_new = TRUE) 
 #' usethis::use_data(meta, overwrite = TRUE)
 #' }
 #' @family eQTL Catalogue

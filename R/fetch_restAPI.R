@@ -6,7 +6,7 @@
 #' \code{
 #' data("meta")
 #' query_granges <- echotabix::construct_query(query_dat = echodata::BST1)
-#' qtl.subset <- fetch_restAPI(unique_id = meta$unique_id[1],
+#' qtl.subset <- fetch_restAPI(dataset_id = meta$dataset_id[1],
 #'                             query_granges = query_granges)
 #' }
 #' @inheritParams eQTLcatalogue_query
@@ -17,7 +17,7 @@
 #' @importFrom echotabix construct_query
 #' @importFrom data.table data.table rbindlist
 #' @importFrom GenomicRanges seqnames
-fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
+fetch_restAPI <- function(dataset_id, # Alasoo_2018.macrophage_naive
                           query_granges,
                           quant_method = "ge", 
                           is_gwas = FALSE, # refers to the datasets being queried
@@ -36,23 +36,27 @@ fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
     )
     #### Chose quant method ####
     meta.sub <- choose_quant_method(
-      ui = unique_id,
+      di = dataset_id,
       qm = quant_method,
       verbose = verbose
     ) 
     #### Iterate over loci ####
+    ### Via the main endpoint
     qtl <- lapply(query_split,
                   function(gr){
+                    
       chrom <- as.character(unique(GenomicRanges::seqnames(gr)))[[1]]
       messager("Querying chromosome:",chrom,v=verbose)
+      #### Via the chromosomes endpoint ####
+      ## https://www.ebi.ac.uk/eqtl/api-docs/#get--eqtl-api-chromosomes-(string-chromosome) 
       link <- paste0(
-        "http://www.ebi.ac.uk/eqtl/api/",
+        "https://www.ebi.ac.uk/eqtl/api/v3/",
         "chromosomes/",chrom,
         "/associations?paginate=False",
         # Study name
-        "&study=", meta.sub$study,
+        "&study=", meta.sub$study_label,
         # Condition
-        "&qtl_group=", meta.sub$qtl_group,
+        "&qtl_group=", meta.sub$sample_group,
         # ENSEMBL gene id
         # "&gene_id=",gene_id,
         # ENSEMBL molecular trait id
@@ -64,6 +68,49 @@ fetch_restAPI <- function(unique_id, # Alasoo_2018.macrophage_naive
         "&bp_upper=", max(GenomicRanges::end(gr)),
         if (!is.null(size)) paste0("&size=", size) else ""
       ) 
+      
+      
+      #### Via the top-level associations endpoint ####
+      ## NOTE: Does not support bp_lower/upper params
+      # link <- paste0(
+      #   "https://www.ebi.ac.uk/eqtl/api/v3",
+      #   "/associations?paginate=False",
+      #   # Chromosome
+      #   "&chromosome=", chrom,
+      #   # Study name
+      #   "&study=", meta.sub$study_label,
+      #   # Condition
+      #   "&qtl_group=", meta.sub$qtl_group,
+      #   # ENSEMBL gene id
+      #   # "&gene_id=",gene_id,
+      #   # ENSEMBL molecular trait id
+      #   # "&molecular_trait_id=",molecular_trait_id,
+      #   # gene expression, transcript, etc.
+      #   "&quant_method=", quant_method, 
+      #   if (!is.null(size)) paste0("&size=", size) else ""
+      # ) 
+      # 
+      # #### Via the datasets endpoint ####
+      # ## NOTE: Does not support bp_lower/upper params
+      # link <- paste0(
+      #   "https://www.ebi.ac.uk/eqtl/api/v3",
+      #   "/datasets/", meta.sub$dataset_id,
+      #   "/associations?paginate=False",
+      #   # Chromosome
+      #   "&chromosome=", chrom,
+      #   # Study name
+      #   # "&study=", meta.sub$study_id,
+      #   # Condition
+      #   # "&qtl_group=", meta.sub$qtl_group,
+      #   # ENSEMBL gene id
+      #   # "&gene_id=",gene_id,
+      #   # ENSEMBL molecular trait id
+      #   # "&molecular_trait_id=",molecular_trait_id,
+      #   # gene expression, transcript, etc.
+      #   "&quant_method=", quant_method, 
+      #   if (!is.null(size)) paste0("&size=", size) else ""
+      # )
+      # 
       messager("+ catalogueR:: Fetching:",link,v=verbose) 
       #### Post-process ####
       qtl.subset <- fetch_from_eqtl_cat_API(link = link, 

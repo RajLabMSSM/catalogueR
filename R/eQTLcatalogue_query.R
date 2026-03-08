@@ -141,6 +141,9 @@ eQTLcatalogue_query <- function(sumstats_paths = NULL,
         qtl_search = qtl_search,
         verbose = verbose
     )
+    if (length(qtl_datasets) == 0) {
+        stop("No QTL datasets found matching your query:",qtl_search)
+    }
     #### Determine multi-threading level ####
     if (nThread==1) {
         multithread_qtl <-
@@ -160,24 +163,26 @@ eQTLcatalogue_query <- function(sumstats_paths = NULL,
             multithread_tabix <- multithread_opts$tabix
         }
     }
+    
     #### Query eQTL Catalogue ####
     messager("eQTL_Catalogue:: Querying",
         formatC(length(qtl_datasets), big.mark = ","),
-        "QTL datasets x", formatC(length(sumstats_paths), big.mark = ","),
+        "QTL dataset(s) x", formatC(length(sumstats_paths), big.mark = ","),
         "GWAS loci",
         paste0("(", formatC(length(qtl_datasets) * length(sumstats_paths),
             big.mark = ","
         ), " total)"),
         v = verbose
     )
+    
     #### Iterate over QTL datasets ####
     GWAS.QTL_all <- parallel::mclapply(qtl_datasets,
-                                       function(qtl_id) {
-        messager(qtl_id,v=verbose)
+                                       function(dataset_id) {
+        messager(dataset_id,v=verbose)
         GWAS.QTL <- eQTLcatalogue_iterate_fetch(
             sumstats_paths = sumstats_paths,
             output_dir = output_dir,
-            qtl_id = qtl_id,
+            dataset_id = dataset_id,
             quant_method = quant_method, 
             method = method,
             conda_env = conda_env,
@@ -192,7 +197,7 @@ eQTLcatalogue_query <- function(sumstats_paths = NULL,
         )
         return(GWAS.QTL)
     }, mc.cores = if (multithread_qtl) nThread else 1)
-    # END ITERATION OVER QTL_IDS
+    # END ITERATION OVER dataset_idS
 
     #### Gather paths/results ####
     if (isTRUE(split_files)) {

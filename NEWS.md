@@ -1,3 +1,12 @@
+# catalogueR 1.0.2
+
+## Bug fixes
+
+- Update to v3 of *eQTL Catalogue* API (https://github.com/eQTL-Catalogue/eQTL-SumStats) which specifies chromosomes as an arg instead of part of the API path.
+- Change the base URL from *http* to *https*.
+- Update `catalogueR::meta` object.`
+
+
 # catalogueR 1.0.1
 
 ## New features

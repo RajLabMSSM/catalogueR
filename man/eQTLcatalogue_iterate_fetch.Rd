@@ -6,10 +6,10 @@
 \source{
 \code{
 sumstats_paths <- echodata::get_Nalls2019_loci(limit_snps = 5)
-qtl_id <- catalogueR::eQTLcatalogue_list_datasets()$unique_id[1]
+dataset_id <- catalogueR::eQTLcatalogue_list_datasets()$unique_label[1]
 GWAS.QTL <- catalogueR:::eQTLcatalogue_iterate_fetch(
     sumstats_paths = sumstats_paths,
-     qtl_id = qtl_id,
+     dataset_id = dataset_id,
      nThread = 1,
      split_files = FALSE)
 }
@@ -18,7 +18,7 @@ GWAS.QTL <- catalogueR:::eQTLcatalogue_iterate_fetch(
 eQTLcatalogue_iterate_fetch(
   sumstats_paths,
   output_dir = file.path(tempdir(), "catalogueR_queries"),
-  qtl_id,
+  dataset_id,
   method = c("REST", "tabix"),
   quant_method = "ge",
   multithread_loci = TRUE,

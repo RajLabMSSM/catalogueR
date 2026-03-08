@@ -20,7 +20,8 @@ eQTLcatalogue_list_datasets <- function(save_dir = tempdir(),
                                         force_new = FALSE,
                                         include_imported = TRUE,
                                         verbose = FALSE) {
-    study <- qtl_group <- tissue_label <- NULL;
+    study_label <- sample_group <- tissue_label <- NULL;
+    
     if (force_new == FALSE) {
         messager("+ Loading saved metadata.", v = verbose)
         meta <- catalogueR::meta
@@ -32,27 +33,7 @@ eQTLcatalogue_list_datasets <- function(save_dir = tempdir(),
             "eQTL-Catalogue-resources/master",sep="/"
         )
         URL <- file.path(base_url, "tabix/tabix_ftp_paths.tsv")
-        meta <- data.table::fread(URL)
-
-        #### Import GTEX V8 metadata ####
-        if (include_imported) {
-            messager("Including metadata from tabix_ftp_paths_imported.tsv",
-                v = verbose
-            )
-            meta <- tryCatch(expr = {
-                # GTEx v8 metadata is in a separate file
-                URL_gtex <- paste(
-                    base_url,"tabix/tabix_ftp_paths_imported.tsv",sep="/"
-                )
-                meta_gtex <- data.table::fread(URL_gtex, nThread = 1)
-                # Merged datasets
-                rbind(meta, meta_gtex, fill = TRUE) |>
-                    dplyr::mutate(unique_id = paste0(study, ".", qtl_group))
-            }, error = function(e) meta)
-        }
-        # meta <- meta |> dplyr::mutate(ftp_path=
-        #                                    gsub("Fairfax_2014_monocyte",
-        #                                         "Fairfax_2014",ftp_path))
+        meta <- data.table::fread(URL) 
         if (save_dir != FALSE) {
             meta_path <- file.path(
                 save_dir,
@@ -64,9 +45,9 @@ eQTLcatalogue_list_datasets <- function(save_dir = tempdir(),
         }
     }
     messager("++ eQTL Catalogue:: Currently contains",
-        formatC(length(unique(meta$unique_id)), big.mark = ","),
+        formatC(length(unique(meta$unique_label)), big.mark = ","),
         "QTL datasets from",
-        formatC(length(unique(meta$study)), big.mark = ","),
+        formatC(length(unique(meta$study_label)), big.mark = ","),
         "studies across",
         formatC(length(unique(meta$tissue_label)), big.mark = ","),
         "tissues.",
@@ -92,6 +73,11 @@ eQTLcatalogue_list_datasets <- function(save_dir = tempdir(),
     meta$System <- ifelse(meta$tissue_label %in% blood, "Blood",
         ifelse(meta$tissue_label %in% CNS, "CNS", "Other")
     )
+    
+    # Create a human-readable unique label for each dataset
+    meta <- meta |> dplyr::mutate(
+      unique_label = paste0(study_label, ".", sample_group)
+      )
     return(meta)
 }
 

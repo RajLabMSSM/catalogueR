@@ -26,7 +26,7 @@ COLOC_heatmap <- function(coloc_QTLs,
   
   requireNamespace("ggplot2") 
   Locus.eGene <- Consensus.sigQTL <- UCS.sigQTL <- leadGWAS.sigQTL <-
-    PP.Hyp4 <- qtl_ID <- NULL;
+    PP.Hyp4 <- dataset_id <- NULL;
 
   #### Prepare data ####
   coloc_dat <- COLOC_plot_data(coloc_QTLs = coloc_QTLs,
@@ -38,7 +38,7 @@ COLOC_heatmap <- function(coloc_QTLs,
     data = coloc_dat,
     ggplot2::aes(
       x = Locus.eGene,
-      y = qtl_ID, fill = PP.Hyp4)
+      y = dataset_id, fill = PP.Hyp4)
   ) +
     ggplot2::geom_tile(stat = "identity") +
     
@@ -79,7 +79,7 @@ COLOC_heatmap <- function(coloc_QTLs,
       ggplot2::geom_point(
         data = subset(coloc_dat, Consensus.sigQTL > 0),
         ggplot2::aes(
-          x = Locus.eGene, y = qtl_ID,
+          x = Locus.eGene, y = dataset_id,
           color = "Consensus_SNP"
         ),
         color = "cyan2", shape = 16, size = 1.5,
@@ -89,7 +89,7 @@ COLOC_heatmap <- function(coloc_QTLs,
       ggplot2::geom_point(
         data = subset(coloc_dat, UCS.sigQTL > 0),
         ggplot2::aes(
-          x = Locus.eGene, y = qtl_ID,
+          x = Locus.eGene, y = dataset_id,
           color = "Union_Credible_Set"
         ),
         size = 3, shape = 5, color = "cyan2",
@@ -98,7 +98,7 @@ COLOC_heatmap <- function(coloc_QTLs,
       # lead GWAS SNP markers
       ggplot2::geom_tile(
         data = subset(coloc_dat, leadGWAS.sigQTL > 0),
-        ggplot2::aes(x = Locus.eGene, y = qtl_ID),
+        ggplot2::aes(x = Locus.eGene, y = dataset_id),
         fill = "transparent", color = "black", size = .7
       )
   }

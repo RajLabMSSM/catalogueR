@@ -12,7 +12,7 @@ COLOC_save_plot <- function(gg_coloc,
       width <- 7
       height <- 9
     } else {
-      width <- length(unique(coloc_dat$qtl_ID)) * .23 # .333333
+      width <- length(unique(coloc_dat$dataset_id)) * .23 # .333333
       height <- length(unique(coloc_dat$Locus.eGene)) * .3 # 0.6428571
     } 
     ggplot2::ggsave(

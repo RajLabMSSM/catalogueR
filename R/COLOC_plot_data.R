@@ -3,7 +3,7 @@ COLOC_plot_data <- function(coloc_QTLs,
                             label_snp_groups,
                             verbose=TRUE){
   
-  Locus.GWAS <- qtl_id <- PP.H4 <- PP.H3 <- gene.QTL <- qtl_ID <- PP.Hyp4 <- 
+  Locus.GWAS <- dataset_id <- PP.H4 <- PP.H3 <- gene.QTL <- dataset_id <- PP.Hyp4 <- 
     PP.H4.thresh <- eGene <- leadSNP <- Consensus_SNP <- SNP <- Support <- NULL;
   
   messager("Perparing COLOC plot data.",v=verbose)
@@ -11,7 +11,7 @@ COLOC_plot_data <- function(coloc_QTLs,
     data.table::setnames(coloc_QTLs, "snp","SNP")
   }
   coloc_dat <- subset(coloc_QTLs, !is.na(Locus.GWAS)) |>
-    dplyr::rename(qtl_ID = qtl_id) |>
+    dplyr::rename(dataset_id = dataset_id) |>
     dplyr::mutate(
       PP.H4.thresh = ifelse(PP.H4 >= coloc_thresh, PP.H4, NA),
       PP.Hyp4 = ifelse((PP.H3 + PP.H4 >= coloc_thresh) &
@@ -19,7 +19,7 @@ COLOC_plot_data <- function(coloc_QTLs,
       Locus.eGene = paste0(Locus.GWAS, " (", gene.QTL, ")")
     ) |>
     # tidyr::separate(
-    #   col = qtl_ID, 
+    #   col = dataset_id, 
     #   into = c("group.QTL", "id"),
     #   sep = "\\.", remove = FALSE) |>
     # only plot colocalized loci-egene combinations
@@ -44,7 +44,7 @@ COLOC_plot_data <- function(coloc_QTLs,
   if (isTRUE(label_snp_groups)) {
     if (all(needed_cols %in% colnames(coloc_dat))) {
       coloc_dat <- coloc_dat |>
-        dplyr::group_by(Locus.GWAS, gene.QTL, qtl_ID) |>
+        dplyr::group_by(Locus.GWAS, gene.QTL, dataset_id) |>
         dplyr::summarise(
           PP.Hyp4 = max(PP.Hyp4),
           leadGWAS.sigQTL = sum(leadSNP, na.rm = TRUE),

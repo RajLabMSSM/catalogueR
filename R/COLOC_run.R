@@ -60,15 +60,15 @@ COLOC_run <- function(gwas.qtl_paths,
         coloc_qtls <- parallel::mclapply(
             gwas.qtl_paths_select,
             function(qtl.path) {
-                qtl_ID <- parse_gwas.qtl_path(
+                dataset_id <- parse_gwas.qtl_path(
                     gwas.qtl_path = qtl.path,
                     get_locus = FALSE,
-                    get_qtl_id = TRUE
+                    get_dataset_id = TRUE
                 )
                 gwas.locus <- parse_gwas.qtl_path(
                     gwas.qtl_path = qtl.path,
                     get_locus = TRUE,
-                    get_qtl_id = FALSE
+                    get_dataset_id = FALSE
                 )
                 coloc_eGenes <- data.table::data.table()
                 try({
@@ -93,10 +93,10 @@ COLOC_run <- function(gwas.qtl_paths,
                         qtl.dat = qtl.dat,
                         sample_size = compute_n
                     )
-                    if (!"qtl_id" %in% colnames(qtl.dat)) {
-                        qtl.dat <- cbind(qtl.dat, qtl_id = qtl_ID)
+                    if (!"dataset_id" %in% colnames(qtl.dat)) {
+                        qtl.dat <- cbind(qtl.dat, dataset_id = dataset_id)
                     }
-                    qtl.dataset <- subset(qtl.dat, qtl_id == qtl_ID &
+                    qtl.dataset <- subset(qtl.dat, dataset_id == dataset_id &
                         !is.na(gene.QTL) & gene.QTL != "")
                     remove(qtl.dat)
                     #### Iterate over QTL eGenes ####
@@ -148,7 +148,7 @@ COLOC_run <- function(gwas.qtl_paths,
                             #### Create results data.table ####
                             coloc_DT <- data.table::data.table(
                                 Locus.GWAS = coloc_res$Locus,
-                                qtl_id = qtl_ID,
+                                dataset_id = dataset_id,
                                 gene.QTL = eGene,
                                 P = gwas.region$P,
                                 CHR = gwas.region$CHR,

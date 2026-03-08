@@ -7,7 +7,7 @@ check_missing_queries <- function(qtl_datasets,
         paste(loci, x, sep = "__")
     }))
     GWASlocus__QTLid.found <- unique(paste(GWAS.QTL$Locus.GWAS,
-                                           GWAS.QTL$qtl_id, sep = "__"))
+                                           GWAS.QTL$dataset_id, sep = "__"))
 
     missing_queries <- GWASlocus__QTLid.queried[
         !GWASlocus__QTLid.queried %in% GWASlocus__QTLid.found]

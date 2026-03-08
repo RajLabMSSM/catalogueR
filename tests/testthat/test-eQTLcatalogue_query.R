@@ -13,7 +13,7 @@ test_that("eQTLcatalogue_query works", {
     )
     testthat::expect_true(methods::is(GWAS.QTL, "data.table")) 
     testthat::expect_equal(dim(GWAS.QTL),c(80,56))
-    testthat::expect_true(all(qtl_search %in% unique(GWAS.QTL$qtl_id)))
+    testthat::expect_true(all(qtl_search %in% unique(GWAS.QTL$dataset_id)))
 
     #### Method 2: Split results ####
     gwas.qtl_paths <- catalogueR::eQTLcatalogue_query(

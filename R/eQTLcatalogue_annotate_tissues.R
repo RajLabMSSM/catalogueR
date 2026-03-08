@@ -19,9 +19,9 @@
 eQTLcatalogue_annotate_tissues <- function(dat,
                                            add_tissue_counts = FALSE) {
     study <- tissue_label <- Tissue_group <- System <- 
-        Tissue <- Study <- qtl_id <- unique_id <- NULL;
+        Tissue <- Study <- dataset_id <- unique_label <- NULL;
     meta <- eQTLcatalogue_list_datasets() |>
-        dplyr::select(unique_id,
+        dplyr::select(unique_label,
             Study = study,
             Tissue = tissue_label,
             Tissue_group,
@@ -37,19 +37,19 @@ eQTLcatalogue_annotate_tissues <- function(dat,
     if (!"study" %in% colnames(dat)) {
         dat$Study <- "GWAS"
     }
-    if (!"qtl_id" %in% colnames(dat)) {
-        dat$qtl_id <- dat$qtl_ID
+    if (!"dataset_id" %in% colnames(dat)) {
+        dat$dataset_id <- dat$dataset_id
     }
     dat <- data.table::merge.data.table(dat |> dplyr::rename(Study_id = Study),
         meta,
-        by.x = "qtl_id",
-        by.y = "unique_id"
+        by.x = "dataset_id",
+        by.y = "unique_label"
     )
     # Add the number of datasets per Tissue as a col
     if (add_tissue_counts) {
         dat_count <- dat |>
             dplyr::group_by(Tissue) |>
-            dplyr::summarise(dataset_count = dplyr::n_distinct(qtl_id,
+            dplyr::summarise(dataset_count = dplyr::n_distinct(dataset_id,
                 na.rm = TRUE
             )) |>
             data.table::data.table()
