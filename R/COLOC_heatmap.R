@@ -115,9 +115,3 @@ COLOC_heatmap <- function(coloc_QTLs,
   return(list(plot=gg_coloc,
               path=save_path)) 
 }
-
-#### Deprecation function #####
-plot_coloc_summary <- function(...){
-  .Deprecated("COLOC_heatmap")
-  COLOC_heatmap(...)
-}

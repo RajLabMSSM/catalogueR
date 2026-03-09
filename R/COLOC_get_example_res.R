@@ -53,9 +53,3 @@ COLOC_get_example_res <- function(save_dir = tempdir(),
     obj <- downloadR::load_rdata(fileName = tmp)
     return(obj)
 }
-
-#### Deprecation function #####
-get_coloc_QTLs <- function(...){
-  .Deprecated("eQTLcatalogue_query")
-  eQTLcatalogue_query(...)
-}

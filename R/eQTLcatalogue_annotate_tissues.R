@@ -68,10 +68,3 @@ eQTLcatalogue_annotate_tissues <- function(dat,
     }
     return(dat)
 }
-
-
-#### Deprecation function #####
-eQTL_Catalogue.annotate_tissues <- function(...){
-  .Deprecated("eQTLcatalogue_annotate_tissues")
-  eQTLcatalogue_annotate_tissues(...)
-}

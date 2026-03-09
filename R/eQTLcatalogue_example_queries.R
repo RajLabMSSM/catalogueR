@@ -68,9 +68,3 @@ eQTLcatalogue_example_queries <- function(
         stop("0 files selected.")
     } 
 }
-
-#### Deprecation function #####
-example_eQTL_Catalogue_query_paths <- function(...){
-  .Deprecated("eQTLcatalogue_example_queries")
-  eQTLcatalogue_example_queries(...)
-}

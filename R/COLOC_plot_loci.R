@@ -114,13 +114,6 @@ COLOC_plot_loci <- function(gwas.qtl_paths = NULL,
 }
 
 
-#### Deprecation function #####
-multi_locus_plot <- function(...){
-  .Deprecated("COLOC_plot_loci")
-  COLOC_plot_loci(...)
-}
-
-
 # merged_plot <- function(GWAS.QTL){
 #   # Group and melt
 #   GWAS.QTL <- find_consensus_SNPs(GWAS.QTL)

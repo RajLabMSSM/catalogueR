@@ -31,4 +31,6 @@ vignettes/.build.timestamp
 
 inst/doc
 /doc/
-/Meta/ 
+/Meta/
+*.tbi
+Rplots.pdf

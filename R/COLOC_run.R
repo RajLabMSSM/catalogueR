@@ -229,9 +229,3 @@ COLOC_run <- function(gwas.qtl_paths,
     }
     return(coloc_QTLs)
 }
-
-#### Deprecation function #####
-run_coloc <- function(...){
-  .Deprecated("COLOC_run")
-  COLOC_run(...)
-}

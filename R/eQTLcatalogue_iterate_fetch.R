@@ -199,9 +199,3 @@ eQTLcatalogue_iterate_fetch <- function(sumstats_paths,
     }
     message(" ")
 }
-
-#### Deprecation function #####
-eQTL_Catalogue.iterate_fetch <- function(...){
-  .Deprecated("eQTLcatalogue_iterate_fetch")
-  eQTLcatalogue_iterate_fetch(...)
-}

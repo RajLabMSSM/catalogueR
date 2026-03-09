@@ -243,10 +243,3 @@ eQTLcatalogue_query <- function(sumstats_paths = NULL,
     messager(round(query.end - query.start, 1), v = verbose)
     return(GWAS.QTL_all)
 }
-
-#### Deprecation function #####
-eQTL_Catalogue.query <- function(...){
-  .Deprecated("eQTLcatalogue_query")
-  eQTLcatalogue_query(...)
-}
-

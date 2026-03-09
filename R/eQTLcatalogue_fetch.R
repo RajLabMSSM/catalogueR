@@ -73,9 +73,3 @@ eQTLcatalogue_fetch <- function(dataset_id,
   }
   return(qtl.subset)
 }
-
-#### Deprecation function #####
-eQTL_Catalogue.fetch <- function(...){
-  .Deprecated("eQTLcatalogue_fetch")
-  eQTLcatalogue_fetch(...)
-}

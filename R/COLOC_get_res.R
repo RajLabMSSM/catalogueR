@@ -143,17 +143,11 @@ COLOC_get_res <- function(qtl.egene,
 
         coloc_res$Locus <- gwas_shared$Locus[1]
         if (isTRUE(verbose)) {
-            report <- COLOC.report_summary(
+            report <- COLOC_report_summary(
                 coloc.res = coloc_res,
                 coloc_thresh = coloc_thresh
             )
         }
     }
     return(coloc_res)
-}
-
-#### Deprecation function #####
-get_colocs <- function(...){
-  .Deprecated("COLOC_get_res")
-  COLOC_get_res(...)
 }

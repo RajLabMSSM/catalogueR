@@ -102,9 +102,3 @@ COLOC_merge_res <- function(gwas.qtl_paths,
     }
     return(plot_dat)
 }
-
-#### Deprecation function #####
-gather_colocalized_data <- function(...){
-  .Deprecated("COLOC_merge_res")
-  COLOC_merge_res(...)
-}

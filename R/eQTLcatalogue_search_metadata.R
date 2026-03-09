@@ -55,11 +55,3 @@ eQTLcatalogue_search_metadata <- function(qtl_search = NULL,
     }
     return(qtl_datasets)
 }
-
-
-
-#### Deprecation function #####
-eQTL_Catalogue.search_metadata <- function(...){
-  .Deprecated("eQTLcatalogue_search_metadata")
-  eQTLcatalogue_search_metadata(...)
-}

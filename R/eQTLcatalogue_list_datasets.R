@@ -82,9 +82,3 @@ eQTLcatalogue_list_datasets <- function(save_dir = tempdir(),
       )
     return(meta)
 }
-
-#### Deprecation function #####
-eQTL_Catalogue.list_datasets <- function(...){
-  .Deprecated("eQTLcatalogue_list_datasets")
-  eQTLcatalogue_list_datasets(...)
-}

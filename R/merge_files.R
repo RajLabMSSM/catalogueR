@@ -44,8 +44,3 @@ merge_files <- function(file_paths,
     )
     return(DAT)
 }
-
-gather_files <- function(...){
-    .Deprecated("merge_files")
-    merge_files(...)
-}

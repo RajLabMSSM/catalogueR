@@ -54,11 +54,3 @@ COLOC_report_summary <- function(coloc.res,
              coloc_thresh, " and PP.H3 / PP.H4 >= 2.")
     return(coloc_DT)
 }
-
-
-
-#### Deprecation function #####
-COLOC.report_summary <- function(...){
-  .Deprecated("COLOC_report_summary")
-  COLOC_report_summary(...)
-}
