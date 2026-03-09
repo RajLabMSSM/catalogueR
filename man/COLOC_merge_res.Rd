@@ -24,7 +24,7 @@ COLOC_merge_res(
 
 \item{coloc_thresh}{Colocalization Posterior Probability threshold,
  using the formula:
-\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.}
+\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2)}.}
 
 \item{gwas_label}{Label for the GWAS subplot.}
 

@@ -7,13 +7,13 @@
 #' (which can contain data for multiple eGenes).
 #'
 #' GWAS data originally comes from the Parkinson's disease GWAS
-#' by \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{
-#' Nalls et al., 2019 (The Lancet Neurology)}.
+#' by Nalls et al., 2019 (The Lancet Neurology)
+#' (\doi{10.1016/S1474-4422(19)30320-5}).
 #' 
 #' @param fnames Character vector of file names to download.
 #' @inheritParams echodata::get_data
 #' 
-#' @source \url{https://doi.org/10.1016/S1474-4422(19)30320-5} 
+#' @source \doi{10.1016/S1474-4422(19)30320-5}
 #' @family Nalls23andMe_2019
 #' @returns Path to merged example GWAS-QTL summary statistics.
 #' @source 
@@ -29,7 +29,9 @@
 #' @importFrom piggyback pb_list
 #' @importFrom echodata get_data
 #' @examples
+#' \dontrun{
 #' gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries()
+#' }
 eQTLcatalogue_example_queries <- function(
     save_dir = tempdir(),
     fnames = c("BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",

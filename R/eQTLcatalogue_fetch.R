@@ -3,24 +3,28 @@
 #' Query eQTL Catalogue datasets with multiple methods options.
 #' 
 #' @param dataset_id Unique eQTL Catalogue ID assigned in metadata
-#'  ("dataset_id" column in \code{data(meta)}). 
-#' @param query_dat \link[data.table]{data.table} of GWAS summary statistics.
+#'  ("dataset_id" column in \code{data(meta)}).
+#' @param query_granges \link[data.table]{data.table} with at least columns
+#' \code{CHR} and \code{POS} defining the genomic region to query.
 #' @param add_dataset_id Add "dataset_id" (i.e. "dataset_id") column to the query result.
 #' @param convert_genes Convert Ensembl IDs to HGNC symbols.
-#' @param chrom Chromosome of the query window.
-#' @param bp_lower Minimum basepair position of the query window.
-#' @param bp_upper Maxmimum basepair position of the query window.
+#' @param suffix Character suffix to append to QTL column names
+#' (default: \code{".QTL"}). Set to \code{NULL} to skip.
+#' @param timeout Timeout in seconds for the REST API query
+#' (default: \code{5*60}).
 #' @inheritParams eQTLcatalogue_query
-#' 
+#'
 #' @family eQTL Catalogue
 #' @export
 #' @importFrom data.table data.table :=
 #' @examples
+#' \dontrun{
 #' data("meta")
 #' query_granges <- echodata::BST1
 #' GWAS.QTL_manual <- catalogueR::eQTLcatalogue_fetch(
 #'   query_granges = query_granges,
 #'   dataset_id = meta$dataset_id[1])
+#' }
 eQTLcatalogue_fetch <- function(dataset_id,
                                 query_granges,
                                 method = c("REST","tabix"),
@@ -33,8 +37,7 @@ eQTLcatalogue_fetch <- function(dataset_id,
                                 conda_env = "echoR_mini",
                                 nThread = 1, 
                                 verbose = TRUE) { 
-  dataset_id <- NULL;
-  method <- tolower(method)[1]  
+  method <- tolower(method)[1]
   if (method=="tabix") {
       ## Tabix is about ~17x faster than the REST API,
       ## but gets blocked often by EBI server which thinks its an attack.
@@ -59,7 +62,7 @@ eQTLcatalogue_fetch <- function(dataset_id,
   } 
   #### Post=processing ####
   if (isTRUE(add_dataset_id)) {
-    qtl.subset[,dataset_id:=dataset_id]
+    qtl.subset[, "dataset_id"] <- dataset_id
   }
   #### Convert genes ####
   if (isTRUE(convert_genes)) { 

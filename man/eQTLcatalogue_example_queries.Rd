@@ -4,7 +4,7 @@
 \alias{eQTLcatalogue_example_queries}
 \title{Paths to example eQTL Catalogue query results}
 \source{
-\url{https://doi.org/10.1016/S1474-4422(19)30320-5}
+\doi{10.1016/S1474-4422(19)30320-5}
 
 \code{
 paths <- catalogueR:::eQTLcatalogue_example_queries_local()
@@ -45,10 +45,12 @@ the query, and the eQTL Catalogue query results
 }
 \details{
 GWAS data originally comes from the Parkinson's disease GWAS
-by \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{
-Nalls et al., 2019 (The Lancet Neurology)}.
+by Nalls et al., 2019 (The Lancet Neurology)
+(\doi{10.1016/S1474-4422(19)30320-5}).
 }
 \examples{
+\dontrun{
 gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries()
+}
 }
 \concept{Nalls23andMe_2019}

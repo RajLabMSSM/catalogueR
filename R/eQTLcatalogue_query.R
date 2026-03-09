@@ -32,9 +32,9 @@
 #' that match your criterion.
 #' For example, if you search "Alasoo_2018", it will query the datasets:
 #' \itemize{
-#' \item{Alasoo_2018.macrophage_naive}
-#' \item{Alasoo_2018.macrophage_Salmonella}
-#' \item{Alasoo_2018.macrophage_IFNg+Salmonella}
+#' \item Alasoo_2018.macrophage_naive
+#' \item Alasoo_2018.macrophage_Salmonella
+#' \item Alasoo_2018.macrophage_IFNg+Salmonella
 #' }
 #' You can be more specific about which datasets you want to include,
 #' for example by searching: "Alasoo_2018.macrophage_IFNg".
@@ -43,9 +43,9 @@
 #' and any QTL datasets containing those substrings (case-insensitive)
 #' in their name or metadata will be queried too.
 #' @param method Method for querying eQTL Catalogue:
-#' \itemize{
-#' \item{"REST" (default): }{Uses the REST API. Slow but can be used by anyone.}
-#' \item{"tabix"}{Uses tabix \link[echotabix]{query}.
+#' \describe{
+#' \item{REST (default)}{Uses the REST API. Slow but can be used by anyone.}
+#' \item{tabix}{Uses tabix \link[echotabix]{query}.
 #' Fast, but requires the user to first get their IP address whitelisted 
 #' by the EMBL-EBI server admin by putting in a request
 #' \href{https://www.ebi.ac.uk/about/contact/support/}{here}.} 
@@ -102,10 +102,12 @@
 #' @export
 #' @importFrom data.table fwrite rbindlist
 #' @examples
+#' \dontrun{
 #' sumstats_paths <- echodata::get_Nalls2019_loci(limit_snps = 5)
 #' GWAS.QTL <- catalogueR::eQTLcatalogue_query(
 #'     sumstats_paths = sumstats_paths$BST1,
 #'     qtl_search = "Alasoo_2018.macrophage_naive")
+#' }
 eQTLcatalogue_query <- function(sumstats_paths = NULL,
                                 output_dir = file.path(
                                     tempdir(),

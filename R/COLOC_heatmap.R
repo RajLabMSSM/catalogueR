@@ -13,10 +13,12 @@
 #' @importFrom tidyr separate
 #' @importFrom data.table data.table
 #' @examples
+#' \dontrun{
 #' coloc_QTLs <- catalogueR::COLOC_get_example_res()
 #' gg_coloc <- catalogueR::COLOC_heatmap(
 #'     coloc_QTLs = coloc_QTLs,
 #'     coloc_thresh = .5)
+#' }
 COLOC_heatmap <- function(coloc_QTLs,
                           coloc_thresh = .8,
                           label_snp_groups = FALSE, 
@@ -51,7 +53,7 @@ COLOC_heatmap <- function(coloc_QTLs,
     ggplot2::scale_y_discrete(drop = TRUE) +
     ggplot2::scale_x_discrete(position = "top") +
     ggplot2::facet_grid(
-      facets = System ~ .,
+      rows = ggplot2::vars(System),
       switch = "y", scales = "free", space = "free"
     ) +
     ggplot2::labs(

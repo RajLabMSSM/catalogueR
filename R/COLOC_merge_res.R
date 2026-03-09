@@ -9,7 +9,7 @@
 #' @param qtl_thresh QTL uncorrected p-value ("pvalues.QTL") threshold.
 #' @param coloc_thresh Colocalization Posterior Probability threshold,
 #'  using the formula:
-#' \code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.
+#' \code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2)}.
 #' @param gwas_label Label for the GWAS subplot.
 #' @param remove_extra_panes Remove SNPs from non-significant panes.
 #' @param verbose Print messages. 

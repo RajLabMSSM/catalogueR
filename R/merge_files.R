@@ -13,8 +13,10 @@
 #' @importFrom parallel mclapply
 #' @importFrom data.table data.table fread rbindlist
 #' @examples
-#' sumstats_paths <- echodata:: get_Nalls2019_loci(limit_snps = 5)
+#' \dontrun{
+#' sumstats_paths <- echodata::get_Nalls2019_loci(limit_snps = 5)
 #' merged_dat <- merge_files(file_paths = sumstats_paths)
+#' }
 merge_files <- function(file_paths,
                         nThread = 1,
                         verbose = TRUE) {

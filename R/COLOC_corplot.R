@@ -13,10 +13,16 @@
 #' @importFrom dplyr rename mutate n_distinct group_by summarise
 #' @importFrom tidyr separate
 #' @importFrom data.table data.table
+#' @param facets Formula specifying the faceting variables for the plot.
+#' Passed to \link[ggplot2]{facet_grid}.
+#' @param seed Random seed for reproducibility of label placement
+#' via \link[ggrepel]{geom_label_repel}.
 #' @examples
+#' \dontrun{
 #' coloc_QTLs <- catalogueR::COLOC_get_example_res()
 #' gg_coloc <- COLOC_corplot(coloc_QTLs = coloc_QTLs,
 #'                           coloc_thresh = .5)
+#' }
 COLOC_corplot <- function(coloc_QTLs,
                           coloc_thresh = .8,
                           label_top_snps = 1,
@@ -46,8 +52,8 @@ COLOC_corplot <- function(coloc_QTLs,
     ggplot2::scale_color_gradient(low="darkblue", high = "cyan2",
                                    limits=c(0,1), breaks=c(0,0.5,1)) + 
     ggplot2::scale_fill_viridis_d(option = "magma",) +
-    ggplot2::facet_grid(facets = facets,
-                        scales = "free") + 
+    ggplot2::facet_grid(facets,
+                        scales = "free") +
     ggplot2::theme_minimal() +
     ggplot2::theme(strip.background = ggplot2::element_rect(fill = "white"),
                    strip.text = ggplot2::element_text(color = "black"))

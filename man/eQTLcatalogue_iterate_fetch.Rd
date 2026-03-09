@@ -58,9 +58,9 @@ If \code{split_files=TRUE}, all query results will instead be split into
  smaller files and stored in \emph{<output_dir>/}.}
 
 \item{method}{Method for querying eQTL Catalogue:
-\itemize{
-\item{"REST" (default): }{Uses the REST API. Slow but can be used by anyone.}
-\item{"tabix"}{Uses tabix \link[echotabix]{query}.
+\describe{
+\item{REST (default)}{Uses the REST API. Slow but can be used by anyone.}
+\item{tabix}{Uses tabix \link[echotabix]{query}.
 Fast, but requires the user to first get their IP address whitelisted 
 by the EMBL-EBI server admin by putting in a request
 \href{https://www.ebi.ac.uk/about/contact/support/}{here}.} 

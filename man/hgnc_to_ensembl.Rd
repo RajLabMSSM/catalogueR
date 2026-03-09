@@ -18,8 +18,10 @@ Convert HGNC gene symbols to ENSEMBL IDs using the
 \link[EnsDb.Hsapiens.v75]{EnsDb.Hsapiens.v75} Bioconductor package.
 }
 \examples{
+\dontrun{
 gene_symbols <- c("BDNF", "FOXP2", "BST1")
 ensembl_ids <- catalogueR::hgnc_to_ensembl(gene_symbols)
+}
 }
 \seealso{
 Other utils: 

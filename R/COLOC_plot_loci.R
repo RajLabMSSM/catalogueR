@@ -14,6 +14,7 @@
 #' @export
 #' @importFrom patchwork plot_layout
 #' @examples
+#' \dontrun{
 #' coloc_QTLs <- catalogueR::COLOC_get_example_res()
 #' gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries()
 #' gg_gwas.qtl <- catalogueR::COLOC_plot_loci(
@@ -21,7 +22,8 @@
 #'     coloc_QTLs = coloc_QTLs,
 #'     coloc_thresh = .5,
 #'     qtl_thresh = .005,
-#'     remove_extra_panes = FALSE)  
+#'     remove_extra_panes = FALSE)
+#' }
 COLOC_plot_loci <- function(gwas.qtl_paths = NULL,
                             coloc_QTLs = NULL,
                             plot_dat = NULL,
@@ -57,7 +59,8 @@ COLOC_plot_loci <- function(gwas.qtl_paths = NULL,
         ggplot2::geom_point(size = .5, alpha = alpha) +
         ggplot2::labs(x = NULL) +
         ggplot2::facet_grid(
-            facets = GWAS.label ~ Locus.GWAS + gene.QTL,  
+            rows = ggplot2::vars(GWAS.label),
+            cols = ggplot2::vars(Locus.GWAS, gene.QTL),
             scales = "free"
         ) +
         ggplot2::theme_bw() +
@@ -81,7 +84,8 @@ COLOC_plot_loci <- function(gwas.qtl_paths = NULL,
         ggplot2::geom_hline(yintercept = -log10(qtl_thresh), alpha = .5,
                    linetype = "dashed", size = .5) +
         ggplot2::facet_grid(
-            facets = gsub("\\.", "\n", dataset_id) ~ Locus.GWAS + gene.QTL, 
+            rows = ggplot2::vars(gsub("\\.", "\n", dataset_id)),
+            cols = ggplot2::vars(Locus.GWAS, gene.QTL),
             scales = "free"
         ) +
         ggplot2::geom_text(data = ann_text, 

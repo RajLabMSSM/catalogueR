@@ -3,7 +3,7 @@ COLOC_plot_data <- function(coloc_QTLs,
                             label_snp_groups,
                             verbose=TRUE){
   
-  Locus.GWAS <- dataset_id <- PP.H4 <- PP.H3 <- gene.QTL <- dataset_id <- PP.Hyp4 <- 
+  Locus.GWAS <- dataset_id <- qtl_id <- PP.H4 <- PP.H3 <- gene.QTL <- PP.Hyp4 <-
     PP.H4.thresh <- eGene <- leadSNP <- Consensus_SNP <- SNP <- Support <- NULL;
   
   messager("Perparing COLOC plot data.",v=verbose)
@@ -11,7 +11,7 @@ COLOC_plot_data <- function(coloc_QTLs,
     data.table::setnames(coloc_QTLs, "snp","SNP")
   }
   coloc_dat <- subset(coloc_QTLs, !is.na(Locus.GWAS)) |>
-    dplyr::rename(dataset_id = dataset_id) |>
+    dplyr::rename(dataset_id = qtl_id) |>
     dplyr::mutate(
       PP.H4.thresh = ifelse(PP.H4 >= coloc_thresh, PP.H4, NA),
       PP.Hyp4 = ifelse((PP.H3 + PP.H4 >= coloc_thresh) &

@@ -29,7 +29,7 @@ GWAS loci (with `eQTLcatalogue_query()`).
 
 - Let's first gather those files saved as csv files.  
 
-```{r Import datasets, max.height='100px' }
+```{r Import datasets, max.height='100px', eval=FALSE}
 gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries(fnames = c(
   "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",
   "BST1__Alasoo_2018.macrophage_naive.tsv.gz",
@@ -48,7 +48,7 @@ whereas previously it could assume one causal variants.
 Thus, it may be able to better estimate the colocalization probability 
 between two datasets. 
 
-```{r Run coloc, max.height='100px'}
+```{r Run coloc, max.height='100px', eval=FALSE}
 coloc_QTLs <- catalogueR::COLOC_run(gwas.qtl_paths = gwas.qtl_paths,
                                     top_snp_only = TRUE,
                                     split_by_group = FALSE,
@@ -60,7 +60,7 @@ coloc_QTLs <- catalogueR::COLOC_run(gwas.qtl_paths = gwas.qtl_paths,
 First, let's plot only the results with >80% colocalization probability. 
 This is a colocalization threshold commonly used in the field. 
 
-```{r Plot results, error=TRUE}
+```{r Plot results, error=TRUE, eval=FALSE}
 coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs, 
                                              coloc_thresh = .8)
 ```
@@ -69,7 +69,7 @@ coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs,
 Let's explore the data a bit and lower the threshold to 0 
 (not advisable except for demonstration purposes).
 
-```{r Plot results 2}
+```{r Plot results 2, eval=FALSE}
 coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs,
                                              coloc_thresh = 0)
 ```

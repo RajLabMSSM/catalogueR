@@ -31,7 +31,7 @@ COLOC_plot_loci(
 
 \item{coloc_thresh}{Colocalization Posterior Probability threshold,
  using the formula:
-\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.}
+\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2)}.}
 
 \item{gwas_label}{Label for the GWAS subplot.}
 
@@ -50,6 +50,7 @@ Use the coloc results (\code{coloc_QTLs}) to determine which
 full summary statistics (\code{gwas.qtl_paths}) to plot.
 }
 \examples{
+\dontrun{
 coloc_QTLs <- catalogueR::COLOC_get_example_res()
 gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries()
 gg_gwas.qtl <- catalogueR::COLOC_plot_loci(
@@ -57,6 +58,7 @@ gg_gwas.qtl <- catalogueR::COLOC_plot_loci(
     coloc_QTLs = coloc_QTLs,
     coloc_thresh = .5,
     qtl_thresh = .005,
-    remove_extra_panes = FALSE)  
+    remove_extra_panes = FALSE)
+}
 }
 \concept{plots}

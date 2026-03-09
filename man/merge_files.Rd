@@ -19,8 +19,10 @@ Merge a list of files into one by stacking them on top of each other
  (i.e. \code{rbind}).
 }
 \examples{
-sumstats_paths <- echodata:: get_Nalls2019_loci(limit_snps = 5)
+\dontrun{
+sumstats_paths <- echodata::get_Nalls2019_loci(limit_snps = 5)
 merged_dat <- merge_files(file_paths = sumstats_paths)
+}
 }
 \seealso{
 Other utils: 

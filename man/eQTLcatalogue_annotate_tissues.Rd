@@ -17,9 +17,11 @@ the number of datasets per tissue.}
 Annotate QTL datasets from \emph{eQTL Catalogue} with metadata.
 }
 \examples{
+\dontrun{
 paths <- catalogueR::eQTLcatalogue_example_queries(
     fnames = "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz")
 dat <- data.table::fread(paths[1], nThread = 1)
 dat_annot <- catalogueR::eQTLcatalogue_annotate_tissues(dat = dat)
+}
 }
 \keyword{metadata}

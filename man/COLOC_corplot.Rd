@@ -20,14 +20,20 @@ COLOC_corplot(
 
 \item{coloc_thresh}{Colocalization Posterior Probability threshold,
  using the formula:
-\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.}
+\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2)}.}
 
 \item{label_top_snps}{Label the top n SNPs per \code{facets} group, sorted
 by \code{SNP.PP.H4} from \pkg{coloc}.}
 
+\item{facets}{Formula specifying the faceting variables for the plot.
+Passed to \link[ggplot2]{facet_grid}.}
+
 \item{show_plot}{Whether to print the plot.}
 
 \item{save_dir}{Directory to save plot in.}
+
+\item{seed}{Random seed for reproducibility of label placement
+via \link[ggrepel]{geom_label_repel}.}
 
 \item{verbose}{Print messages.}
 }
@@ -35,9 +41,11 @@ by \code{SNP.PP.H4} from \pkg{coloc}.}
 Plots the output from \link[catalogueR]{COLOC_run}.
 }
 \examples{
+\dontrun{
 coloc_QTLs <- catalogueR::COLOC_get_example_res()
 gg_coloc <- COLOC_corplot(coloc_QTLs = coloc_QTLs,
                           coloc_thresh = .5)
+}
 }
 \seealso{
 Other coloc: 

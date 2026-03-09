@@ -12,11 +12,13 @@
 #' @family eQTL Catalogue
 #' @export
 #' @examples
+#' \dontrun{
 #' qtl_datasets <- eQTLcatalogue_search_metadata(qtl_search = c(
 #'     "Alasoo_2018",
 #'     "monocyte"
 #' ))
 #' qtl_datasets.brain <- eQTLcatalogue_search_metadata(qtl_search = "brain")
+#' }
 eQTLcatalogue_search_metadata <- function(qtl_search = NULL,
                                           return_dataset_ids=TRUE,
                                           verbose = TRUE) {

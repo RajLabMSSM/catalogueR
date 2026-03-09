@@ -15,7 +15,9 @@
 #' @importFrom data.table fread fwrite
 #' @importFrom dplyr mutate
 #' @examples
+#' \dontrun{
 #' meta <- catalogueR::eQTLcatalogue_list_datasets()
+#' }
 eQTLcatalogue_list_datasets <- function(save_dir = tempdir(),
                                         force_new = FALSE,
                                         include_imported = TRUE,

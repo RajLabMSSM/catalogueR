@@ -18,7 +18,7 @@ COLOC_heatmap(
 
 \item{coloc_thresh}{Colocalization Posterior Probability threshold,
  using the formula:
-\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2}.}
+\code{(PP.H3 + PP.H4 >= coloc_thresh) & (PP.H4 / PP.H3 >= 2)}.}
 
 \item{label_snp_groups}{Whether to label SNP groups.}
 
@@ -32,10 +32,12 @@ COLOC_heatmap(
 Plots the output from \link[catalogueR]{COLOC_run}.
 }
 \examples{
+\dontrun{
 coloc_QTLs <- catalogueR::COLOC_get_example_res()
 gg_coloc <- catalogueR::COLOC_heatmap(
     coloc_QTLs = coloc_QTLs,
     coloc_thresh = .5)
+}
 }
 \seealso{
 Other coloc: 

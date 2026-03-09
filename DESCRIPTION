@@ -1,7 +1,8 @@
 Package: catalogueR
 Type: Package
-Title: QTL data extraction and colocalization
-Version: 1.0.2
+Title: QTL Data Extraction and Colocalization
+Version: 1.0.3
+Date: 2026-03-08
 Authors@R: 
     c(person(given = "Brian",
            family = "Schilder",
@@ -19,7 +20,7 @@ Authors@R:
            email = "towfique.raj@mssm.edu",
            comment = c(ORCID = "0000-0002-9355-5704"))
            ) 
-Description: Rapid querying, colocalization, and plotting of summary stats from the [*eQTL Catalogue*](https://www.ebi.ac.uk/eqtl/). *eQTL Catalogue* currently contains >100 datasets from 20 different studies (including GTEx), across many tissues/cell types/conditions.  
+Description: Rapid querying, colocalization, and plotting of summary stats from the eQTL Catalogue <https://www.ebi.ac.uk/eqtl/>. eQTL Catalogue currently contains >100 datasets from 20 different studies (including GTEx), across many tissues/cell types/conditions.
 Encoding: UTF-8
 LazyData: true
 License: GPL-3
@@ -27,13 +28,11 @@ URL: https://github.com/RajLabMSSM/catalogueR
 BugReports: https://github.com/RajLabMSSM/catalogueR/issues
 Depends: R (>= 4.1)
 biocViews:
-Imports: 
-  echoconda,
+Imports:
   echodata,
   echotabix,
   dplyr,
   tidyr,
-  utils,
   data.table,
   piggyback,
   parallel,
@@ -41,12 +40,12 @@ Imports:
   ggrepel,
   patchwork,
   scales,
-  stringr,
-  rlang,
-  jsonlite, 
-  coloc, 
+  jsonlite,
+  coloc,
   AnnotationDbi,
-  EnsDb.Hsapiens.v75
+  EnsDb.Hsapiens.v75,
+  GenomicRanges,
+  downloadR
 Suggests:
   echoLD,
   markdown,
@@ -56,12 +55,13 @@ Suggests:
   devtools,
   badger, 
   BiocStyle,
+  knitr,
   testthat (>= 3.0.0)
 Remotes:
-  github::RajLabMSSM/echoconda,
   github::RajLabMSSM/echotabix,
   github::RajLabMSSM/echodata,
-  github::RajLabMSSM/echoLD
-RoxygenNote: 7.2.3
+  github::RajLabMSSM/echoLD,
+  github::RajLabMSSM/downloadR
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Config/testthat/edition: 3

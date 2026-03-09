@@ -1,3 +1,8 @@
+# catalogueR 1.0.3
+
+## Bug fixes
+* Local R CMD check fixes and compatibility updates.
+
 # catalogueR 1.0.2
 
 ## Bug fixes

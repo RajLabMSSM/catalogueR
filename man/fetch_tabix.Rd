@@ -16,7 +16,7 @@ qtl.subset <- catalogueR:::fetch_tabix(unique_label=meta$unique_label[2],
 }
 \usage{
 fetch_tabix(
-  unique_label,
+  dataset_id,
   query_granges,
   query_method = c("rsamtools", "variantannotation", "conda", "seqminer"),
   quant_method = "ge",

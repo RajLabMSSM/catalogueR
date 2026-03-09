@@ -8,7 +8,6 @@
 library(dplyr)
 paths <- catalogueR::eQTLcatalogue_example_queries()
 query <- paths["BST1__Alasoo_2018.macrophage_IFNg"]
-
 qtl.egene <- data.frame(
     query
     )[, grep("*.QTL$|dataset_id|SNP",
@@ -18,7 +17,6 @@ sorted_egenes <- qtl.egene |>
     dplyr::summarise(mean.P = mean(pvalue.QTL), min.P = min(pvalue.QTL)) |>
     dplyr::arrange(min.P)
 qtl.egene <- subset(qtl.egene, gene.QTL == sorted_egenes$gene.QTL[1])
-
 gwas.region <- data.frame(
     query
     )[, grep("*.QTL$|dataset_id",

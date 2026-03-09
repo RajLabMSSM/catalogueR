@@ -2,7 +2,7 @@
 #'
 #' Example colocalization results from running \link[catalogueR]{COLOC_run}.
 #' on GWAS summary stats from all loci in
-#' \href{https://doi.org/10.1016/S1474-4422(19)30320-5}{Nalls23andMe_2019}.
+#' Nalls23andMe_2019 (\doi{10.1016/S1474-4422(19)30320-5}).
 #' These results were published in
 #' \href{https://pubmed.ncbi.nlm.nih.gov/34617105/}{
 #' Schilder & Raj (Human Molecular Genetics, 2021)}
@@ -27,8 +27,6 @@
 #' download.file(URL, tmp)
 #' piggyback::pb_upload(file = tmp,
 #'                      repo = "RajLabMSSM/catalogueR")
-#'
-#'
 #' ##### Full results ####
 #' URL <- file.path("https://github.com/RajLabMSSM/catalogueR/raw/master",
 #'                  "data/coloc_QTLs_full.rda")
@@ -42,7 +40,9 @@
 #' @importFrom downloadR load_rdata
 #' @importFrom echodata get_data
 #' @examples
+#' \dontrun{
 #' coloc_QTLs <- catalogueR::COLOC_get_example_res()
+#' }
 COLOC_get_example_res <- function(save_dir = tempdir(),
                            full = FALSE) {
     tmp <- echodata::get_data(

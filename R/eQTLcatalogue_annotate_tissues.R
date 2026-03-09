@@ -12,10 +12,12 @@
 #' @importFrom data.table merge.data.table
 #' @importFrom stats setNames
 #' @examples
+#' \dontrun{
 #' paths <- catalogueR::eQTLcatalogue_example_queries(
 #'     fnames = "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz")
 #' dat <- data.table::fread(paths[1], nThread = 1)
 #' dat_annot <- catalogueR::eQTLcatalogue_annotate_tissues(dat = dat)
+#' }
 eQTLcatalogue_annotate_tissues <- function(dat,
                                            add_tissue_counts = FALSE) {
     study <- tissue_label <- Tissue_group <- System <- 
@@ -38,7 +40,9 @@ eQTLcatalogue_annotate_tissues <- function(dat,
         dat$Study <- "GWAS"
     }
     if (!"dataset_id" %in% colnames(dat)) {
-        dat$dataset_id <- dat$dataset_id
+        if ("qtl_id" %in% colnames(dat)) {
+            dat$dataset_id <- dat$qtl_id
+        }
     }
     dat <- data.table::merge.data.table(dat |> dplyr::rename(Study_id = Study),
         meta,

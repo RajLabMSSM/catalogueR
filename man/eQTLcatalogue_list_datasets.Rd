@@ -30,6 +30,8 @@ fully re-processed by eQTL Catalogue's standardized pipeline.}
 Does some additional preprocessing of metadata to categorize tissue types.
 }
 \examples{
+\dontrun{
 meta <- catalogueR::eQTLcatalogue_list_datasets()
+}
 }
 \keyword{metadata}

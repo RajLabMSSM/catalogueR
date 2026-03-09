@@ -11,8 +11,10 @@
 #' @export
 #' @importFrom AnnotationDbi mapIds
 #' @examples
+#' \dontrun{
 #' ensembl_ids <- c("ENSG00000176697", "ENSG00000128573", "ENSG00000109743")
 #' gene_symbols <- catalogueR::ensembl_to_hgnc(ensembl_ids = ensembl_ids)
+#' }
 ensembl_to_hgnc <- function(ensembl_ids,
                             unique_only = TRUE,
                             verbose = TRUE) {

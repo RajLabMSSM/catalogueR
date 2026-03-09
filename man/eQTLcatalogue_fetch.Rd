@@ -5,7 +5,7 @@
 \title{Query eQTL Catalogue}
 \usage{
 eQTLcatalogue_fetch(
-  unique_label,
+  dataset_id,
   query_granges,
   method = c("REST", "tabix"),
   quant_method = "ge",
@@ -20,13 +20,16 @@ eQTLcatalogue_fetch(
 )
 }
 \arguments{
-\item{unique_label}{Unique eQTL Catalogue ID assigned in metadata
-("unique_label" column in \code{data(meta)}).}
+\item{dataset_id}{Unique eQTL Catalogue ID assigned in metadata
+("dataset_id" column in \code{data(meta)}).}
+
+\item{query_granges}{\link[data.table]{data.table} with at least columns
+\code{CHR} and \code{POS} defining the genomic region to query.}
 
 \item{method}{Method for querying eQTL Catalogue:
-\itemize{
-\item{"REST" (default): }{Uses the REST API. Slow but can be used by anyone.}
-\item{"tabix"}{Uses tabix \link[echotabix]{query}.
+\describe{
+\item{REST (default)}{Uses the REST API. Slow but can be used by anyone.}
+\item{tabix}{Uses tabix \link[echotabix]{query}.
 Fast, but requires the user to first get their IP address whitelisted 
 by the EMBL-EBI server admin by putting in a request
 \href{https://www.ebi.ac.uk/about/contact/support/}{here}.} 
@@ -55,9 +58,15 @@ or \code{quant_method="microarray"}, depending on the dataset.
 \item{multithread_tabix}{Multi-thread across within a single tabix file query
 (good when you have one-several large loci).}
 
-\item{add_dataset_id}{Add "dataset_id" (i.e. "unique_label") column to the query result.}
+\item{add_dataset_id}{Add "dataset_id" (i.e. "dataset_id") column to the query result.}
 
 \item{convert_genes}{Convert Ensembl IDs to HGNC symbols.}
+
+\item{suffix}{Character suffix to append to QTL column names
+(default: \code{".QTL"}). Set to \code{NULL} to skip.}
+
+\item{timeout}{Timeout in seconds for the REST API query
+(default: \code{5*60}).}
 
 \item{conda_env}{Conda environment to search for tabix executable in.}
 
@@ -65,24 +74,18 @@ or \code{quant_method="microarray"}, depending on the dataset.
 queries through parallelization.}
 
 \item{verbose}{Show more (\code{=TRUE}) or fewer (\code{=FALSE}) messages.}
-
-\item{query_dat}{\link[data.table]{data.table} of GWAS summary statistics.}
-
-\item{chrom}{Chromosome of the query window.}
-
-\item{bp_lower}{Minimum basepair position of the query window.}
-
-\item{bp_upper}{Maxmimum basepair position of the query window.}
 }
 \description{
 Query eQTL Catalogue datasets with multiple methods options.
 }
 \examples{
+\dontrun{
 data("meta")
 query_granges <- echodata::BST1
 GWAS.QTL_manual <- catalogueR::eQTLcatalogue_fetch(
   query_granges = query_granges,
-  unique_label = meta$unique_label[1])
+  dataset_id = meta$dataset_id[1])
+}
 }
 \seealso{
 Other eQTL Catalogue: 

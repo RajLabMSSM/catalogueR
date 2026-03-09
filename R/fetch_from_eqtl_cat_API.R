@@ -4,7 +4,6 @@
 #' @keywords internal
 #' @param link File link.
 #' @param is_gwas Whether the file is a GWAS dataset.
-#' @importFrom rlang is_empty
 #' @importFrom tidyr unnest
 fetch_from_eqtl_cat_API <- function(link,
                                     is_gwas = FALSE,

@@ -18,8 +18,10 @@ Convert ENSEMBL IDs to HGNC gene symbols using the
 \link[EnsDb.Hsapiens.v75]{EnsDb.Hsapiens.v75} Bioconductor package.
 }
 \examples{
+\dontrun{
 ensembl_ids <- c("ENSG00000176697", "ENSG00000128573", "ENSG00000109743")
 gene_symbols <- catalogueR::ensembl_to_hgnc(ensembl_ids = ensembl_ids)
+}
 }
 \seealso{
 Other utils: 

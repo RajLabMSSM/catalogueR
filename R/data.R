@@ -2,7 +2,6 @@
 
 #' eQTL Catalogue tabix header
 #'
-#'
 #' The eQTL Catalogue tabix header (column names)
 #'  is not always included in the file.
 #' @source
