@@ -1,3 +1,19 @@
+# catalogueR 2.0.0
+
+## New features
+
+* Remove 15 deprecated function wrappers that have been deprecated
+  since v1.0.x.
+
+## Bug fixes
+
+* Fix `dataset_id` column detection in eQTL Catalogue queries.
+* Fix data.table recycling warnings.
+* Update R requirement from `>= 3.6` to `>= 4.1`.
+* Remove unused imports: echoconda, stringr, utils, rlang.
+* Rd: convert `\itemize` to `\describe` for named lists,
+  `citEntry` to `bibentry`, bare doi URLs to `\doi{}`, title case.
+
 # catalogueR 1.0.3
 
 ## Bug fixes
