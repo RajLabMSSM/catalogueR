@@ -36,9 +36,9 @@ Nat Genet 53, 1290–1299 (2021). [https://doi.org/10.1038/s41588-021-00924-w](h
 ## Installation 
   
 ```R
-if(!require("remotes")) install.packages("remotes")
+if(!require("BiocManager")) install.packages("BiocManager")
 
-remotes::install_github("RajLabMSSM/`r pkg`")
+BiocManager::install("RajLabMSSM/`r pkg`")
 library(`r pkg`)
 ``` 
 

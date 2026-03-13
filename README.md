@@ -31,9 +31,9 @@ and
 ## Installation
 
 ``` r
-if(!require("remotes")) install.packages("remotes")
+if(!require("BiocManager")) install.packages("BiocManager")
 
-remotes::install_github("RajLabMSSM/catalogueR")
+BiocManager::install("RajLabMSSM/catalogueR")
 library(catalogueR)
 ```
 
