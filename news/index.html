@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">catalogueR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.1</span>
       </span>
     </div>
 
@@ -60,6 +60,16 @@
       <small>Source: <a href="https://github.com/RajLabMSSM/catalogueR/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="2.0.1" id="cataloguer-201">catalogueR 2.0.1<a class="anchor" aria-label="anchor" href="#cataloguer-201"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-2-0-1">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-2-0-1"></a></h3>
+<ul><li>Add <code>skip_on_cran()</code> and <code>skip_if_offline()</code> to <code>test-COLOC_run</code> to prevent hard failures on CI when piggyback downloads are unavailable.</li>
+<li>Fix hardcoded <code>$POS</code> in <code>test-eQTLcatalogue_fetch</code> — now detects position column dynamically (POS or BP).</li>
+<li>Fix <code>construct_locus_name()</code> to detect position column dynamically.</li>
+<li>Add <code>"aut"</code> role to maintainer in DESCRIPTION (required by <code>--as-cran</code>).</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="2.0.0" id="cataloguer-200">catalogueR 2.0.0<a class="anchor" aria-label="anchor" href="#cataloguer-200"></a></h2>
 <div class="section level3">
