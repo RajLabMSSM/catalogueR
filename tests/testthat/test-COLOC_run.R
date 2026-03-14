@@ -1,5 +1,8 @@
 test_that("COLOC_run works", {
-    
+
+    testthat::skip_on_cran()
+    testthat::skip_if_offline()
+
     gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries(
         fnames = c("BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",
                    "BST1__Alasoo_2018.macrophage_IFNg.tsv.gz")

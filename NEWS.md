@@ -1,3 +1,14 @@
+# catalogueR 2.0.1
+
+## Bug fixes
+
+* Add `skip_on_cran()` and `skip_if_offline()` to `test-COLOC_run` to
+  prevent hard failures on CI when piggyback downloads are unavailable.
+* Fix hardcoded `$POS` in `test-eQTLcatalogue_fetch` — now detects
+  position column dynamically (POS or BP).
+* Fix `construct_locus_name()` to detect position column dynamically.
+* Add `"aut"` role to maintainer in DESCRIPTION (required by `--as-cran`).
+
 # catalogueR 2.0.0
 
 ## New features

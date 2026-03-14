@@ -1,12 +1,12 @@
 Package: catalogueR
 Type: Package
 Title: QTL Data Extraction and Colocalization
-Version: 2.0.0
+Version: 2.0.1
 Date: 2026-03-08
 Authors@R: 
     c(person(given = "Brian",
            family = "Schilder",
-           role = c("cre"),
+           role = c("aut","cre"),
            email = "brian_schilder@alumni.brown.edu",
            comment = c(ORCID = "0000-0001-5949-2191")),
     person(given = "Jack",
