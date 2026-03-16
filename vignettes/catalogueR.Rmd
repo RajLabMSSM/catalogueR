@@ -1,102 +1,113 @@
 ---
-title: ""  
-author: "`r rworkflows::use_badges(add_doi = '10.1093/bioinformatics/btab658')`"
+title: "catalogueR"
+author: "Brian M. Schilder"
+date: "Most recent update:<br> `r Sys.Date()`"
 output:
-  github_document
+  BiocStyle::html_document:
+vignette: >
+    %\VignetteIndexEntry{catalogueR}
+    %\usepackage[utf8]{inputenc}
+    %\VignetteEngine{knitr::rmarkdown}
 ---
- 
+
 ```{r setup, include=TRUE}
 library(catalogueR)
 ```
 
+## Introduction
 
-## Introduction  
- 
-*eQTL Catalogue* includes a large number of standardized QTL datasets (110 datasets from 20 studies as of  7/4/2020). It actually contains more than just eQTL data. For each dataset, the following kinds of QTLs can be queried:
+*eQTL Catalogue* includes a large number of standardised QTL datasets
+(110 datasets from 20 studies as of 7/4/2020). It actually contains more
+than just eQTL data. For each dataset, the following kinds of QTLs can
+be queried:
 
-- **gene expression QTL**: `quant_method="ge"` (*default*) or `quant_method="microarray"`, depending on the dataset. catalogueR will automatically select whichever option is available.  
-- **exon expression QTL**: *under construction* `quant_method="ge"`  
-- **transcript usage QTL** *under construction* `quant_method="tx"`  
-- **promoter, splice junction and 3ʹ end usage QTL** *under construction* `quant_method="txrev"`   
+- **gene expression QTL**: `quant_method="ge"` (*default*) or
+  `quant_method="microarray"`, depending on the dataset.
+  `catalogueR` will automatically select whichever option is available.
+- **exon expression QTL**: *under construction* `quant_method="ge"`
+- **transcript usage QTL**: *under construction* `quant_method="tx"`
+- **promoter, splice junction and 3' end usage QTL**: *under construction*
+  `quant_method="txrev"`
 
+## Metadata
 
-## Metadata  
+You can view a metadata table for all current datasets:
 
-You can view of a metadata table for all current datasets:  
-
-```{r}
+```{r metadata}
 data("meta")
 print(
-  paste("There are",formatC(nrow(meta),big.mark = ","), "datasets in eQTL Catalogue.")
+  paste("There are", formatC(nrow(meta), big.mark = ","),
+        "datasets in eQTL Catalogue.")
 )
-knitr::kable(meta[1:10,])
+knitr::kable(meta[1:10, ])
 ```
 
-You can search through the metadata for datasets with certain keywords (case-insensitive substrings across multiple columns). 
+You can search through the metadata for datasets with certain keywords
+(case-insensitive substrings across multiple columns).
 
-```{r}
+```{r search_metadata}
 qtl_datasets <- catalogueR::eQTLcatalogue_search_metadata(
-  qtl_search=c("Alasoo_2018","monocyte"))
+  qtl_search = c("Alasoo_2018", "monocyte"))
 
 print(qtl_datasets)
 ```
 
-### [Approach 1] Query with summary stats  
+## Approach 1: Query with summary stats
 
-Supply one or more paths to [GWAS] summary stats files (one per locus) and automatically download any eQTL data within that range. 
+Supply one or more paths to GWAS summary stats files (one per locus) and
+automatically download any eQTL data within that range.
 
-The files can be any of these formats, either *gzip*-compressed (`.gz`) or uncompressed: `.csv`, `.tsv`, `space-separated`  
+The files can be any of these formats, either gzip-compressed (`.gz`) or
+uncompressed: `.csv`, `.tsv`, `space-separated`.
 
-<br>
+The summary stats files must have the following column names
+(order does not matter):
 
-The summary stats files must have the following column names (order doesn't matter):
-  - `SNP` (rsid for each SNP)
-  - `CHR` (chromosome; with or without the "chr" prefix is fine)
-  - `POS` (basepair position)
-  - ... (optional extra columns)
+- `SNP` (rsid for each SNP)
+- `CHR` (chromosome; with or without the "chr" prefix)
+- `POS` (basepair position)
+- ... (optional extra columns)
 
-```{r Approach 1, eval=FALSE}
+```{r approach1, eval=FALSE}
 sumstats_paths <- echodata::get_Nalls2019_loci(limit_snps = 5)
 gwas.qtl_paths <- catalogueR::eQTLcatalogue_query(
-  sumstats_paths =  sumstats_paths["BST1"],
+  sumstats_paths = sumstats_paths["BST1"],
   qtl_search = c("Alasoo_2018.macrophage_naive"),
-  split_files  = TRUE)
+  split_files = TRUE)
 ```
 
-- Because you selected the argument `split_files=TRUE` the query results have been distributed across multiple files and saved to disk (useful when you don't want to load one massive data.table every time you want to look at specific results subsets).  
-- In this scenario, `eQTLcatalogue_query()` returns a list of those file paths (instead of the data.table itself).  
-- To merge these files back together and import them into R, use the following function:  
+Because you selected the argument `split_files=TRUE`, the query results
+have been distributed across multiple files and saved to disk. This is
+useful when you do not want to load one massive `data.table` every time
+you want to look at specific result subsets. In this scenario,
+`eQTLcatalogue_query()` returns a list of those file paths
+(instead of the `data.table` itself).
 
-```{r, eval=FALSE}
+To merge these files back together and import them into R, use:
+
+```{r merge, eval=FALSE}
 GWAS.QTL <- catalogueR::merge_files(file_paths = gwas.qtl_paths)
-# Interactive datatable of results 
-## WARNING: Don't use this function on large datatables, might cause freezing.
-echodata::createDT(utils::head(GWAS.QTL))
 ```
 
+## Approach 2: Query with coordinates
 
+You can also make queries to *eQTL Catalogue* by manually specifying the
+coordinates of the region you want to extract, as well as the
+`unique_label` of the QTL dataset (see `data("meta")` for IDs).
 
-### [Approach 2] Query with coordinates  
-
-You can also makes queries to *eQTL Catalogue* by manually specifying the coordinates of the region you want to extract,
-as well as the `unique_label` of the QTL dataset (see `data("meta")` for IDs).
- 
-```{r Approach 2- Query with coordinates, eval=FALSE}
-GWAS.QTL_manual <- catalogueR:: eQTLcatalogue_fetch(
-  unique_label="Alasoo_2018.macrophage_IFNg",  
-  chrom = 8, 
-  bp_lower = 21527069-500,
-  bp_upper = 21527069+500)
-
-echodata::createDT(utils::head(GWAS.QTL_manual))
+```{r approach2, eval=FALSE}
+GWAS.QTL_manual <- catalogueR::eQTLcatalogue_fetch(
+  unique_label = "Alasoo_2018.macrophage_IFNg",
+  chrom = 8,
+  bp_lower = 21527069 - 500,
+  bp_upper = 21527069 + 500)
 ```
 
+## Session info
 
-# Session info 
+<details>
 
-<details> 
-
-```{r Session info}
+```{r Session_info}
 utils::sessionInfo()
 ```
 

@@ -1,35 +1,39 @@
 ---
-title: "colocalize" 
+title: "Colocalization"
 author: "Brian M. Schilder"
 date: "Most recent update:<br> `r Sys.Date()`"
 output:
   BiocStyle::html_document:
 vignette: >
-    %\VignetteIndexEntry{colocalize} 
+    %\VignetteIndexEntry{colocalize}
     %\usepackage[utf8]{inputenc}
     %\VignetteEngine{knitr::rmarkdown}
 ---
-  
 
 ```{r setup, include=TRUE}
-library(catalogueR) 
+library(catalogueR)
 ```
 
-## Introduction  
+## Introduction
 
-- Here, we aim to more robustly test whether the genetic signals underlying two dataset (e.g. GWAS vs. eQTL in the same locus)are indeed the same, using a methodology called colocalization. 
+Here we aim to robustly test whether the genetic signals underlying two
+datasets (e.g. GWAS vs. eQTL in the same locus) are indeed the same,
+using a methodology called colocalization.
 
-- Specifically, we will use [`coloc`](https://github.com/chr1swallace/coloc), which infers the probability that each SNP is causal in a given locus in each of the datasets. It then tests the hypothesis that those signals show substantially similar association distributions. 
+Specifically, we use
+[`coloc`](https://github.com/chr1swallace/coloc), which infers the
+probability that each SNP is causal in a given locus in each of the
+datasets. It then tests the hypothesis that those signals show
+substantially similar association distributions.
 
+## List datasets
 
-## List datasets 
+We have previously queried *eQTL Catalogue* using several Parkinson's
+disease GWAS loci (with `eQTLcatalogue_query()`).
 
-- We have previously queried *eQTL Catalogue* using several Parkinson's disease
-GWAS loci (with `eQTLcatalogue_query()`). 
+Let's first gather those files saved as TSV files.
 
-- Let's first gather those files saved as csv files.  
-
-```{r Import datasets, max.height='100px', eval=FALSE}
+```{r import_datasets, eval=FALSE}
 gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries(fnames = c(
   "BST1__Alasoo_2018.macrophage_IFNg+Salmonella.tsv.gz",
   "BST1__Alasoo_2018.macrophage_naive.tsv.gz",
@@ -37,64 +41,64 @@ gwas.qtl_paths <- catalogueR::eQTLcatalogue_example_queries(fnames = c(
 ))
 ```
 
+## Run coloc
 
-# Run coloc
-
-- Since its original release, [`coloc`](https://github.com/chr1swallace/coloc) 
-has been updated so that it can now model multiple causal variants within a 
-given dataset (see the
+Since its original release,
+[`coloc`](https://github.com/chr1swallace/coloc) has been updated so
+that it can now model multiple causal variants within a given dataset
+(see the
 [paper](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1008720)),
-whereas previously it could assume one causal variants. 
-Thus, it may be able to better estimate the colocalization probability 
-between two datasets. 
+whereas previously it could assume only one causal variant. Thus, it may
+be able to better estimate the colocalization probability between two
+datasets.
 
-```{r Run coloc, max.height='100px', eval=FALSE}
-coloc_QTLs <- catalogueR::COLOC_run(gwas.qtl_paths = gwas.qtl_paths,
-                                    top_snp_only = TRUE,
-                                    split_by_group = FALSE,
-                                    method = "abf")
+```{r run_coloc, eval=FALSE}
+coloc_QTLs <- catalogueR::COLOC_run(
+  gwas.qtl_paths = gwas.qtl_paths,
+  top_snp_only = TRUE,
+  split_by_group = FALSE,
+  method = "abf")
 ```
 
-## Plot results 
+## Plot results
 
-First, let's plot only the results with >80% colocalization probability. 
-This is a colocalization threshold commonly used in the field. 
+First, let's plot only the results with >80% colocalization probability.
+This is a colocalization threshold commonly used in the field.
 
-```{r Plot results, error=TRUE, eval=FALSE}
-coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs, 
-                                             coloc_thresh = .8)
+```{r plot_results, eval=FALSE}
+coloc_plot <- catalogueR::COLOC_heatmap(
+  coloc_QTLs = coloc_QTLs,
+  coloc_thresh = .8)
 ```
 
-- Uh oh! Looks like there were no colocalizations at >=80% probability. 
-Let's explore the data a bit and lower the threshold to 0 
-(not advisable except for demonstration purposes).
+If there are no colocalizations at >=80% probability, you can lower
+the threshold to explore the data (though not advisable for real
+analyses).
 
-```{r Plot results 2, eval=FALSE}
-coloc_plot <- catalogueR::COLOC_heatmap(coloc_QTLs = coloc_QTLs,
-                                             coloc_thresh = 0)
+```{r plot_results2, eval=FALSE}
+coloc_plot <- catalogueR::COLOC_heatmap(
+  coloc_QTLs = coloc_QTLs,
+  coloc_thresh = 0)
 ```
 
-**Too many results**:  
+**Too many results:**
 
-- In other cases, you may have too many colocalized results to show 
-in a plot all at once.
-- As a general rule, the more tests you do to higher your probability
-threshold should be, since Bayesian methods don't calculate P-values 
-(and this cannot used multiple-testing correction methods like FDR). 
-- For example, if you ran many thousands of coloc test across 
-many GWAS-eQTL pairs, it's advisable to raise your PP threshold 
-to .90 or even .99. 
-This also has the benefit of narrowing down your (sometimes many!) 
-results so that you may focus on only the strongest colocalizations. 
+In other cases, you may have too many colocalized results to show
+in a plot all at once. As a general rule, the more tests you run the
+higher your probability threshold should be, since Bayesian methods
+do not calculate P-values (and thus cannot use multiple-testing
+correction methods like FDR). For example, if you ran many thousands
+of coloc tests across many GWAS-eQTL pairs, it is advisable to raise
+your PP threshold to 0.90 or even 0.99. This also has the benefit
+of narrowing down your (sometimes many!) results so that you may
+focus on only the strongest colocalizations.
 
+## Session info
 
-# Session info 
+<details>
 
-<details> 
-
-```{r Session info}
+```{r Session_info}
 utils::sessionInfo()
 ```
 
 </details>
-
