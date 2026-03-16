@@ -111,3 +111,9 @@ reference:
   - title: Utilities
     contents:
       - merge_files
+
+  - title: Other
+    contents:
+      - catalogueR-package
+      - eQTLcatalogue_header
+      - meta
